@@ -37,7 +37,7 @@ function renderConditions() {
         </div>
         <div class="row ${needsArg ? "row-2" : ""}">
           <div>
-            <label>Prüfung ${tooltipBadge(c.blockType, c.condId)}</label>
+            <label>Prüfung ${tooltipBadge(c.blockType, c.condId, 'conditions')}</label>
             <select onchange="updateCond(${i}, 'condId', this.value)">${condOptions(c.blockType)}</select>
           </div>
           ${needsArg ? `
@@ -89,7 +89,7 @@ function renderActions(which) {
         </div>
         <div class="row ${needsArg ? "row-2" : ""}">
           <div>
-            <label>Aktion ${tooltipBadge(a.blockType, a.actId)}</label>
+            <label>Aktion ${tooltipBadge(a.blockType, a.actId, 'actions')}</label>
             <select onchange="updateAct('${which}', ${i}, 'actId', this.value)">${actOptions(a.blockType)}</select>
           </div>
           ${needsArg ? `

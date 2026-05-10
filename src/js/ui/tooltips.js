@@ -44,9 +44,11 @@ function hideTooltip() {
 }
 
 // HTML-Schnipsel für das (i)-Symbol neben einer Option.
+// kind: 'conditions' | 'actions' — gleiche Option-ID kann in beiden
+// Kategorien unterschiedliche Bedeutung haben (z. B. Thruster.override).
 // Liefert leeren String, wenn keine Beschreibung hinterlegt ist.
-function tooltipBadge(blockType, optionId) {
-  const text = getDescription(blockType, optionId);
+function tooltipBadge(blockType, optionId, kind) {
+  const text = getDescription(blockType, optionId, kind);
   if (!text) return "";
   const safe = escapeAttr(text);
   return `<span class="tooltip-trigger" data-tip="${safe}"

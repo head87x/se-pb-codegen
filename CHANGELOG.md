@@ -7,6 +7,31 @@ das Projekt folgt [Semantic Versioning](https://semver.org/lang/de/).
 
 ## [Unreleased]
 
+### Hinzugefügt (Phase 2)
+- **Block-Bibliothek auf 52 Block-Typen erweitert** in 12 Kategorien:
+  Bewegung, Energie, Förderung, Produktion, Antrieb, Werkzeuge, Waffen,
+  Sensorik, Steuerung, Anzeige, Komfort, Custom.
+- Neue Block-Typen: Hangartor, Merge-Block, Reaktor, Solarpanel,
+  Windturbine, H2-Motor, Frachtcontainer, Assembler, Gas-Generator,
+  Air Vent, Fallschirm, Jump Drive, Bohrer, Schweißer, Schleifer,
+  Projektor, Geschützturm (Gatling), Raketenturm, Innenraum-Geschütz,
+  Gatling-Gun (fest), Raketenwerfer (fest), Decoy, Kamera, Funkantenne,
+  Laser-Antenne, Erz-Detektor, Beacon, Remote Control, Button-Panel,
+  LCD / Text-Panel, Medi-Raum, Kryo-Kammer.
+- **Standard- / Erweitert-Trennung** pro Condition/Action über `tier`-Feld.
+  Dropdowns gruppieren die Optionen jetzt sichtbar nach Tier.
+- **Tooltip-Texte** (1–3 Sätze) für nahezu jede Condition und Action,
+  abrufbar über das (i)-Symbol rechts vom Dropdown-Label.
+- **Block-Typ-Dropdown gruppiert nach Kategorie** (`<optgroup>`-Aufbau).
+
+### Geändert
+- `DESCRIPTIONS` ist jetzt strukturiert nach `conditions`/`actions`
+  (statt flat), weil eine ID — wie `override` beim Thruster — in beiden
+  Listen unterschiedliche Bedeutung haben kann.
+- `tooltipBadge(blockType, optionId, kind)` und
+  `getDescription(blockType, optionId, kind)` nehmen jetzt einen
+  `kind`-Parameter (`'conditions'` | `'actions'`).
+
 ### Geändert
 - **Code-Split:** Logik aus `index.html` in modulare Dateien unter `src/`
   ausgelagert (`src/css/styles.css`, `src/js/blocks/*`, `src/js/ui/*`,
