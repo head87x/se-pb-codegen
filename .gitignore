@@ -1,0 +1,16 @@
+# OS
+.DS_Store
+Thumbs.db
+
+# Editor
+.vscode/
+.idea/
+*.swp
+*~
+
+# Node (falls man später npm-Tools nutzt)
+node_modules/
+package-lock.json
+
+# Lokale Test-Outputs
+*.cs.local
