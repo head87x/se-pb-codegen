@@ -187,7 +187,7 @@ const BLOCKS = {
       { id: "intensity", label: "Intensität setzen", code: "{v}.Intensity = {arg}f;", arg: "z.B. 5.0" }
     ]
   },
-  "Schalldetektor / Soundblock": {
+  "Soundblock / Lautsprecher": {
     interface: "IMySoundBlock",
     conditions: [],
     actions: [

@@ -36,6 +36,11 @@ das Projekt folgt [Semantic Versioning](https://semver.org/lang/de/).
   betroffen, aber zukunftssicher). `blockTypeOptions(filterKind)` filtert
   jetzt nach `'conditions'` oder `'actions'`.
 
+### Geändert (Folgefix)
+- Block-Typ **"Schalldetektor / Soundblock"** umbenannt in **"Soundblock /
+  Lautsprecher"**. Der `IMySoundBlock` im Spiel spielt Sounds ab — er
+  detektiert nichts. Der alte Name war doppelt irreführend.
+
 ## [0.1.0] — 2026-05-11
 ### Hinzugefügt
 - Erste Veröffentlichung des SE.PB Code Generators (Stand bei Repo-Init).
