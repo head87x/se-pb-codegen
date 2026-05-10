@@ -15,8 +15,9 @@
 // ---------- Conditions ----------
 
 function addCondition() {
-  const firstType = Object.keys(BLOCKS)[0];
-  const firstCond = BLOCKS[firstType].conditions[0]?.id || "";
+  const firstType = Object.keys(BLOCKS).find(k => (BLOCKS[k].conditions || []).length > 0);
+  if (!firstType) return; // sollte nie passieren — Katalog hat immer Conditions
+  const firstCond = BLOCKS[firstType].conditions[0].id;
   state.conditions.push({
     blockType: firstType,
     blockName: "",
@@ -56,8 +57,9 @@ function updateCond(i, field, val) {
 
 function addAction(which) {
   const list = which === "then" ? state.actionsThen : state.actionsElse;
-  const firstType = Object.keys(BLOCKS)[0];
-  const firstAct = BLOCKS[firstType].actions[0]?.id || "";
+  const firstType = Object.keys(BLOCKS).find(k => (BLOCKS[k].actions || []).length > 0);
+  if (!firstType) return;
+  const firstAct = BLOCKS[firstType].actions[0].id;
   list.push({
     blockType: firstType,
     blockName: "",

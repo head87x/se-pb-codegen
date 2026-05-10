@@ -274,8 +274,16 @@ const BLOCKS = {
 // LOOKUP HELPERS
 // ============================================================
 
-function blockTypeOptions() {
-  return Object.keys(BLOCKS).map(k => `<option value="${k}">${k}</option>`).join("");
+// filterKind: undefined (alle) | 'conditions' | 'actions'
+// Wenn gesetzt, werden nur Block-Typen aufgelistet, die in der
+// entsprechenden Kategorie überhaupt etwas anbieten. So taucht
+// z. B. der Soundblock (ohne Conditions) nicht im Bedingungs-
+// Dropdown auf — das verhinderte vorher ein leeres "Prüfung"-Select.
+function blockTypeOptions(filterKind) {
+  return Object.keys(BLOCKS)
+    .filter(k => !filterKind || (BLOCKS[k][filterKind] || []).length > 0)
+    .map(k => `<option value="${k}">${k}</option>`)
+    .join("");
 }
 
 function condOptions(blockType) {

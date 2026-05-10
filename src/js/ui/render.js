@@ -28,7 +28,7 @@ function renderConditions() {
         <div class="row row-2">
           <div>
             <label>Block-Typ</label>
-            <select onchange="updateCond(${i}, 'blockType', this.value)">${blockTypeOptions()}</select>
+            <select onchange="updateCond(${i}, 'blockType', this.value)">${blockTypeOptions('conditions')}</select>
           </div>
           <div>
             <label>Block-Name (im Spiel)</label>
@@ -80,7 +80,7 @@ function renderActions(which) {
         <div class="row row-2">
           <div>
             <label>Block-Typ</label>
-            <select onchange="updateAct('${which}', ${i}, 'blockType', this.value)">${blockTypeOptions()}</select>
+            <select onchange="updateAct('${which}', ${i}, 'blockType', this.value)">${blockTypeOptions('actions')}</select>
           </div>
           <div>
             <label>Block-Name</label>

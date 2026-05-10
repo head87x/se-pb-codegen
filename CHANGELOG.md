@@ -28,6 +28,14 @@ das Projekt folgt [Semantic Versioning](https://semver.org/lang/de/).
   `src/js/blocks/descriptions.js` gepflegt — solange ein Text fehlt,
   erscheint kein (i)-Symbol.
 
+### Behoben (Folgefix)
+- Block-Typen ohne prüfbare Eigenschaften (z. B. **Soundblock**) erscheinen
+  jetzt nicht mehr im Bedingungs-Dropdown — vorher wurde das "Prüfung"-
+  Dropdown leer und visuell verschluckt gerendert. Analog erscheinen
+  Block-Typen ohne Aktionen nicht im Aktions-Dropdown (aktuell keine
+  betroffen, aber zukunftssicher). `blockTypeOptions(filterKind)` filtert
+  jetzt nach `'conditions'` oder `'actions'`.
+
 ## [0.1.0] — 2026-05-11
 ### Hinzugefügt
 - Erste Veröffentlichung des SE.PB Code Generators (Stand bei Repo-Init).
