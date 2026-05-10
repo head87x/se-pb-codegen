@@ -7,6 +7,27 @@ das Projekt folgt [Semantic Versioning](https://semver.org/lang/de/).
 
 ## [Unreleased]
 
+### Geändert
+- **Code-Split:** Logik aus `index.html` in modulare Dateien unter `src/`
+  ausgelagert (`src/css/styles.css`, `src/js/blocks/*`, `src/js/ui/*`,
+  `src/js/generator/*`). `index.html` enthält jetzt nur noch das HTML-Skelett
+  und Script-/Link-Tags. **Weiterhin kein Build-Tool, läuft offline per
+  Doppelklick.**
+- `CLAUDE.md` und der Node-Smoketest auf die neue Verzeichnisstruktur angepasst.
+
+### Behoben
+- **Fokus-Verlust beim Tippen:** Eingabefelder (Block-Name, Argument-Wert)
+  behalten beim Tippen den Fokus. Werte-Updates rendern jetzt nur den
+  Code-Output neu, nicht die gesamte Builder-UI.
+- **Live-Code-Vorschau:** Generierter Code aktualisiert sich jetzt bei jedem
+  Tastenanschlag — vorher blockierte der Fokus-Bug flüssiges Tippen.
+
+### Hinzugefügt
+- Tooltip-Infrastruktur (`src/js/ui/tooltips.js` + CSS für `.tooltip` /
+  `.tooltip-trigger`). Erklärtexte werden ab Phase 2 in
+  `src/js/blocks/descriptions.js` gepflegt — solange ein Text fehlt,
+  erscheint kein (i)-Symbol.
+
 ## [0.1.0] — 2026-05-11
 ### Hinzugefügt
 - Erste Veröffentlichung des SE.PB Code Generators (Stand bei Repo-Init).

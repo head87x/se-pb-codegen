@@ -14,30 +14,33 @@ Zu Beginn jeder neuen Session:
 
 ## Projekt-Kurzbeschreibung
 
-**SE.PB Code Generator** — ein Single-File-Web-Tool (`index.html`), das per
-visuellem Baukasten C#-Code für den Programmable Block in Space Engineers
-generiert. Komplett vanilla HTML/CSS/JS, kein Build, keine Dependencies,
-läuft offline im Browser.
+**SE.PB Code Generator** — ein Web-Tool (`index.html` + Module unter
+`src/`), das per visuellem Baukasten C#-Code für den Programmable Block in
+Space Engineers generiert. Komplett vanilla HTML/CSS/JS, **kein Build**, keine
+Dependencies, läuft offline im Browser (einfacher Doppelklick auf
+`index.html`).
 
 ## Architektur in einem Satz
 
-Eine Datei (`index.html`) mit drei Schichten: **BLOCKS-Katalog** (Datenmodell),
-**State + UI-Renderer** (Zustand und DOM-Aufbau), **Code-Generator**
-(state → C#-String).
+`index.html` ist nur noch das HTML-Skelett; die Logik ist in mehrere
+JS-Module unter `src/js/` aufgeteilt — drei Schichten bleiben:
+**BLOCKS-Katalog** (Datenmodell), **State + UI-Renderer** (Zustand und
+DOM-Aufbau), **Code-Generator** (state → C#-String).
 
-## Wichtigste Code-Regionen in `index.html`
+## Wichtigste Code-Regionen
 
-Suche im Script-Tag nach diesen Markern:
-
-| Marker / Region              | Zeilenbereich (ca.) | Zweck                                                                 |
-|------------------------------|---------------------|-----------------------------------------------------------------------|
-| `const BLOCKS = {`           | ~320                | Katalog aller unterstützten Block-Typen mit Conditions & Actions      |
-| `var state = {`              | ~600                | Globaler Zustand (Bedingungen, Aktionen, Modus, LCD)                  |
-| `function renderConditions`  | ~660                | Baut die Bedingungs-UI                                                |
-| `function renderActions`     | ~710                | Baut die Aktions-UI (then/else)                                       |
-| `function generateCode`      | ~830                | **Der Codegenerator** — state → C#-String                             |
-| `function condExpr` / `actCode` | ~810             | Platzhalter-Ersetzung (`{v}` = Variable, `{arg}` = Benutzer-Argument) |
-| `function highlightCs`       | ~960                | Leichtgewichtiges Syntax-Highlighting                                 |
+| Datei                                  | Inhalt |
+|----------------------------------------|--------|
+| `src/js/blocks/catalog.js`             | `BLOCKS`-Katalog + Lookup-Helper (`blockTypeOptions`, `findCond`, `findAct`) |
+| `src/js/blocks/descriptions.js`        | `DESCRIPTIONS` für Tooltip-Texte (ab Phase 2 gefüllt) |
+| `src/js/state.js`                      | `state`-Objekt + `templates` aus `localStorage` |
+| `src/js/ui/inputs.js`                  | Mutationen (`addCondition`, `updateCond` etc.) + Fokus-Fix-Strategie |
+| `src/js/ui/render.js`                  | `renderConditions`, `renderActions`, `renderExecHelp`, `render` (Master) |
+| `src/js/ui/templates.js`               | `saveTemplate`, `loadTemplate`, `deleteTemplate`, `newProject` |
+| `src/js/ui/tooltips.js`                | Tooltip-Infrastruktur + `tooltipBadge()` |
+| `src/js/generator/codegen.js`          | `escape*`-Helper, `safeVar`, `condExpr`, `actCode`, **`generateCode()`**, Copy/Download/Toast |
+| `src/js/generator/highlight.js`        | Leichtgewichtiges Syntax-Highlighting (`highlightCs`) |
+| `src/css/styles.css`                   | Alle Styles + Tooltip-CSS |
 
 ## Datenmodell
 
@@ -133,23 +136,36 @@ In `BLOCKS["<Typ>"].conditions` oder `.actions` ein weiteres Objekt anhängen.
 
 ### Test ohne Browser (Node)
 
+Alle `src/js/`-Module nacheinander in eine `vm`-Sandbox laden, dann
+`generateCode()` aufrufen:
+
 ```bash
 node -e "
 const fs = require('fs'); const vm = require('vm');
-const html = fs.readFileSync('index.html', 'utf8');
-const js = html.match(/<script>([\s\S]*?)<\/script>/)[1].replace(/render\(\);\s*\$/, '');
+const files = [
+  'src/js/blocks/catalog.js',
+  'src/js/blocks/descriptions.js',
+  'src/js/state.js',
+  'src/js/generator/highlight.js',
+  'src/js/generator/codegen.js',
+  'src/js/ui/tooltips.js',
+  'src/js/ui/inputs.js',
+  'src/js/ui/templates.js',
+  'src/js/ui/render.js'
+];
+const mockEl = () => ({ value:'', checked:false, style:{}, textContent:'', innerHTML:'', classList:{add(){},remove(){}}, querySelectorAll:()=>[], appendChild(){}, getBoundingClientRect:()=>({top:0,right:0,bottom:0,left:0,width:0,height:0}) });
 const sb = {
+  document: { getElementById: mockEl, createElement: mockEl, body:{appendChild:()=>{}} },
   localStorage: { getItem: () => null, setItem: () => {} },
-  document: { getElementById: () => ({ value: 'argument', checked: false, style: {}, textContent: '', innerHTML: '' }), querySelectorAll: () => [] },
-  window: {}, console, Math, JSON, Date, RegExp, Object, Array, Map, Set, String,
-  navigator: { clipboard: { writeText: () => Promise.resolve() } },
-  URL: { createObjectURL: () => '', revokeObjectURL: () => {} },
-  Blob: function(){}, setTimeout, clearTimeout
+  window: {}, navigator: { clipboard: { writeText: () => Promise.resolve() } },
+  Blob: function(){}, URL: { createObjectURL:()=>'', revokeObjectURL:()=>{} },
+  console, Math, JSON, Date, RegExp, Object, Array, Map, Set, String,
+  setTimeout, clearTimeout, requestAnimationFrame:(f)=>f(), prompt:()=>null, confirm:()=>true
 };
-vm.createContext(sb); vm.runInContext(js, sb);
-// state setzen ...
-sb.state.conditions = [{ blockType: 'Sensor', blockName: 'S1', condId: 'isActive', arg: '', logicOp: 'AND' }];
-sb.state.actionsThen = [{ blockType: 'Tür (Door)', blockName: 'D1', actId: 'open', arg: '' }];
+vm.createContext(sb);
+for (const f of files) vm.runInContext(fs.readFileSync(f, 'utf8'), sb, { filename: f });
+sb.state.conditions  = [{ blockType:'Sensor', blockName:'S1', condId:'isActive', arg:'', logicOp:'AND' }];
+sb.state.actionsThen = [{ blockType:'Tür (Door)', blockName:'D1', actId:'open', arg:'' }];
 sb.generateCode();
 console.log(sb.window._rawCode);
 "
