@@ -449,14 +449,13 @@ LCD_WIDGETS.gauge = {
 
 // ============ THEMES (Phase 4c) ============
 
-// Themes ändern nur accent / accent2 / bg.
+// Themes ändern nur die HAUPT-AKZENT-FARBE (accent) und optional bg.
 // success / warning / danger / text sind UNIVERSELL — grün = OK,
 // gelb = Warnung, rot = Fehler. Bleibt über alle Themes konstant.
 const LCD_THEMES = {
   default: {
-    label: "Orange / Cyan",
-    accent:  "255,140,26",   // Orange
-    accent2: "78,197,255",   // Cyan
+    label: "Orange",
+    accent:  "255,140,26",
     success: "94,212,123",
     warning: "255,200,80",
     danger:  "255,85,96",
@@ -464,9 +463,8 @@ const LCD_THEMES = {
     bg:      "42,52,66"
   },
   alarm: {
-    label: "Rotes Alarm-Display",
-    accent:  "255,85,96",    // Rot
-    accent2: "255,140,140",  // Pink (statt orange, bleibt in rot-familie)
+    label: "Rot (Alarm)",
+    accent:  "255,85,96",
     success: "94,212,123",
     warning: "255,200,80",
     danger:  "255,85,96",
@@ -474,9 +472,8 @@ const LCD_THEMES = {
     bg:      "62,32,32"
   },
   industrial: {
-    label: "Grünes Industrie",
-    accent:  "94,212,123",   // Grün
-    accent2: "180,220,170",  // Hellgrün
+    label: "Grün (Industrie)",
+    accent:  "94,212,123",
     success: "94,212,123",
     warning: "255,200,80",
     danger:  "255,85,96",
@@ -484,9 +481,8 @@ const LCD_THEMES = {
     bg:      "32,42,38"
   },
   cyan: {
-    label: "Blaues Sci-Fi",
-    accent:  "78,197,255",   // Cyan
-    accent2: "140,210,255",  // Hellblau (statt orange)
+    label: "Blau (Sci-Fi)",
+    accent:  "78,197,255",
     success: "94,212,123",
     warning: "255,200,80",
     danger:  "255,85,96",
@@ -500,24 +496,32 @@ const LCD_THEMES = {
 // auf die neue Theme-Farbe gesetzt — unabhängig vom aktuellen Wert.
 // Felder, die hier nicht aufgeführt sind (z.B. alarm.textColor=white),
 // werden beim Theme-Wechsel NICHT angetastet.
+//
+// Slot-Konvention:
+//   "accent"  — Theme-Hauptfarbe (wechselt mit Theme)
+//   "success" — IMMER Grün (semantisch: OK / arbeitet / voll)
+//   "warning" — IMMER Gelb (selten verwendet — Reserve)
+//   "danger"  — IMMER Rot (semantisch: Fehler / Warnung / leer)
+//   "bg"      — Hintergrund-Akzent (wechselt mit Theme)
+//   "text"    — Standard-Textfarbe
 const LCD_WIDGET_COLOR_SLOTS = {
   header:        { color:    "accent" },
-  statusbar:     { color:    "success" },
-  statusbar_v:   { color:    "accent2" },
+  statusbar:     { color:    "success" },   // immer grün — Füllstand-Bedeutung
+  statusbar_v:   { color:    "accent" },
   statusbar_seg: { color:    "accent" },
   bar_double:    { color1:   "success", color2: "danger" },
   donut:         { color:    "success", bgColor: "bg" },
   dot:           { colorLow: "danger",  colorMid: "accent", colorHigh: "success" },
   checklist:     { colorOk:  "success", colorBad: "danger" },
-  warning:       { color:    "danger" },
-  alarm:         { bgColor:  "danger" },
-  section:       { bgColor:  "accent2" },
+  warning:       { color:    "danger" },    // immer rot
+  alarm:         { bgColor:  "danger" },    // immer rot
+  section:       { bgColor:  "accent" },
   divider:       { color:    "bg" },
-  clock:         { color:    "accent2" },
+  clock:         { color:    "accent" },
   value:         { color:    "text" },
   bigvalue:      { color:    "accent" },
-  iconvalue:     { color:    "accent2" },
-  aggregator:    { color:    "success" },
+  iconvalue:     { color:    "accent" },
+  aggregator:    { color:    "success" },   // immer grün — Aggregat-Wert
   gauge:         { color:    "accent",  bgColor: "bg" }
 };
 
