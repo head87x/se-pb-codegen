@@ -710,9 +710,14 @@ footer .accent { color: var(--accent); }
   outline-offset: -1px;
   cursor: move;
   z-index: 2;
+  user-select: none;
 }
 .lcd-cell-manual:hover {
   outline: 2px solid var(--accent);
+}
+/* SVG-Inhalt fängt mousedown nicht ab — Drag soll von der Cell selbst gestartet werden */
+.lcd-cell-manual > svg {
+  pointer-events: none;
 }
 
 .lcd-cell-resize {
