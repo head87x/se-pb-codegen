@@ -85,11 +85,29 @@ function _lcdMouseMove(e) {
   const dy = (e.clientY - s.startScreenY) / s.scaleScreen;
 
   if (s.isResize) {
-    const newW = _snap(Math.max(LCD_MIN_SIZE, s.origW + dx));
-    const newH = _snap(Math.max(LCD_MIN_SIZE, s.origH + dy));
-    // Boundary: nicht über LCD-Rand hinaus
-    s.widget.manualW = Math.min(newW, s.res.w - s.origX);
-    s.widget.manualH = Math.min(newH, s.res.h - s.origY);
+    // Aspect-Lock: das Verhältnis aus LCD_MANUAL_DEFAULTS halten.
+    // Wir nehmen den GRÖSSEREN Delta als treibend, damit's flüssig wirkt.
+    const aspect = (typeof getLcdWidgetAspect === "function")
+      ? getLcdWidgetAspect(s.widget.type) : (s.origW / s.origH);
+    let newW, newH;
+    if (Math.abs(dx) >= Math.abs(dy)) {
+      newW = _snap(Math.max(LCD_MIN_SIZE, s.origW + dx));
+      newH = _snap(Math.max(LCD_MIN_SIZE, newW / aspect));
+    } else {
+      newH = _snap(Math.max(LCD_MIN_SIZE, s.origH + dy));
+      newW = _snap(Math.max(LCD_MIN_SIZE, newH * aspect));
+    }
+    // Boundary: nicht über LCD-Rand hinaus (für beide Dimensionen)
+    if (s.origX + newW > s.res.w) {
+      newW = s.res.w - s.origX;
+      newH = _snap(newW / aspect);
+    }
+    if (s.origY + newH > s.res.h) {
+      newH = s.res.h - s.origY;
+      newW = _snap(newH * aspect);
+    }
+    s.widget.manualW = newW;
+    s.widget.manualH = newH;
   } else {
     let newX = _snap(s.origX + dx);
     let newY = _snap(s.origY + dy);

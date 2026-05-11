@@ -655,29 +655,55 @@ const LCD_RESOLUTION_ORDER = ["square", "wide", "tall", "big_3x3"];
 
 // Kompakte Default-Größen für Manual-Modus (pro Widget-Typ).
 // In LCD-Pixeln. Werden beim Hinzufügen eines neuen Widgets verwendet.
-// Bewusst klein gewählt, damit Widgets nur ihren Inhalt umschließen
-// und mehr Platz auf dem LCD übrig bleibt.
+//
+// WICHTIG: Default-W/H haben EXAKT das gleiche Aspect-Ratio wie die
+// SVG-viewBox des Widgets — sonst liegt der gestrichelte Manual-Rahmen
+// mit Letterboxing um den Inhalt herum. Aspect-Lock beim Resize hält
+// dieses Verhältnis dann konstant.
+//
+// viewBox-Aspekte (W:H) als Referenz:
+//   header / statusbar / statusbar_seg / value: 200×40 → 5:1
+//   dot / clock:                                200×32 → 6.25:1
+//   warning:                                    200×36 → 5.56:1
+//   aggregator / iconvalue:                     200×38 → 5.26:1
+//   alarm:                                      200×50 → 4:1
+//   bar_double:                                 200×55 → 3.636:1
+//   section:                                    200×28 → 7.143:1
+//   divider:                                    200×18 → 11.11:1
+//   bigvalue:                                   200×70 → 2.857:1
+//   checklist:                                  200×130 → 1.538:1
+//   donut:                                      100×100 → 1:1
+//   gauge:                                      100×80 → 1.25:1
+//   statusbar_v:                                50×120 → 0.4167:1
 const LCD_MANUAL_DEFAULTS = {
-  header:        { w: 256, h: 32 },
-  statusbar:     { w: 256, h: 32 },
-  statusbar_v:   { w: 48,  h: 128 },
-  statusbar_seg: { w: 256, h: 32 },
-  bar_double:    { w: 256, h: 48 },
-  value:         { w: 192, h: 24 },
-  bigvalue:      { w: 192, h: 64 },
-  iconvalue:     { w: 192, h: 32 },
-  donut:         { w: 128, h: 128 },
-  gauge:         { w: 160, h: 128 },
-  dot:           { w: 128, h: 24 },
-  checklist:     { w: 192, h: 112 },
-  warning:       { w: 256, h: 32 },
-  alarm:         { w: 256, h: 48 },
-  section:       { w: 256, h: 24 },
-  divider:       { w: 256, h: 16 },
-  clock:         { w: 128, h: 32 },
-  spacer:        { w: 256, h: 16 },
-  aggregator:    { w: 256, h: 32 }
+  header:        { w: 240, h: 48 },    // 5:1 ✓
+  statusbar:     { w: 240, h: 48 },    // 5:1 ✓
+  statusbar_v:   { w: 50,  h: 120 },   // 0.4167:1 ✓
+  statusbar_seg: { w: 240, h: 48 },    // 5:1 ✓
+  bar_double:    { w: 240, h: 66 },    // 3.636:1 ✓
+  value:         { w: 240, h: 48 },    // 5:1 ✓
+  bigvalue:      { w: 280, h: 98 },    // 2.857:1 ✓
+  iconvalue:     { w: 200, h: 38 },    // 5.263:1 ✓
+  donut:         { w: 128, h: 128 },   // 1:1 ✓
+  gauge:         { w: 160, h: 128 },   // 1.25:1 ✓
+  dot:           { w: 200, h: 32 },    // 6.25:1 ✓
+  checklist:     { w: 200, h: 130 },   // 1.538:1 ✓
+  warning:       { w: 200, h: 36 },    // 5.556:1 ✓
+  alarm:         { w: 200, h: 50 },    // 4:1 ✓
+  section:       { w: 200, h: 28 },    // 7.143:1 ✓
+  divider:       { w: 200, h: 18 },    // 11.11:1 ✓
+  clock:         { w: 200, h: 32 },    // 6.25:1 ✓
+  spacer:        { w: 240, h: 16 },
+  aggregator:    { w: 200, h: 38 }     // 5.263:1 ✓
 };
+
+// Aspect-Ratio (W/H) pro Widget-Typ. Wird beim Resize verwendet,
+// um das Verhältnis zu halten. Wert kommt aus LCD_MANUAL_DEFAULTS.
+function getLcdWidgetAspect(type) {
+  const md = LCD_MANUAL_DEFAULTS[type];
+  if (!md || !md.h) return 1;
+  return md.w / md.h;
+}
 
 function findLcdWidget(type) {
   return LCD_WIDGETS[type];

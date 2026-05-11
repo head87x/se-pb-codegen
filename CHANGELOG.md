@@ -7,6 +7,18 @@ das Projekt folgt [Semantic Versioning](https://semver.org/lang/de/).
 
 ## [Unreleased]
 
+### Geändert (Manueller Modus — enger Rahmen + Aspect-Lock)
+- **Gestrichelter Manual-Rahmen liegt jetzt eng am Widget-Inhalt**
+  an — egal welcher Widget-Typ. Die Default-Größen aller 18 Widgets
+  haben jetzt exakt das gleiche Seitenverhältnis wie die jeweilige
+  SVG-viewBox (z. B. Header 5:1, Donut 1:1, Statusbar-vertikal
+  0.42:1). Vorher war bei vielen Widgets viel Leerraum zwischen
+  Inhalt und Rahmen.
+- **Aspect-Lock beim Resize**: Wenn du ein Widget am Eck-Griff
+  ziehst, bleibt das Seitenverhältnis erhalten — nicht mehr beliebig
+  verzerrbar. Die Maus-Achse mit dem größeren Delta treibt die
+  Größenänderung, die andere folgt automatisch.
+
 ### Hinzugefügt (Phase 4d — Layout-Engine)
 - **LCD-Format wählbar**: Standard 1:1, Wide 2:1, Tall 1:2, Big 3×3.
   Beeinflusst nur die Vorschau-Größe und das Layout-Aspect; der
