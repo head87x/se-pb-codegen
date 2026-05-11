@@ -64,6 +64,30 @@ jobs:
           sudo apt-get update -qq
           sudo apt-get install -y -qq lftp
 
+      - name: Diagnose — wo lande ich nach SFTP-Login?
+        env:
+          HOST: ${{ secrets.IONOS_HOST }}
+          USER: ${{ secrets.IONOS_USERNAME }}
+          PASS: ${{ secrets.IONOS_PASSWORD }}
+          DIR:  ${{ steps.dir.outputs.server_dir }}
+        run: |
+          lftp -c "
+            set sftp:auto-confirm yes
+            set net:timeout 20
+            open -u \"$USER\",\"$PASS\" sftp://\"$HOST\"
+            echo '---PWD nach Login:---'
+            pwd
+            echo '---Inhalt Root (.):'
+            cls -la .
+            echo '---Versuch: cd nach \"$DIR\"---'
+            cd \"$DIR\" || echo 'cd FEHLGESCHLAGEN — Ordner existiert nicht'
+            echo '---PWD nach cd:'
+            pwd
+            echo '---Inhalt aktuelles Verzeichnis:'
+            cls -la .
+            bye
+          "
+
       - name: Per SFTP hochladen (lftp mirror)
         env:
           HOST: ${{ secrets.IONOS_HOST }}
