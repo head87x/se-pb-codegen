@@ -210,6 +210,9 @@ function updateLcdWidget(i, field, val) {
   // SVG-Preview manuell updaten, ohne den ganzen Composer neu zu rendern
   const previewEl = document.getElementById(`lcd-widget-preview-${i}`);
   if (previewEl) previewEl.innerHTML = renderLcdWidgetPreview(state.lcdComposer.widgets[i]);
+  // Auch die zugehörige Zeile in der Full-Preview aktualisieren
+  const fullRow = document.querySelectorAll(".lcd-full-preview .lcd-full-row")[i];
+  if (fullRow) fullRow.innerHTML = renderLcdWidgetPreview(state.lcdComposer.widgets[i]);
   generateCode();
 }
 

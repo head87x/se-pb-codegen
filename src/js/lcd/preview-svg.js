@@ -345,5 +345,12 @@ LCD_PREVIEWS.gauge = (w) => {
 function renderLcdWidgetPreview(widget) {
   const fn = LCD_PREVIEWS[widget.type];
   if (!fn) return "";
-  return fn(widget);
+  let svg = fn(widget);
+  // Optionaler Widget-Hintergrund: ersetzt den schwarzen Standard-Rect.
+  if (widget.widgetBg && widget.widgetBg.trim()) {
+    const color = _parseColor(widget.widgetBg, "rgb(7,9,12)");
+    // Erstes <rect ... fill="#07090c"/> oder fill="#XXXXXX" am Anfang ersetzen
+    svg = svg.replace(/(<rect [^>]*fill=")#07090c("[^>]*\/>)/, `$1${color}$2`);
+  }
+  return svg;
 }

@@ -104,7 +104,7 @@ const LCD_WIDGETS = {
   value: {
     label: "Wert-Anzeige",
     height: 28,
-    defaults: { label: "Speed", sourceBlock: "", source: "ship_speed", format: "0.0", color: "216,225,236" },
+    defaults: { label: "Speed", sourceBlock: "", source: "ship_speed", format: "0.0", color: "216,225,236", size: 0.9 },
     fields: [
       { key: "label",       label: "Label",            type: "text" },
       { key: "sourceBlock", label: "Block-Name",       type: "text", hint: "exakter Name aus Terminal" },
@@ -114,7 +114,8 @@ const LCD_WIDGETS = {
         { value: "0.0",  label: "1 Nachkommastelle" },
         { value: "0.00", label: "2 Nachkommastellen" }
       ]},
-      { key: "color",       label: "Farbe (R,G,B)", type: "text", hint: "z.B. 216,225,236" }
+      { key: "color",       label: "Farbe (R,G,B)", type: "text", hint: "z.B. 216,225,236" },
+      { key: "size",        label: "Schriftgröße",  type: "number", hint: "z.B. 0.9 oder 1.2" }
     ]
   },
 
@@ -357,7 +358,7 @@ LCD_WIDGETS.clock = {
 LCD_WIDGETS.bigvalue = {
   label: "Großes Zahlenfeld",
   height: 70,
-  defaults: { label: "GESCHWINDIGKEIT", sourceBlock: "", source: "ship_speed", format: "0.0", color: "255,140,26" },
+  defaults: { label: "GESCHWINDIGKEIT", sourceBlock: "", source: "ship_speed", format: "0.0", color: "255,140,26", size: 2.5 },
   fields: [
     { key: "label",       label: "Label oben",        type: "text" },
     { key: "sourceBlock", label: "Block-Name",        type: "text" },
@@ -367,14 +368,15 @@ LCD_WIDGETS.bigvalue = {
       { value: "0.0",  label: "1 Nachkommastelle" },
       { value: "0.00", label: "2 Nachkommastellen" }
     ]},
-    { key: "color", label: "Farbe (R,G,B)", type: "text" }
+    { key: "color", label: "Farbe (R,G,B)", type: "text" },
+    { key: "size",  label: "Schriftgröße (Zahl)", type: "number", hint: "z.B. 2.0 oder 2.5" }
   ]
 };
 
 LCD_WIDGETS.iconvalue = {
   label: "Icon + Wert",
   height: 38,
-  defaults: { label: "O₂", icon: "IconOxygen", sourceBlock: "", source: "tank_fill", format: "0", color: "78,197,255" },
+  defaults: { label: "O₂", icon: "IconOxygen", sourceBlock: "", source: "tank_fill", format: "0", color: "78,197,255", size: 1.1 },
   fields: [
     { key: "label",       label: "Label",         type: "text" },
     { key: "icon",        label: "Icon",          type: "select", options: [
@@ -399,7 +401,8 @@ LCD_WIDGETS.iconvalue = {
       { value: "0.0",  label: "1 Nachkommastelle" },
       { value: "0.00", label: "2 Nachkommastellen" }
     ]},
-    { key: "color", label: "Farbe (R,G,B)", type: "text" }
+    { key: "color", label: "Farbe (R,G,B)", type: "text" },
+    { key: "size",  label: "Schriftgröße",   type: "number", hint: "z.B. 1.1" }
   ]
 };
 

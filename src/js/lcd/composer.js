@@ -130,6 +130,12 @@ function generateLcdComposerCode(ensureBlock) {
     }
     out += `\n            // Widget #${idx + 1}: ${w.type}\n`;
     out += `            {\n`;
+    // Optionaler Widget-Hintergrund (Phase 4c.1)
+    if (w.widgetBg && w.widgetBg.trim()) {
+      out += `                sp = MySprite.CreateSprite("SquareSimple", new Vector2(rect.Position.X + lcdComp.SurfaceSize.X / 2f, yPos + ${height / 2}f), new Vector2(lcdComp.SurfaceSize.X, ${height}f));\n`;
+      out += `                sp.Color = ${_csColor(w.widgetBg)};\n`;
+      out += `                frame.Add(sp);\n`;
+    }
     out += _emitWidget(w, ensureBlock);
     out += `            }\n`;
     out += `            yPos += ${height}f;\n`;
@@ -192,10 +198,11 @@ function _emitWidget(w, ensureBlock) {
     const src = findLcdSource(w.source);
     const unit = src ? src.unit : "";
     const fmt = _formatSpec(w.format);
-    out += `                sp = MySprite.CreateText(${_csString((w.label || "") + ":")}, "White", new Color(216,225,236), 0.9f, TextAlignment.LEFT);\n`;
+    const sz = parseFloat(w.size) || 0.9;
+    out += `                sp = MySprite.CreateText(${_csString((w.label || "") + ":")}, "White", new Color(216,225,236), ${sz}f, TextAlignment.LEFT);\n`;
     out += `                sp.Position = new Vector2(rect.Position.X + padX, yPos);\n`;
     out += `                frame.Add(sp);\n`;
-    out += `                sp = MySprite.CreateText((${valueExpr}).ToString(${_csString(fmt)}) + ${_csString(" " + unit)}, "White", ${_csColor(w.color)}, 0.9f, TextAlignment.RIGHT);\n`;
+    out += `                sp = MySprite.CreateText((${valueExpr}).ToString(${_csString(fmt)}) + ${_csString(" " + unit)}, "White", ${_csColor(w.color)}, ${sz}f, TextAlignment.RIGHT);\n`;
     out += `                sp.Position = new Vector2(rect.Position.X + lcdComp.SurfaceSize.X - padX, yPos);\n`;
     out += `                frame.Add(sp);\n`;
 
@@ -442,12 +449,13 @@ function _emitWidget(w, ensureBlock) {
     const src = findLcdSource(w.source);
     const unit = src ? src.unit : "";
     const fmt = _formatSpec(w.format);
+    const sz = parseFloat(w.size) || 2.5;
     // Kleines Label oben
     out += `                sp = MySprite.CreateText(${_csString(w.label || "")}, "White", new Color(216,225,236), 0.6f, TextAlignment.CENTER);\n`;
     out += `                sp.Position = new Vector2(rect.Position.X + lcdComp.SurfaceSize.X / 2f, yPos + 2f);\n`;
     out += `                frame.Add(sp);\n`;
     // Große Zahl
-    out += `                sp = MySprite.CreateText((${valueExpr}).ToString(${_csString(fmt)}), "White", ${_csColor(w.color)}, 2.5f, TextAlignment.CENTER);\n`;
+    out += `                sp = MySprite.CreateText((${valueExpr}).ToString(${_csString(fmt)}), "White", ${_csColor(w.color)}, ${sz}f, TextAlignment.CENTER);\n`;
     out += `                sp.Position = new Vector2(rect.Position.X + lcdComp.SurfaceSize.X / 2f, yPos + 16f);\n`;
     out += `                frame.Add(sp);\n`;
     // Einheit rechts unten
@@ -464,6 +472,7 @@ function _emitWidget(w, ensureBlock) {
     const unit = src ? src.unit : "";
     const fmt = _formatSpec(w.format);
     const icon = w.icon || "Cross";
+    const ivSize = parseFloat(w.size) || 1.1;
     // Icon links
     out += `                sp = MySprite.CreateSprite(${_csString(icon)}, new Vector2(rect.Position.X + padX + 16f, yPos + 18f), new Vector2(28f, 28f));\n`;
     out += `                sp.Color = ${_csColor(w.color)};\n`;
@@ -473,7 +482,7 @@ function _emitWidget(w, ensureBlock) {
     out += `                sp.Position = new Vector2(rect.Position.X + padX + 38f, yPos + 4f);\n`;
     out += `                frame.Add(sp);\n`;
     // Wert + Einheit rechts
-    out += `                sp = MySprite.CreateText((${valueExpr}).ToString(${_csString(fmt)}) + ${_csString(" " + unit)}, "White", ${_csColor(w.color)}, 1.1f, TextAlignment.RIGHT);\n`;
+    out += `                sp = MySprite.CreateText((${valueExpr}).ToString(${_csString(fmt)}) + ${_csString(" " + unit)}, "White", ${_csColor(w.color)}, ${ivSize}f, TextAlignment.RIGHT);\n`;
     out += `                sp.Position = new Vector2(rect.Position.X + lcdComp.SurfaceSize.X - padX, yPos + 10f);\n`;
     out += `                frame.Add(sp);\n`;
 

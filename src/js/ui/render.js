@@ -262,7 +262,38 @@ function _renderLcdWidgetFields(w, i) {
     html += `<div class="lcd-widget-group-title">${escapeHtml(groupName)}</div>`;
     html += `<div class="lcd-widget-fields">${fields.map(f => _renderLcdSingleField(f, i, w[f.key])).join("")}</div>`;
   }
+
+  // Universelle Zusatz-Felder für jedes Widget (Phase 4c.1)
+  html += `<div class="lcd-widget-group-title">Hintergrund (optional)</div>`;
+  html += `<div class="lcd-widget-fields">`;
+  html += _renderLcdSingleField(
+    { key: "widgetBg", label: "Hintergrundfarbe (R,G,B)", type: "text", hint: "leer = kein Hintergrund" },
+    i,
+    w.widgetBg
+  );
+  html += `</div>`;
+
   return html;
+}
+
+// Stapelt alle Widget-Vorschauen in einem virtuellen LCD-Frame.
+// Spiegelt das tatsächliche Layout (vertikales Stacking) wider.
+// Demo-Werte für die Datenquellen.
+function _renderFullLcdPreview() {
+  const widgets = state.lcdComposer.widgets;
+  const inner = widgets.length === 0
+    ? `<div class="lcd-full-empty">— Display ist leer —</div>`
+    : widgets.map(w => {
+        const def = LCD_WIDGETS[w.type];
+        if (!def) return "";
+        return `<div class="lcd-full-row" data-type="${w.type}">${renderLcdWidgetPreview(w)}</div>`;
+      }).join("");
+  return `
+    <div class="lcd-full-preview-wrap">
+      <div class="lcd-full-preview-label">LIVE-VORSCHAU (Demo-Werte)</div>
+      <div class="lcd-full-preview">${inner}</div>
+    </div>
+  `;
 }
 
 function renderLcdComposer() {
@@ -297,9 +328,13 @@ function renderLcdComposer() {
     </div>`;
 
   const widgets = state.lcdComposer.widgets;
+  // Live-Vorschau des ganzen Displays
+  const fullPreview = _renderFullLcdPreview();
+
   if (widgets.length === 0) {
     root.innerHTML = `
       ${themeBar}
+      ${fullPreview}
       <div class="btn-row" style="margin-bottom:10px;">${addButtons}</div>
       <span class="empty-hint">Noch keine Widgets. Klick einen Button oben.</span>`;
     return;
@@ -307,6 +342,7 @@ function renderLcdComposer() {
 
   root.innerHTML = `
     ${themeBar}
+    ${fullPreview}
     <div class="btn-row" style="margin-bottom:10px;">${addButtons}</div>
     ${widgets.map((w, i) => {
       const def = LCD_WIDGETS[w.type] || { label: w.type };

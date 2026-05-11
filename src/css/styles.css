@@ -675,6 +675,52 @@ footer .accent { color: var(--accent); }
   color: var(--muted);
 }
 
+/* Live-Full-Preview (Phase 4c.1) */
+.lcd-full-preview-wrap {
+  margin-bottom: 14px;
+}
+
+.lcd-full-preview-label {
+  font-family: 'Consolas', monospace;
+  font-size: 10px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: var(--accent);
+  margin-bottom: 6px;
+}
+
+.lcd-full-preview {
+  background: #07090c;
+  border: 3px solid #1a2230;
+  border-radius: 6px;
+  padding: 4px;
+  width: 100%;
+  max-width: 400px;
+  margin: 0 auto;
+  box-shadow: 0 0 12px rgba(255, 140, 26, 0.15), inset 0 0 8px rgba(0,0,0,0.6);
+  overflow: hidden;
+}
+
+.lcd-full-row {
+  display: block;
+  line-height: 0;
+}
+
+.lcd-full-row svg {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.lcd-full-empty {
+  padding: 60px 12px;
+  text-align: center;
+  color: var(--muted);
+  font-family: 'Consolas', monospace;
+  font-size: 11px;
+  font-style: italic;
+}
+
 button.small:disabled {
   opacity: 0.35;
   cursor: not-allowed;
