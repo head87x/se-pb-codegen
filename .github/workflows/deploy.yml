@@ -4,17 +4,17 @@
 # Was passiert:
 #   - Jedes Mal wenn jemand zum Branch 'main' pusht, läuft
 #     diese GitHub-Action.
-#   - Sie checkt den aktuellen Code aus und spiegelt ihn per
-#     FTPS (verschlüsseltes FTP) in den Subdomain-Ordner auf
-#     dem IONOS-Webspace.
-#   - Was nicht hochgeladen wird: .git, .github, Claude-Files
-#     und ein paar Doku-Dateien.
+#   - Sie checkt den aktuellen Code aus, kopiert nur die für
+#     den Browser nötigen Dateien in einen Ordner _deploy/
+#     und lädt diese per SFTP (Port 22, verschlüsselt über SSH)
+#     auf den IONOS-Webspace.
 #
 # Voraussetzungen (im Repo unter Settings → Secrets → Actions):
-#   IONOS_HOST       — der SFTP/FTP-Server (z. B. access-XXX.webspace-data.io)
+#   IONOS_HOST       — der SFTP-Server (z. B. access-XXX.webspace-data.io)
 #   IONOS_USERNAME   — dein SFTP-Benutzername
 #   IONOS_PASSWORD   — dein SFTP-Passwort
-#   IONOS_SERVER_DIR — der Pfad auf dem Server, z. B. "/se-pb-codegen/"
+#   IONOS_SERVER_DIR — Pfad auf dem Server, z. B. "/sepb/"
+#                       (Slash am Ende wird automatisch ergänzt)
 #
 # Manuelles Auslösen: im GitHub-Repo unter "Actions" →
 #   "Auto-Deploy zu IONOS" → "Run workflow".
@@ -25,7 +25,7 @@ name: Auto-Deploy zu IONOS
 on:
   push:
     branches: [ main ]
-  workflow_dispatch:  # erlaubt manuelles Starten im GitHub-UI
+  workflow_dispatch:
 
 jobs:
   deploy:
@@ -36,6 +36,16 @@ jobs:
       - name: Code aus dem Repo holen
         uses: actions/checkout@v4
 
+      - name: Deploy-Ordner zusammenstellen
+        run: |
+          mkdir -p _deploy
+          cp index.html _deploy/
+          cp -r src _deploy/
+          # Optional: README + CHANGELOG mit hochladen (transparent für Besucher)
+          cp README.md CHANGELOG.md _deploy/ 2>/dev/null || true
+          echo "--- Inhalt von _deploy/ ---"
+          find _deploy -maxdepth 3 -type f | sort
+
       - name: Server-Dir normalisieren (Slash am Ende sicherstellen)
         id: dir
         shell: bash
@@ -45,24 +55,29 @@ jobs:
             */) ;;
             *)  DIR="$DIR/" ;;
           esac
+          # Wenn Secret leer ist, default auf "/"
+          if [ -z "$DIR" ] || [ "$DIR" = "/" ]; then DIR="/"; fi
           echo "server_dir=$DIR" >> "$GITHUB_OUTPUT"
 
-      - name: Per FTPS hochladen
-        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
-        with:
-          server:     ${{ secrets.IONOS_HOST }}
-          username:   ${{ secrets.IONOS_USERNAME }}
-          password:   ${{ secrets.IONOS_PASSWORD }}
-          server-dir: ${{ steps.dir.outputs.server_dir }}
-          protocol:   ftps
-          security:   loose
-          local-dir:  ./
-          # Was NICHT hochgeladen werden soll
-          exclude: |
-            **/.git*
-            **/.git*/**
-            **/.github/**
-            **/.claude/**
-            **/CLAUDE.md
-            **/.gitignore
-            **/.gitattributes
+      - name: lftp installieren
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq lftp
+
+      - name: Per SFTP hochladen (lftp mirror)
+        env:
+          HOST: ${{ secrets.IONOS_HOST }}
+          USER: ${{ secrets.IONOS_USERNAME }}
+          PASS: ${{ secrets.IONOS_PASSWORD }}
+          DIR:  ${{ steps.dir.outputs.server_dir }}
+        run: |
+          lftp -c "
+            set sftp:auto-confirm yes
+            set net:timeout 20
+            set net:max-retries 2
+            set net:reconnect-interval-base 5
+            open -u \"$USER\",\"$PASS\" sftp://\"$HOST\"
+            lcd _deploy
+            mirror --reverse --verbose --parallel=4 . \"$DIR\"
+            bye
+          "
