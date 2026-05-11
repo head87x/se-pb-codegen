@@ -17,11 +17,17 @@
 function addCondition() {
   const firstType = Object.keys(BLOCKS).find(k => (BLOCKS[k].conditions || []).length > 0);
   if (!firstType) return; // sollte nie passieren — Katalog hat immer Conditions
-  const firstCond = BLOCKS[firstType].conditions[0].id;
+  addConditionOfType(firstType);
+}
+
+// Wird vom Drop-Handler genutzt: Bedingung mit konkretem Block-Typ anlegen.
+function addConditionOfType(blockType) {
+  const def = BLOCKS[blockType];
+  if (!def || (def.conditions || []).length === 0) return;
   state.conditions.push({
-    blockType: firstType,
+    blockType,
     blockName: "",
-    condId: firstCond,
+    condId: def.conditions[0].id,
     arg: "",
     logicOp: "AND"
   });
@@ -56,14 +62,20 @@ function updateCond(i, field, val) {
 // ---------- Actions ----------
 
 function addAction(which) {
-  const list = which === "then" ? state.actionsThen : state.actionsElse;
   const firstType = Object.keys(BLOCKS).find(k => (BLOCKS[k].actions || []).length > 0);
   if (!firstType) return;
-  const firstAct = BLOCKS[firstType].actions[0].id;
+  addActionOfType(which, firstType);
+}
+
+// Wird vom Drop-Handler genutzt: Aktion mit konkretem Block-Typ anlegen.
+function addActionOfType(which, blockType) {
+  const def = BLOCKS[blockType];
+  if (!def || (def.actions || []).length === 0) return;
+  const list = which === "then" ? state.actionsThen : state.actionsElse;
   list.push({
-    blockType: firstType,
+    blockType,
     blockName: "",
-    actId: firstAct,
+    actId: def.actions[0].id,
     arg: ""
   });
   render();

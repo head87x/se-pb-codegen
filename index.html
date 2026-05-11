@@ -14,7 +14,23 @@
 
 <div class="layout">
 
-  <!-- LEFT: BUILDER -->
+  <!-- LEFT: BLOCK PALETTE (Phase 3) -->
+  <aside class="panel palette-panel">
+    <div class="panel-header">
+      <span>▶ BLÖCKE</span>
+      <span class="ascii-corner">[ DRAG ]</span>
+    </div>
+    <div class="panel-body">
+      <input type="text" class="palette-search" id="palette-search"
+             placeholder="Suche…" oninput="filterPalette(this.value)">
+      <div id="palette-list"></div>
+      <div class="help-text" style="margin-top:8px;">
+        Block ins WENN/DANN/SONST ziehen, oder weiter "+ Bedingung/Aktion" verwenden.
+      </div>
+    </div>
+  </aside>
+
+  <!-- MIDDLE: BUILDER -->
   <div class="panel">
     <div class="panel-header">
       <span>▶ BAUKASTEN</span>
@@ -60,7 +76,7 @@
           <span>::: WENN (Bedingungen)</span>
           <button class="small" onclick="addCondition()">+ Bedingung</button>
         </div>
-        <div class="section-content" id="conditions">
+        <div class="section-content drop-target" id="conditions">
           <span class="empty-hint">Keine Bedingungen — Aktion läuft immer.</span>
         </div>
       </div>
@@ -71,7 +87,7 @@
           <span>::: DANN (Aktionen)</span>
           <button class="small" onclick="addAction('then')">+ Aktion</button>
         </div>
-        <div class="section-content" id="actions-then">
+        <div class="section-content drop-target" id="actions-then">
           <span class="empty-hint">Noch keine Aktionen.</span>
         </div>
       </div>
@@ -82,7 +98,7 @@
           <span>::: SONST (optional)</span>
           <button class="small" onclick="addAction('else')">+ Aktion</button>
         </div>
-        <div class="section-content" id="actions-else">
+        <div class="section-content drop-target" id="actions-else">
           <span class="empty-hint">Keine SONST-Aktionen.</span>
         </div>
       </div>
@@ -106,7 +122,7 @@
   </div>
 
   <!-- RIGHT: CODE OUTPUT -->
-  <div class="panel">
+  <div class="panel code-panel">
     <div class="panel-header">
       <span>▶ GENERIERTER CODE</span>
       <div class="btn-row">
@@ -140,11 +156,13 @@
 <script src="src/js/state.js"></script>
 <script src="src/js/generator/highlight.js"></script>
 <script src="src/js/generator/codegen.js"></script>
+<script src="src/js/ui/icons.js"></script>
 <script src="src/js/ui/tooltips.js"></script>
+<script src="src/js/ui/dnd.js"></script>
 <script src="src/js/ui/inputs.js"></script>
 <script src="src/js/ui/templates.js"></script>
 <script src="src/js/ui/render.js"></script>
-<script>render();</script>
+<script>initPalette(); render();</script>
 
 </body>
 </html>

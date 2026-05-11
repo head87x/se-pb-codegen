@@ -136,3 +136,77 @@ function render() {
   renderExecHelp();
   generateCode();
 }
+
+// ============================================================
+// PALETTE (Phase 3 — Drag & Drop Block-Bibliothek)
+// ============================================================
+// Wird einmalig beim Init aufgerufen (renderPalette + initDropTargets).
+// Die Palette ist statisch — sie ändert sich nicht durch User-Aktionen.
+
+function renderPalette() {
+  const root = document.getElementById("palette-list");
+  if (!root) return;
+
+  // Gruppiere alle Block-Typen nach Kategorie
+  const byCat = {};
+  for (const blockType of Object.keys(BLOCKS)) {
+    const cat = BLOCKS[blockType].category || "Sonstiges";
+    (byCat[cat] = byCat[cat] || []).push(blockType);
+  }
+
+  // Reihenfolge: erst CATEGORIES, dann alphabetisch unbekannte
+  const orderedCats = [
+    ...CATEGORIES.filter(c => byCat[c]),
+    ...Object.keys(byCat).filter(c => !CATEGORIES.includes(c)).sort()
+  ];
+
+  root.innerHTML = orderedCats.map(cat => {
+    const cards = byCat[cat].map(blockType => `
+      <div class="palette-card" data-block-type="${escapeAttr(blockType)}" data-block-name="${escapeAttr(blockType.toLowerCase())}">
+        <span class="icon">${getCategoryIcon(cat)}</span>
+        <span class="name">${escapeHtml(blockType)}</span>
+      </div>
+    `).join("");
+    return `
+      <div class="palette-category" data-category="${escapeAttr(cat)}">
+        <div class="palette-cat-header" onclick="togglePaletteCategory(this)">
+          <span>${escapeHtml(cat)} <span style="color:var(--muted)">(${byCat[cat].length})</span></span>
+          <span class="toggle-arrow">▼</span>
+        </div>
+        <div class="palette-cat-body">${cards}</div>
+      </div>
+    `;
+  }).join("");
+
+  // Drag-Handler auf jede Karte setzen
+  root.querySelectorAll(".palette-card").forEach(card => {
+    makePaletteCardDraggable(card, card.dataset.blockType);
+  });
+}
+
+function togglePaletteCategory(headerEl) {
+  headerEl.parentElement.classList.toggle("collapsed");
+}
+
+// Live-Filter: blendet Karten + Kategorien ohne Treffer aus.
+function filterPalette(query) {
+  const q = (query || "").trim().toLowerCase();
+  const cats = document.querySelectorAll(".palette-category");
+  cats.forEach(cat => {
+    let anyVisible = false;
+    cat.querySelectorAll(".palette-card").forEach(card => {
+      const match = !q || card.dataset.blockName.includes(q);
+      card.style.display = match ? "" : "none";
+      if (match) anyVisible = true;
+    });
+    cat.style.display = anyVisible ? "" : "none";
+    // Bei aktiver Suche: alle Treffer-Kategorien aufklappen
+    if (q && anyVisible) cat.classList.remove("collapsed");
+  });
+}
+
+// Einmaliger Init am Ende des Dokuments
+function initPalette() {
+  renderPalette();
+  initDropTargets();
+}

@@ -7,6 +7,22 @@ das Projekt folgt [Semantic Versioning](https://semver.org/lang/de/).
 
 ## [Unreleased]
 
+### Hinzugefügt (Phase 3)
+- **Drag & Drop:** Linke Block-Palette mit allen 52 Block-Typen,
+  nach Kategorie aufklappbar. Karten lassen sich per Drag direkt
+  in den WENN-/DANN-/SONST-Bereich ziehen — fügt automatisch eine
+  passende Bedingung/Aktion ein.
+- **Such-Feld** in der Palette filtert Block-Karten live nach Name;
+  passende Kategorien klappen automatisch auf.
+- **Drop-Schutz:** Block-Typen ohne Conditions/Actions (z. B. Soundblock
+  beim Bedingungs-Container) werden beim Drop abgelehnt mit Toast-Hinweis.
+- 12 minimalistische **SVG-Kategorie-Icons** (`src/js/ui/icons.js`)
+  passend zur Sci-Fi-Ästhetik.
+- 3-Spalten-Layout (Palette | Builder | Code); responsive Fallback
+  bei < 1400 px (Code unter Builder) und < 900 px (alles stapeln).
+- Neue Module: `src/js/ui/icons.js`, `src/js/ui/dnd.js`.
+- Neue Mutators: `addConditionOfType(blockType)`, `addActionOfType(which, blockType)`.
+
 ### Hinzugefügt (Phase 2)
 - **Block-Bibliothek auf 52 Block-Typen erweitert** in 12 Kategorien:
   Bewegung, Energie, Förderung, Produktion, Antrieb, Werkzeuge, Waffen,
