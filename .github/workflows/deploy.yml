@@ -1,0 +1,57 @@
+# ============================================================
+# Auto-Deploy zu IONOS (sepb.teamllw.de)
+# ============================================================
+# Was passiert:
+#   - Jedes Mal wenn jemand zum Branch 'main' pusht, läuft
+#     diese GitHub-Action.
+#   - Sie checkt den aktuellen Code aus und spiegelt ihn per
+#     FTPS (verschlüsseltes FTP) in den Subdomain-Ordner auf
+#     dem IONOS-Webspace.
+#   - Was nicht hochgeladen wird: .git, .github, Claude-Files
+#     und ein paar Doku-Dateien.
+#
+# Voraussetzungen (im Repo unter Settings → Secrets → Actions):
+#   IONOS_HOST       — der SFTP/FTP-Server (z. B. access-XXX.webspace-data.io)
+#   IONOS_USERNAME   — dein SFTP-Benutzername
+#   IONOS_PASSWORD   — dein SFTP-Passwort
+#   IONOS_SERVER_DIR — der Pfad auf dem Server, z. B. "/se-pb-codegen/"
+#
+# Manuelles Auslösen: im GitHub-Repo unter "Actions" →
+#   "Auto-Deploy zu IONOS" → "Run workflow".
+# ============================================================
+
+name: Auto-Deploy zu IONOS
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:  # erlaubt manuelles Starten im GitHub-UI
+
+jobs:
+  deploy:
+    name: Deploy zu sepb.teamllw.de
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Code aus dem Repo holen
+        uses: actions/checkout@v4
+
+      - name: Per FTPS hochladen
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
+        with:
+          server:     ${{ secrets.IONOS_HOST }}
+          username:   ${{ secrets.IONOS_USERNAME }}
+          password:   ${{ secrets.IONOS_PASSWORD }}
+          server-dir: ${{ secrets.IONOS_SERVER_DIR }}
+          protocol:   ftps
+          security:   loose
+          local-dir:  ./
+          # Was NICHT hochgeladen werden soll
+          exclude: |
+            **/.git*
+            **/.git*/**
+            **/.github/**
+            **/.claude/**
+            **/CLAUDE.md
+            **/.gitignore
+            **/.gitattributes
