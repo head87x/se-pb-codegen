@@ -161,7 +161,21 @@ function onLcdComposerNameInput(val) {
 function addLcdWidget(type) {
   const def = LCD_WIDGETS[type];
   if (!def) return;
-  state.lcdComposer.widgets.push({ type, ...JSON.parse(JSON.stringify(def.defaults)) });
+  const widget = { type, ...JSON.parse(JSON.stringify(def.defaults)) };
+
+  // Aktuelles Theme direkt auf das neue Widget anwenden,
+  // damit es sofort die richtige Farbe hat (kein extra Klick nötig).
+  const themeName = state.lcdComposer.theme || "default";
+  const theme = LCD_THEMES[themeName];
+  const slots = LCD_WIDGET_COLOR_SLOTS[type];
+  if (theme && slots) {
+    for (const field of Object.keys(slots)) {
+      const newColor = theme[slots[field]];
+      if (newColor) widget[field] = newColor;
+    }
+  }
+
+  state.lcdComposer.widgets.push(widget);
   render();
 }
 

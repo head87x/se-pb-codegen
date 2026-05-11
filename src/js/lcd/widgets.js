@@ -506,11 +506,11 @@ const LCD_THEMES = {
 //   "text"    — Standard-Textfarbe
 const LCD_WIDGET_COLOR_SLOTS = {
   header:        { color:    "accent" },
-  statusbar:     { color:    "success" },   // immer grün — Füllstand-Bedeutung
+  statusbar:     { color:    "success" },   // Füllstand-Balken → bleibt grün
   statusbar_v:   { color:    "accent" },
   statusbar_seg: { color:    "accent" },
-  bar_double:    { color1:   "success", color2: "danger" },
-  donut:         { color:    "success", bgColor: "bg" },
+  bar_double:    { color1:   "success", color2: "danger" },  // semantisch ok+fehler
+  donut:         { color:    "accent",  bgColor: "bg" },
   dot:           { colorLow: "danger",  colorMid: "accent", colorHigh: "success" },
   checklist:     { colorOk:  "success", colorBad: "danger" },
   warning:       { color:    "danger" },    // immer rot
@@ -518,10 +518,10 @@ const LCD_WIDGET_COLOR_SLOTS = {
   section:       { bgColor:  "accent" },
   divider:       { color:    "bg" },
   clock:         { color:    "accent" },
-  value:         { color:    "text" },
+  value:         { color:    "accent" },
   bigvalue:      { color:    "accent" },
   iconvalue:     { color:    "accent" },
-  aggregator:    { color:    "success" },   // immer grün — Aggregat-Wert
+  aggregator:    { color:    "accent" },
   gauge:         { color:    "accent",  bgColor: "bg" }
 };
 
