@@ -215,6 +215,10 @@ function addLcdWidget(type) {
     }
   }
 
+  // Neues Widget ausgeklappt, alle anderen kollabieren
+  for (const ew of state.lcdComposer.widgets) ew.expanded = false;
+  widget.expanded = true;
+
   state.lcdComposer.widgets.push(widget);
   render();
 }
@@ -239,6 +243,35 @@ function _findNextLcdPosition(w, h) {
 
 function removeLcdWidget(i) {
   state.lcdComposer.widgets.splice(i, 1);
+  render();
+}
+
+// Layer-Liste: Sichtbarkeit toggeln (👁 / ⌀)
+function toggleLcdWidgetVisible(i) {
+  const w = state.lcdComposer.widgets[i];
+  if (!w) return;
+  w.hidden = !w.hidden;
+  render();
+}
+
+// Widget in der Layer-Liste angeklickt: dieses ausklappen,
+// alle anderen kollabieren, hochscrollen.
+function selectLcdWidget(i) {
+  for (let j = 0; j < state.lcdComposer.widgets.length; j++) {
+    state.lcdComposer.widgets[j].expanded = (j === i);
+  }
+  render();
+  // Sanft zum Widget-Editor scrollen
+  setTimeout(() => {
+    const el = document.querySelector(`.lcd-widget-block[data-widget-idx="${i}"]`);
+    if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
+  }, 50);
+}
+
+function toggleLcdWidgetExpanded(i) {
+  const w = state.lcdComposer.widgets[i];
+  if (!w) return;
+  w.expanded = !w.expanded;
   render();
 }
 

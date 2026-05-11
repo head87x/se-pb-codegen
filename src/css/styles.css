@@ -611,13 +611,75 @@ footer .accent { color: var(--accent); }
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 8px;
   font-family: 'Consolas', monospace;
   font-size: 10px;
   text-transform: uppercase;
   letter-spacing: 1px;
   color: var(--muted);
+  cursor: pointer;
+  user-select: none;
 }
+.lcd-widget-block.expanded .lcd-widget-header {
+  margin-bottom: 8px;
+  color: var(--accent);
+}
+.lcd-widget-block.collapsed {
+  padding: 6px 10px;
+}
+.lcd-collapse-arrow {
+  display: inline-block;
+  width: 12px;
+  color: var(--muted);
+}
+
+/* Layer-Liste (Phase B.1) */
+.lcd-layer-list {
+  margin: 8px auto 14px;
+  max-width: 380px;
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  background: rgba(0,0,0,0.2);
+  padding: 4px;
+}
+.lcd-layer-title {
+  font-family: 'Consolas', monospace;
+  font-size: 10px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: var(--accent-2);
+  padding: 2px 4px 6px;
+}
+.lcd-layer-row {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 0;
+}
+.lcd-layer-row.is-hidden { opacity: 0.45; }
+.lcd-layer-eye {
+  background: transparent;
+  border: 1px solid transparent;
+  width: 24px;
+  padding: 2px 0;
+  font-size: 11px;
+  cursor: pointer;
+  color: var(--text);
+}
+.lcd-layer-eye:hover { color: var(--accent); border-color: var(--border); }
+.lcd-layer-name {
+  flex: 1;
+  background: transparent;
+  border: 1px solid transparent;
+  text-align: left;
+  padding: 2px 6px;
+  font-family: 'Consolas', monospace;
+  font-size: 11px;
+  text-transform: none;
+  letter-spacing: 0;
+  cursor: pointer;
+  color: var(--text);
+}
+.lcd-layer-name:hover { color: var(--accent); border-color: var(--border); }
 
 .lcd-widget-preview {
   border: 1px solid var(--border);

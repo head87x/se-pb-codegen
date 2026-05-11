@@ -369,6 +369,9 @@ function renderLcdComposer() {
   // Live-Vorschau des ganzen Displays
   const fullPreview = _renderFullLcdPreview();
 
+  // Layer-Liste (Phase B.1)
+  const layerList = _renderLcdLayerList(widgets);
+
   if (widgets.length === 0) {
     root.innerHTML = `
       ${themeBar}
@@ -381,24 +384,52 @@ function renderLcdComposer() {
   root.innerHTML = `
     ${themeBar}
     ${fullPreview}
+    ${layerList}
     <div class="btn-row" style="margin-bottom:10px;">${addButtons}</div>
     ${widgets.map((w, i) => {
       const def = LCD_WIDGETS[w.type] || { label: w.type };
+      const isExpanded = !!w.expanded;
+      const isHidden = !!w.hidden;
+      const label = w.label || w.text || w.title || "";
       return `
-        <div class="lcd-widget-block">
-          <div class="lcd-widget-header">
-            <span>WIDGET #${i + 1} — ${escapeHtml(def.label)}</span>
-            <div class="btn-row">
+        <div class="lcd-widget-block ${isExpanded ? "expanded" : "collapsed"}" data-widget-idx="${i}">
+          <div class="lcd-widget-header" onclick="toggleLcdWidgetExpanded(${i})">
+            <span><span class="lcd-collapse-arrow">${isExpanded ? "▼" : "▶"}</span> #${i + 1} ${escapeHtml(def.label)}${label ? ` — ${escapeHtml(String(label).slice(0,20))}` : ""}${isHidden ? " (unsichtbar)" : ""}</span>
+            <div class="btn-row" onclick="event.stopPropagation()">
+              <button class="small" title="${isHidden ? 'Einblenden' : 'Ausblenden'}" onclick="toggleLcdWidgetVisible(${i})">${isHidden ? "⌀" : "👁"}</button>
               <button class="small" onclick="moveLcdWidget(${i}, -1)" ${i === 0 ? "disabled" : ""}>▲</button>
               <button class="small" onclick="moveLcdWidget(${i}, 1)" ${i === widgets.length - 1 ? "disabled" : ""}>▼</button>
               <button class="small danger" onclick="removeLcdWidget(${i})">✕</button>
             </div>
           </div>
-          <div class="lcd-widget-preview" id="lcd-widget-preview-${i}">${renderLcdWidgetPreview(w)}</div>
-          ${_renderLcdWidgetFields(w, i)}
+          ${isExpanded ? `
+          <div class="lcd-widget-body">
+            <div class="lcd-widget-preview" id="lcd-widget-preview-${i}">${renderLcdWidgetPreview(w)}</div>
+            ${_renderLcdWidgetFields(w, i)}
+          </div>` : ""}
         </div>`;
     }).join("")}
   `;
+}
+
+// Kompakte Layer-Liste mit Sichtbarkeits-Toggle und Klick-to-Select
+function _renderLcdLayerList(widgets) {
+  if (widgets.length === 0) return "";
+  const rows = widgets.map((w, i) => {
+    const def = LCD_WIDGETS[w.type] || { label: w.type };
+    const label = w.label || w.text || w.title || "";
+    const hiddenIcon = w.hidden ? "⌀" : "👁";
+    return `
+      <div class="lcd-layer-row ${w.hidden ? "is-hidden" : ""}">
+        <button class="lcd-layer-eye" title="${w.hidden ? 'Einblenden' : 'Ausblenden'}" onclick="toggleLcdWidgetVisible(${i})">${hiddenIcon}</button>
+        <button class="lcd-layer-name" onclick="selectLcdWidget(${i})">#${i + 1} ${escapeHtml(def.label)}${label ? ` — ${escapeHtml(String(label).slice(0,18))}` : ""}</button>
+      </div>`;
+  }).join("");
+  return `
+    <div class="lcd-layer-list">
+      <div class="lcd-layer-title">EBENEN (${widgets.length})</div>
+      ${rows}
+    </div>`;
 }
 
 // ============================================================
