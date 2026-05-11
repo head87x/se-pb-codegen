@@ -7,6 +7,20 @@ das Projekt folgt [Semantic Versioning](https://semver.org/lang/de/).
 
 ## [Unreleased]
 
+### Hinzugefügt (Inventar-Prüfungen)
+- **Drei neue Conditions** in 9 Blöcken mit Inventar (Connector,
+  Cargo, Refinery, Assembler, Sortierer, Reaktor, Gas-Generator,
+  Bohrer, Schleifer):
+  - **„Enthält Item (Subtype)"** — z. B. `Iron`, `Uranium`, `SteelPlate`.
+  - **„Item-Menge > X"** — Syntax `Iron:100`.
+  - **„Item-Menge < X"** — Syntax `Uranium:1` (z. B. für Treibstoff-Warnung).
+- Generator injiziert dafür **automatisch** Helper-Methoden
+  (`HasItem`, `ItemAmountAbove`, `ItemAmountBelow`, `_GetItemAmount`)
+  am Anfang der `Program`-Klasse — nur die tatsächlich genutzten,
+  sonst null Overhead.
+- Common-Tooltip-Pool in `descriptions.js`: Optionen, die in
+  vielen Blöcken identisch sind, müssen nur einmal beschrieben werden.
+
 ### Hinzugefügt (Phase 3b — Katalog-Tiefe)
 - Systematische Vertiefung **aller 52 Block-Typen** auf praktisch
   vollständige API-Coverage. Pro Block jetzt **10–20 Optionen** dort,

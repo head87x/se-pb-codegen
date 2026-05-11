@@ -190,8 +190,89 @@ function generateCode() {
 
   code += "}\n";
 
+  // ---------- Helper-Methoden bei Bedarf injizieren ----------
+  code = _injectInventoryHelpers(code);
+
   document.getElementById("output").innerHTML = highlightCs(code);
   window._rawCode = code;
+}
+
+// Erkennt, ob im generierten Code Inventory-Helper-Funktionen
+// aufgerufen werden, und fügt sie nach `Save()` als Methoden der
+// Program-Klasse ein.
+function _injectInventoryHelpers(code) {
+  const needsHasItem    = code.includes("HasItem(");
+  const needsAmountAbove = code.includes("ItemAmountAbove(");
+  const needsAmountBelow = code.includes("ItemAmountBelow(");
+
+  if (!needsHasItem && !needsAmountAbove && !needsAmountBelow) return code;
+
+  let helpers = "\n// ---------- Inventory-Helper ----------\n";
+
+  if (needsHasItem || needsAmountAbove || needsAmountBelow) {
+    helpers +=
+      "float _GetItemAmount(IMyTerminalBlock blk, string subtypeId)\n" +
+      "{\n" +
+      "    if (blk == null) return 0f;\n" +
+      "    float total = 0f;\n" +
+      "    var items = new List<MyInventoryItem>();\n" +
+      "    for (int i = 0; i < blk.InventoryCount; i++)\n" +
+      "    {\n" +
+      "        items.Clear();\n" +
+      "        blk.GetInventory(i).GetItems(items);\n" +
+      "        foreach (var item in items)\n" +
+      "            if (item.Type.SubtypeId == subtypeId)\n" +
+      "                total += (float)item.Amount;\n" +
+      "    }\n" +
+      "    return total;\n" +
+      "}\n\n";
+  }
+
+  if (needsHasItem) {
+    helpers +=
+      "bool HasItem(IMyTerminalBlock blk, string subtypeId)\n" +
+      "{\n" +
+      "    if (blk == null) return false;\n" +
+      "    var items = new List<MyInventoryItem>();\n" +
+      "    for (int i = 0; i < blk.InventoryCount; i++)\n" +
+      "    {\n" +
+      "        items.Clear();\n" +
+      "        blk.GetInventory(i).GetItems(items);\n" +
+      "        foreach (var item in items)\n" +
+      "            if (item.Type.SubtypeId == subtypeId) return true;\n" +
+      "    }\n" +
+      "    return false;\n" +
+      "}\n\n";
+  }
+
+  if (needsAmountAbove) {
+    helpers +=
+      "// spec-Format: \"Iron:100\" → prüft ob >100 Iron im Block\n" +
+      "bool ItemAmountAbove(IMyTerminalBlock blk, string spec)\n" +
+      "{\n" +
+      "    var parts = spec.Split(':');\n" +
+      "    if (parts.Length != 2) return false;\n" +
+      "    float threshold;\n" +
+      "    if (!float.TryParse(parts[1], out threshold)) return false;\n" +
+      "    return _GetItemAmount(blk, parts[0]) > threshold;\n" +
+      "}\n\n";
+  }
+
+  if (needsAmountBelow) {
+    helpers +=
+      "// spec-Format: \"Iron:100\" → prüft ob <100 Iron im Block\n" +
+      "bool ItemAmountBelow(IMyTerminalBlock blk, string spec)\n" +
+      "{\n" +
+      "    var parts = spec.Split(':');\n" +
+      "    if (parts.Length != 2) return false;\n" +
+      "    float threshold;\n" +
+      "    if (!float.TryParse(parts[1], out threshold)) return false;\n" +
+      "    return _GetItemAmount(blk, parts[0]) < threshold;\n" +
+      "}\n";
+  }
+
+  // Einfügen direkt nach `public void Save() { }\n\n`
+  return code.replace(/public void Save\(\) \{ \}\n\n/, "public void Save() { }\n" + helpers + "\n");
 }
 
 // ============================================================

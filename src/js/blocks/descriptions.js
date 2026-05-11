@@ -882,11 +882,32 @@ const DESCRIPTIONS = {
   }
 };
 
+// Globale Texte für Optionen, die in vielen Blöcken identisch
+// gebraucht werden (z. B. Inventar-Conditions). Werden nur als
+// Fallback verwendet, wenn der Block keinen eigenen Text definiert.
+const _COMMON_DESCRIPTIONS = {
+  conditions: {
+    hasItem:      "Prüft, ob das Inventar des Blocks ein Item mit der gegebenen Subtype-ID enthält. Subtype-IDs sind z. B. \"Iron\", \"Stone\", \"Ice\", \"Uranium\", \"SteelPlate\", \"Construction\". Durchsucht ALLE Inventar-Slots des Blocks.",
+    itemAmountGT: "Prüft, ob mehr als X Items eines Subtyps im Inventar sind. Syntax: \"Subtype:Menge\", z. B. \"Iron:100\" für >100 Iron.",
+    itemAmountLT: "Prüft, ob weniger als X Items eines Subtyps im Inventar sind. Syntax: \"Subtype:Menge\", z. B. \"Uranium:1\" für Treibstoff niedrig.",
+    fillGT:       "Vergleicht den Volumen-Füllstand des Block-Inventars in Prozent."
+  }
+};
+
 function getDescription(blockType, optionId, kind) {
   const blk = DESCRIPTIONS[blockType];
-  if (!blk) return null;
-  if (kind && blk[kind]) return blk[kind][optionId] || null;
-  return (blk.conditions && blk.conditions[optionId])
-      || (blk.actions    && blk.actions[optionId])
-      || null;
+  // Block-spezifischer Text zuerst
+  if (blk) {
+    if (kind && blk[kind] && blk[kind][optionId]) return blk[kind][optionId];
+    if (!kind) {
+      const fallback = (blk.conditions && blk.conditions[optionId])
+                    || (blk.actions    && blk.actions[optionId]);
+      if (fallback) return fallback;
+    }
+  }
+  // Fallback: globale Common-Texte
+  if (kind && _COMMON_DESCRIPTIONS[kind] && _COMMON_DESCRIPTIONS[kind][optionId]) {
+    return _COMMON_DESCRIPTIONS[kind][optionId];
+  }
+  return null;
 }
