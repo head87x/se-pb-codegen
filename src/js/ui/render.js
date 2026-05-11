@@ -415,10 +415,19 @@ function _renderFullLcdPreview() {
     ? `<div class="lcd-overflow-mark">⚠ ${overflowPx}px überschüssig — Widgets passen nicht aufs LCD</div>`
     : "";
 
+  // Grid-Overlay: nur sichtbar, wenn mindestens 1 Manual-Widget existiert
+  // (sonst irrelevant). Größe = LCD-Snap-Schritt × Skalierungsfaktor.
+  let gridOverlay = "";
+  if (manualWidgets.length > 0 && typeof LCD_SNAP === "number") {
+    const snapPx = (LCD_SNAP * scale).toFixed(3);
+    gridOverlay = `<div class="lcd-grid-overlay" style="background-size:${snapPx}px ${snapPx}px;"></div>`;
+  }
+
   return `
     <div class="lcd-full-preview-wrap">
-      <div class="lcd-full-preview-label">LIVE-VORSCHAU — ${escapeHtml(res.label)} · ${totalCols} Spalte${totalCols>1?"n":""}</div>
+      <div class="lcd-full-preview-label">LIVE-VORSCHAU — ${escapeHtml(res.label)} · ${totalCols} Spalte${totalCols>1?"n":""}${manualWidgets.length > 0 ? ` · Snap ${LCD_SNAP}px` : ""}</div>
       <div class="lcd-full-preview" style="width:${previewWidth}px;height:${previewHeight}px;position:relative;">
+        ${gridOverlay}
         ${items}
         ${overflowMark}
       </div>

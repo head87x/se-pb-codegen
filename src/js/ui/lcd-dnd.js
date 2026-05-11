@@ -11,8 +11,8 @@
 // gibt's einen kompletten render(), damit die Editor-Felder
 // die neuen Werte zeigen.
 
-const LCD_SNAP = 4;       // LCD-Pixel pro Snap-Schritt
-const LCD_MIN_SIZE = 24;  // Minimale Widget-Größe (LCD-Pixel)
+const LCD_SNAP = 16;      // LCD-Pixel pro Snap-Schritt (grob = sauber alignen)
+const LCD_MIN_SIZE = 32;  // Minimale Widget-Größe (LCD-Pixel, an Snap-Vielfaches)
 
 let _lcdDragState = null;
 

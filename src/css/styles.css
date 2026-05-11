@@ -699,6 +699,16 @@ footer .accent { color: var(--accent); }
   position: relative;  /* für absolut positionierte Cells */
 }
 
+.lcd-grid-overlay {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 1;
+  background-image:
+    linear-gradient(to right,  rgba(255, 140, 26, 0.10) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(255, 140, 26, 0.10) 1px, transparent 1px);
+}
+
 .lcd-full-cell {
   position: absolute;
   overflow: hidden;
