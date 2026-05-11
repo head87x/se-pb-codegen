@@ -34,11 +34,10 @@ function _lcdMouseDown(e) {
 
   const container = cell.closest(".lcd-full-preview");
   if (!container) return;
-  const containerRect = container.getBoundingClientRect();
   const resKey = state.lcdComposer.resolution || "square";
   const res = LCD_RESOLUTIONS[resKey] || LCD_RESOLUTIONS.square;
-  // Browser-Pixel pro LCD-Pixel
-  const scaleScreen = containerRect.width / res.w;
+  // INNER-Width (ohne Border), damit Browser-Pixel-Delta exakt zu LCD-Pixel-Delta passt
+  const scaleScreen = container.clientWidth / res.w;
 
   _lcdDragState = {
     idx, widget, isResize, scaleScreen,
@@ -130,8 +129,7 @@ function _lcdUpdateCellGeometry(idx) {
   if (!cell) return;
   const resKey = state.lcdComposer.resolution || "square";
   const res = LCD_RESOLUTIONS[resKey] || LCD_RESOLUTIONS.square;
-  const containerWidth = container.getBoundingClientRect().width;
-  const scale = containerWidth / res.w;
+  const scale = container.clientWidth / res.w;
   cell.style.left   = Math.round((parseFloat(w.manualX) || 0) * scale) + "px";
   cell.style.top    = Math.round((parseFloat(w.manualY) || 0) * scale) + "px";
   cell.style.width  = Math.round((parseFloat(w.manualW) || 100) * scale) + "px";
