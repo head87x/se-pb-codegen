@@ -158,6 +158,17 @@ function onLcdComposerNameInput(val) {
   generateCode();
 }
 
+function onLcdComposerModeChange(val) {
+  state.lcdComposer.displayMode = val;
+  render();  // bedingte Felder müssen sich neu zeigen/verstecken
+}
+
+function onLcdComposerSurfaceInput(val) {
+  const idx = parseInt(val, 10);
+  state.lcdComposer.surfaceIndex = isNaN(idx) ? 0 : Math.max(0, Math.min(15, idx));
+  generateCode();
+}
+
 function addLcdWidget(type) {
   const def = LCD_WIDGETS[type];
   if (!def) return;

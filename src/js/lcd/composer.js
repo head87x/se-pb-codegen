@@ -80,13 +80,33 @@ function _blinkExpr(blink) {
 // Hauptfunktion
 function generateLcdComposerCode(ensureBlock) {
   const lc = state.lcdComposer;
-  if (!lc || !lc.enabled || !lc.lcdName || !lc.widgets || lc.widgets.length === 0) {
+  if (!lc || !lc.enabled || !lc.widgets || lc.widgets.length === 0) {
+    return { code: "", used: false };
+  }
+
+  const mode = lc.displayMode || "external";
+  const surfaceIdx = Math.max(0, Math.min(15, parseInt(lc.surfaceIndex, 10) || 0));
+
+  // Validierung: Modi, die einen Block-Namen brauchen
+  if ((mode === "external" || mode === "cockpit") && !lc.lcdName) {
     return { code: "", used: false };
   }
 
   let out = "";
   out += "\n    // ---------- LCD-Baukasten ----------\n";
-  out += `    IMyTextSurface lcdComp = GridTerminalSystem.GetBlockWithName(${_csString(lc.lcdName)}) as IMyTextSurface;\n`;
+
+  if (mode === "pb") {
+    // Display direkt am Programmable Block (Me)
+    out += `    IMyTextSurface lcdComp = Me.GetSurface(${surfaceIdx});\n`;
+  } else if (mode === "cockpit") {
+    // TextSurfaceProvider (Cockpit/Sitz/Remote) mit Surface-Index
+    out += `    var lcdProv = GridTerminalSystem.GetBlockWithName(${_csString(lc.lcdName)}) as IMyTextSurfaceProvider;\n`;
+    out += `    IMyTextSurface lcdComp = lcdProv != null && lcdProv.SurfaceCount > ${surfaceIdx} ? lcdProv.GetSurface(${surfaceIdx}) : null;\n`;
+  } else {
+    // Eigenständiges LCD-Panel
+    out += `    IMyTextSurface lcdComp = GridTerminalSystem.GetBlockWithName(${_csString(lc.lcdName)}) as IMyTextSurface;\n`;
+  }
+
   out += `    if (lcdComp != null)\n`;
   out += `    {\n`;
   out += `        lcdComp.ContentType = ContentType.SCRIPT;\n`;
@@ -117,7 +137,16 @@ function generateLcdComposerCode(ensureBlock) {
 
   out += `        }\n`;
   out += `    }\n`;
-  out += `    else { Echo(\"LCD-Composer: Block '${(lc.lcdName || "").replace(/'/g, "\\'")}' nicht gefunden!\"); }\n`;
+  // Fehlermeldung je nach Modus
+  if (mode === "pb") {
+    out += `    else { Echo(\"LCD-Composer: PB hat keinen Surface-Index ${surfaceIdx}\"); }\n`;
+  } else if (mode === "cockpit") {
+    const safeName = (lc.lcdName || "").replace(/'/g, "\\'");
+    out += `    else { Echo(\"LCD-Composer: Cockpit '${safeName}' nicht gefunden oder Surface-Index ${surfaceIdx} ungültig\"); }\n`;
+  } else {
+    const safeName = (lc.lcdName || "").replace(/'/g, "\\'");
+    out += `    else { Echo(\"LCD-Composer: Block '${safeName}' nicht gefunden!\"); }\n`;
+  }
 
   return { code: out, used: true };
 }

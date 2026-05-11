@@ -13,8 +13,10 @@ var state = {
   lcdName: "",       // LCD-Block-Name für die alte Status-Ausgabe
   lcdComposer: {     // Phase 4a — LCD-Baukasten (Sprite-API)
     enabled: false,
-    lcdName: "",
-    widgets: []      // { type, ...params }
+    displayMode: "external", // "external" | "pb" | "cockpit"
+    lcdName: "",             // bei external + cockpit
+    surfaceIndex: 0,         // bei pb + cockpit (Display-Index)
+    widgets: []              // { type, ...params }
   }
 };
 

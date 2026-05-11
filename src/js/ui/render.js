@@ -269,6 +269,13 @@ function renderLcdComposer() {
   const root = document.getElementById("lcd-composer-list");
   if (!root) return;
 
+  // Sichtbarkeit der bedingten Felder je nach displayMode
+  const mode = state.lcdComposer.displayMode || "external";
+  const nameWrap    = document.getElementById("lcd-composer-name-wrap");
+  const surfaceWrap = document.getElementById("lcd-composer-surface-wrap");
+  if (nameWrap)    nameWrap.style.display    = (mode === "pb") ? "none" : "";
+  if (surfaceWrap) surfaceWrap.style.display = (mode === "external") ? "none" : "";
+
   // Header-Bereich: Add-Buttons
   const addButtons = LCD_WIDGET_ORDER.map(type => {
     const def = LCD_WIDGETS[type];

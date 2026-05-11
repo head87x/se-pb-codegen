@@ -29,6 +29,9 @@ function loadTemplate(i) {
   state = JSON.parse(JSON.stringify(templates[i].state));
   // Alte Vorlagen haben evtl. keinen lcdComposer — defaulten
   if (!state.lcdComposer) state.lcdComposer = { enabled: false, lcdName: "", widgets: [] };
+  // Neue Felder ab "Display-Quelle"-Update
+  if (!state.lcdComposer.displayMode)  state.lcdComposer.displayMode = "external";
+  if (state.lcdComposer.surfaceIndex == null) state.lcdComposer.surfaceIndex = 0;
   // Re-apply UI fields
   document.getElementById("exec-mode").value = state.execMode;
   document.getElementById("lcd-enable").checked = !!state.lcdEnable;
@@ -36,6 +39,8 @@ function loadTemplate(i) {
   document.getElementById("lcd-config").style.display = state.lcdEnable ? "block" : "none";
   document.getElementById("lcd-composer-enable").checked = !!state.lcdComposer.enabled;
   document.getElementById("lcd-composer-name").value = state.lcdComposer.lcdName || "";
+  document.getElementById("lcd-composer-mode").value = state.lcdComposer.displayMode;
+  document.getElementById("lcd-composer-surface").value = state.lcdComposer.surfaceIndex;
   document.getElementById("lcd-composer-config").style.display = state.lcdComposer.enabled ? "block" : "none";
   render();
   showToast(`"${templates[i].name}" geladen`);
@@ -53,7 +58,7 @@ function newProject() {
   state = {
     conditions: [], actionsThen: [], actionsElse: [],
     execMode: "argument", lcdEnable: false, lcdName: "",
-    lcdComposer: { enabled: false, lcdName: "", widgets: [] }
+    lcdComposer: { enabled: false, displayMode: "external", lcdName: "", surfaceIndex: 0, widgets: [] }
   };
   document.getElementById("exec-mode").value = "argument";
   document.getElementById("lcd-enable").checked = false;
@@ -61,6 +66,8 @@ function newProject() {
   document.getElementById("lcd-config").style.display = "none";
   document.getElementById("lcd-composer-enable").checked = false;
   document.getElementById("lcd-composer-name").value = "";
+  document.getElementById("lcd-composer-mode").value = "external";
+  document.getElementById("lcd-composer-surface").value = 0;
   document.getElementById("lcd-composer-config").style.display = "none";
   render();
 }

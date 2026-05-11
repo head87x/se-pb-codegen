@@ -126,9 +126,26 @@
             <label><input type="checkbox" id="lcd-composer-enable" onchange="onLcdComposerEnable(this.checked)"> Aktivieren</label>
           </div>
           <div id="lcd-composer-config" style="display:none; margin-top:10px;">
-            <label>LCD Block-Name</label>
-            <input id="lcd-composer-name" placeholder="z.B. LCD Cockpit" oninput="onLcdComposerNameInput(this.value)">
-            <div class="help-text">Grafische Widgets via Sprite-API. Statusleisten, Wert-Anzeigen, Header — mit Live-Vorschau.</div>
+            <div class="row row-2">
+              <div>
+                <label>Display-Quelle</label>
+                <select id="lcd-composer-mode" onchange="onLcdComposerModeChange(this.value)">
+                  <option value="external">Eigenständiges LCD (Block-Name)</option>
+                  <option value="pb">Programmable Block (dieser PB)</option>
+                  <option value="cockpit">Cockpit / Sitz / Remote</option>
+                </select>
+              </div>
+              <div id="lcd-composer-name-wrap">
+                <label>LCD / Cockpit Block-Name</label>
+                <input id="lcd-composer-name" placeholder="z.B. LCD Cockpit" oninput="onLcdComposerNameInput(this.value)">
+              </div>
+            </div>
+            <div id="lcd-composer-surface-wrap" style="display:none; margin-top:6px;">
+              <label>Surface-Index (0 = Hauptdisplay)</label>
+              <input id="lcd-composer-surface" type="number" min="0" max="15" step="1" value="0" oninput="onLcdComposerSurfaceInput(this.value)">
+              <div class="help-text">PB hat meist nur Index 0. Cockpits: 0–7 je nach Modell.</div>
+            </div>
+            <div class="help-text" style="margin-top:6px;">Grafische Widgets via Sprite-API mit Live-Vorschau.</div>
             <div id="lcd-composer-list" style="margin-top:12px;"></div>
           </div>
         </div>
