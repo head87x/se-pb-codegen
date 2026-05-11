@@ -7,6 +7,33 @@ das Projekt folgt [Semantic Versioning](https://semver.org/lang/de/).
 
 ## [Unreleased]
 
+### Hinzugefügt (Phase 4b — LCD-Baukasten visueller Sprung)
+- **8 neue Widget-Typen** zusätzlich zu den Phase-4a-Widgets:
+  - **Statusleiste vertikal** — Säulen-Style, gut nebeneinander.
+  - **Sci-Fi segmentierter Balken** — 12 (konfigurierbare) leuchtende
+    Segmente mit Lücken zwischen.
+  - **Doppel-Balken** — zwei Balken übereinander mit eigenen
+    Labels/Farben/Quellen (z. B. Input vs. Output).
+  - **Kreis-Indikator (Donut)** — runder Fortschrittsring aus 32
+    Segmenten, großer Prozent-Wert in der Mitte.
+  - **Punkt-Indikator (Ampel)** — Kreis-Sprite, Farbe wechselt je
+    nach zwei Schwellwerten (rot/orange/grün).
+  - **Statusliste (✓/✗)** — bis zu 5 Slots, jeder mit Block-Name
+    und Boolean-Quelle (Block-arbeitet, Tür-offen, Connector-verbunden,
+    Vent-unter-Druck, Gear-gesperrt …).
+  - **Warnhinweis (blinkend)** — Text mit Icon, erscheint nur wenn
+    Schwellwert-Bedingung erfüllt; Blink-Geschwindigkeit wählbar.
+  - **Alarm-Banner** — großer farbiger Streifen mit fettem Text,
+    auch blinkend, für kritische Zustände.
+- **Boolean-Datenquellen** für Statusliste/Warnung:
+  block_enabled, block_working, door_open, connector_linked,
+  gear_locked, vent_pressurized.
+- **Gruppierte Parameter-Felder** im Widget-Editor (z. B. „Oberer
+  Balken" / „Unterer Balken" beim Doppel-Balken; „Zeile 1–5" bei
+  der Statusliste).
+- **Live-SVG-Vorschau** wurde an alle neuen Widget-Typen angepasst,
+  inkl. CSS-Animation für blinkende Widgets im Mockup.
+
 ### Hinzugefügt (Phase 4a — LCD-Baukasten Foundation)
 - **Neue Sektion „LCD BAUKASTEN (Grafik)"** im Builder, parallel zur
   bisherigen einfachen „LCD STATUS-AUSGABE (Text)". Beide

@@ -197,40 +197,72 @@ function render() {
 // LCD-COMPOSER (Phase 4a)
 // ============================================================
 
-function _renderLcdWidgetFields(w, i) {
-  const def = LCD_WIDGETS[w.type];
-  if (!def) return "";
-  return def.fields.map(f => {
-    const val = w[f.key];
-    if (f.type === "lcd-source") {
-      const opts = LCD_SOURCES.map(s =>
-        `<option value="${s.value}"${s.value === val ? " selected" : ""}>${escapeHtml(s.label)}</option>`
-      ).join("");
-      return `
-        <div>
-          <label>${escapeHtml(f.label)}</label>
-          <select onchange="updateLcdWidgetAndRender(${i}, '${f.key}', this.value)">${opts}</select>
-        </div>`;
-    }
-    if (f.type === "select") {
-      const opts = f.options.map(o =>
-        `<option value="${o.value}"${o.value === val ? " selected" : ""}>${escapeHtml(o.label)}</option>`
-      ).join("");
-      return `
-        <div>
-          <label>${escapeHtml(f.label)}</label>
-          <select onchange="updateLcdWidgetAndRender(${i}, '${f.key}', this.value)">${opts}</select>
-        </div>`;
-    }
-    const inputType = f.type === "number" ? "number" : "text";
-    const placeholder = f.hint ? ` placeholder="${escapeAttr(f.hint)}"` : "";
-    const step = f.type === "number" ? ' step="any"' : "";
+function _renderLcdSingleField(f, i, val) {
+  if (f.type === "lcd-source") {
+    const opts = LCD_SOURCES.map(s =>
+      `<option value="${s.value}"${s.value === val ? " selected" : ""}>${escapeHtml(s.label)}</option>`
+    ).join("");
     return `
       <div>
         <label>${escapeHtml(f.label)}</label>
-        <input type="${inputType}"${step} value="${escapeAttr(val)}" oninput="updateLcdWidget(${i}, '${f.key}', this.value)"${placeholder}>
+        <select onchange="updateLcdWidgetAndRender(${i}, '${f.key}', this.value)">${opts}</select>
       </div>`;
-  }).join("");
+  }
+  if (f.type === "lcd-bool") {
+    const opts = LCD_BOOL_SOURCES.map(s =>
+      `<option value="${s.value}"${s.value === val ? " selected" : ""}>${escapeHtml(s.label)}</option>`
+    ).join("");
+    return `
+      <div>
+        <label>${escapeHtml(f.label)}</label>
+        <select onchange="updateLcdWidgetAndRender(${i}, '${f.key}', this.value)">${opts}</select>
+      </div>`;
+  }
+  if (f.type === "select") {
+    const opts = f.options.map(o =>
+      `<option value="${o.value}"${o.value === val ? " selected" : ""}>${escapeHtml(o.label)}</option>`
+    ).join("");
+    return `
+      <div>
+        <label>${escapeHtml(f.label)}</label>
+        <select onchange="updateLcdWidgetAndRender(${i}, '${f.key}', this.value)">${opts}</select>
+      </div>`;
+  }
+  const inputType = f.type === "number" ? "number" : "text";
+  const placeholder = f.hint ? ` placeholder="${escapeAttr(f.hint)}"` : "";
+  const step = f.type === "number" ? ' step="any"' : "";
+  return `
+    <div>
+      <label>${escapeHtml(f.label)}</label>
+      <input type="${inputType}"${step} value="${escapeAttr(val)}" oninput="updateLcdWidget(${i}, '${f.key}', this.value)"${placeholder}>
+    </div>`;
+}
+
+function _renderLcdWidgetFields(w, i) {
+  const def = LCD_WIDGETS[w.type];
+  if (!def) return "";
+
+  // Felder nach 'group' sortieren — Felder ohne group kommen oben (Default-Gruppe).
+  const groups = new Map();
+  const noGroup = [];
+  for (const f of def.fields) {
+    if (f.group) {
+      if (!groups.has(f.group)) groups.set(f.group, []);
+      groups.get(f.group).push(f);
+    } else {
+      noGroup.push(f);
+    }
+  }
+
+  let html = "";
+  if (noGroup.length > 0) {
+    html += `<div class="lcd-widget-fields">${noGroup.map(f => _renderLcdSingleField(f, i, w[f.key])).join("")}</div>`;
+  }
+  for (const [groupName, fields] of groups) {
+    html += `<div class="lcd-widget-group-title">${escapeHtml(groupName)}</div>`;
+    html += `<div class="lcd-widget-fields">${fields.map(f => _renderLcdSingleField(f, i, w[f.key])).join("")}</div>`;
+  }
+  return html;
 }
 
 function renderLcdComposer() {
@@ -266,7 +298,7 @@ function renderLcdComposer() {
             </div>
           </div>
           <div class="lcd-widget-preview" id="lcd-widget-preview-${i}">${renderLcdWidgetPreview(w)}</div>
-          <div class="lcd-widget-fields">${_renderLcdWidgetFields(w, i)}</div>
+          ${_renderLcdWidgetFields(w, i)}
         </div>`;
     }).join("")}
   `;
