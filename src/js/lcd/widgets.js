@@ -530,6 +530,114 @@ const LCD_WIDGET_COLOR_SLOTS = {
 
 const LCD_THEME_ORDER = ["default", "alarm", "industrial", "cyan"];
 
+// ============ LCD-PRESETS (Phase C) ============
+// Vorgefertigte Widget-Layouts als Schnellstart. Der User wählt
+// einen Preset, lädt ihn (ersetzt aktuelle Konfiguration), und
+// muss danach nur noch die Block-Namen (sourceBlock) einstellen.
+// Die Source-Auswahl bleibt offen — der User passt sie an seine
+// vorhandenen Blöcke an.
+
+const LCD_PRESETS = {
+  ship_overview: {
+    label: "Schiff-Übersicht",
+    description: "Header + Akku/H2-Donuts + Speed + Cargo-Statusbar (für quadratisches LCD)",
+    resolution: "square",
+    widgets: [
+      { type: "header",    text: "SCHIFF-STATUS", size: 1.2, align: "center",
+        manualX: 8,   manualY: 8,   manualW: 496, manualH: 32 },
+      { type: "donut",     label: "Akku",    source: "battery_charge",
+        manualX: 16,  manualY: 64,  manualW: 224, manualH: 192 },
+      { type: "donut",     label: "H2-Tank", source: "tank_fill",
+        manualX: 272, manualY: 64,  manualW: 224, manualH: 192 },
+      { type: "bigvalue",  label: "GESCHWINDIGKEIT", source: "ship_speed", format: "0.0", size: 2.5,
+        manualX: 8,   manualY: 272, manualW: 496, manualH: 96 },
+      { type: "statusbar", label: "Cargo",   source: "cargo_fill",
+        manualX: 8,   manualY: 384, manualW: 496, manualH: 48 },
+      { type: "statusbar", label: "O2",      source: "tank_fill",
+        manualX: 8,   manualY: 448, manualW: 496, manualH: 48 }
+    ]
+  },
+
+  four_donuts: {
+    label: "4 Donuts (2×2)",
+    description: "Kompaktes 2×2-Grid mit vier Kreis-Indikatoren",
+    resolution: "square",
+    widgets: [
+      { type: "donut", label: "Akku",  source: "battery_charge",
+        manualX: 16,  manualY: 16,  manualW: 224, manualH: 224 },
+      { type: "donut", label: "O2",    source: "tank_fill",
+        manualX: 272, manualY: 16,  manualW: 224, manualH: 224 },
+      { type: "donut", label: "H2",    source: "tank_fill",
+        manualX: 16,  manualY: 272, manualW: 224, manualH: 224 },
+      { type: "donut", label: "Cargo", source: "cargo_fill",
+        manualX: 272, manualY: 272, manualW: 224, manualH: 224 }
+    ]
+  },
+
+  reactor_panel: {
+    label: "Energie-Panel",
+    description: "Aggregator über alle Akkus/Reaktoren + Warnung bei niedrigem Akku",
+    resolution: "square",
+    widgets: [
+      { type: "section",    text: "ENERGIE",
+        manualX: 8,   manualY: 8,   manualW: 496, manualH: 32 },
+      { type: "aggregator", label: "Akkus (Ø)", aggregateType: "battery_charge", mode: "avg",
+        manualX: 8,   manualY: 64,  manualW: 496, manualH: 64 },
+      { type: "aggregator", label: "Reaktoren (Σ)", aggregateType: "reactor_output", mode: "sum",
+        manualX: 8,   manualY: 144, manualW: 496, manualH: 64 },
+      { type: "aggregator", label: "Solar (Σ)", aggregateType: "solar_output", mode: "sum",
+        manualX: 8,   manualY: 224, manualW: 496, manualH: 64 },
+      { type: "divider",    color: "42,52,66",
+        manualX: 8,   manualY: 304, manualW: 496, manualH: 32 },
+      { type: "warning", text: "AKKU NIEDRIG", source: "battery_charge", comparison: "lt", threshold: 20, blink: "slow",
+        manualX: 8,   manualY: 352, manualW: 496, manualH: 48 },
+      { type: "alarm",   text: "!! KRITISCH !!", source: "battery_charge", comparison: "lt", threshold: 5, blink: "fast",
+        manualX: 8,   manualY: 416, manualW: 496, manualH: 64 }
+    ]
+  },
+
+  cockpit_gauges: {
+    label: "Cockpit-Anzeigen",
+    description: "Tachometer + zwei Statusleisten — gut für Cockpit-Surface",
+    resolution: "square",
+    widgets: [
+      { type: "header", text: "FLUG-COCKPIT", size: 1.3, align: "center",
+        manualX: 8,   manualY: 8,   manualW: 496, manualH: 32 },
+      { type: "gauge",  label: "Geschwindigkeit", source: "ship_speed", min: 0, max: 110,
+        manualX: 128, manualY: 64,  manualW: 256, manualH: 240 },
+      { type: "statusbar_seg", label: "Energie", source: "battery_charge", segments: 16,
+        manualX: 8,   manualY: 320, manualW: 496, manualH: 48 },
+      { type: "statusbar_seg", label: "H2",      source: "tank_fill",     segments: 16,
+        manualX: 8,   manualY: 384, manualW: 496, manualH: 48 },
+      { type: "value",  label: "Cargo", source: "cargo_fill",
+        manualX: 8,   manualY: 448, manualW: 496, manualH: 48 }
+    ]
+  },
+
+  wide_dashboard: {
+    label: "Wide-Dashboard (2:1)",
+    description: "Für Wide-LCD: 3 Spalten mit Donut + Werten + Statusliste",
+    resolution: "wide",
+    widgets: [
+      { type: "donut", label: "Akku", source: "battery_charge",
+        manualX: 16,  manualY: 16, manualW: 160, manualH: 160 },
+      { type: "donut", label: "H2",   source: "tank_fill",
+        manualX: 192, manualY: 16, manualW: 160, manualH: 160 },
+      { type: "checklist", title: "Systeme",
+        s1_label: "Reaktor",    s1_check: "block_working",
+        s2_label: "Connector",  s2_check: "connector_linked",
+        s3_label: "Schleuse",   s3_check: "door_open",
+        manualX: 368, manualY: 16, manualW: 144, manualH: 176 },
+      { type: "bigvalue", label: "GESCHW.", source: "ship_speed", format: "0.0", size: 2.0,
+        manualX: 16,  manualY: 192, manualW: 240, manualH: 56 },
+      { type: "iconvalue", label: "O2", icon: "IconOxygen", source: "tank_fill", format: "0",
+        manualX: 272, manualY: 192, manualW: 240, manualH: 56 }
+    ]
+  }
+};
+
+const LCD_PRESET_ORDER = ["ship_overview", "four_donuts", "reactor_panel", "cockpit_gauges", "wide_dashboard"];
+
 // ============ LCD-Auflösungen (Phase 4d) ============
 // w/h sind die LCD-Pixel im Spiel (relevant fürs Aspect-Ratio
 // in der Live-Vorschau). Der generierte C#-Code nutzt zur

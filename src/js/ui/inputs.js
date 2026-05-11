@@ -174,6 +174,53 @@ function onLcdComposerResolutionChange(val) {
   render(); // Vorschau muss neu mit anderem Aspect-Ratio
 }
 
+function onLcdPresetSelect(key) {
+  if (!key) return;
+  const preset = (typeof LCD_PRESETS !== "undefined") ? LCD_PRESETS[key] : null;
+  if (!preset) return;
+  const hasExisting = state.lcdComposer.widgets.length > 0;
+  if (hasExisting && !confirm(`Preset "${preset.label}" laden? Die aktuellen ${state.lcdComposer.widgets.length} Widget(s) werden ersetzt.`)) {
+    // Dropdown zurücksetzen
+    const sel = document.getElementById("lcd-composer-preset");
+    if (sel) sel.value = "";
+    return;
+  }
+
+  // Resolution übernehmen falls definiert
+  if (preset.resolution) {
+    state.lcdComposer.resolution = preset.resolution;
+    const r = document.getElementById("lcd-composer-resolution");
+    if (r) r.value = preset.resolution;
+  }
+
+  // Widgets: kompletter Set, jedes mit Defaults aus Widget-Definition gemergt
+  state.lcdComposer.widgets = preset.widgets.map(presetW => {
+    const def = LCD_WIDGETS[presetW.type];
+    const base = def ? JSON.parse(JSON.stringify(def.defaults)) : {};
+    return Object.assign(base, presetW);
+  });
+
+  // Theme auf alle frisch geladenen Widgets anwenden
+  const themeName = state.lcdComposer.theme || "default";
+  const theme = LCD_THEMES[themeName];
+  if (theme) {
+    for (const w of state.lcdComposer.widgets) {
+      const slots = LCD_WIDGET_COLOR_SLOTS[w.type];
+      if (!slots) continue;
+      for (const field of Object.keys(slots)) {
+        const newColor = theme[slots[field]];
+        if (newColor && w[field] == null) w[field] = newColor;
+      }
+    }
+  }
+
+  render();
+  // Preset-Dropdown zurücksetzen (so wirkt es wie ein "einmaliger Befehl")
+  const sel = document.getElementById("lcd-composer-preset");
+  if (sel) sel.value = "";
+  showToast(`Preset "${preset.label}" geladen (${preset.widgets.length} Widgets).`);
+}
+
 // Füllt das Resolution-Dropdown beim Init mit den Optionen
 function initLcdComposerSelects() {
   const sel = document.getElementById("lcd-composer-resolution");
@@ -182,6 +229,12 @@ function initLcdComposerSelects() {
       `<option value="${k}">${LCD_RESOLUTIONS[k].label}</option>`
     ).join("");
     sel.value = state.lcdComposer.resolution || "square";
+  }
+  // Preset-Dropdown füllen
+  const presetSel = document.getElementById("lcd-composer-preset");
+  if (presetSel && typeof LCD_PRESET_ORDER !== "undefined") {
+    presetSel.innerHTML = `<option value="">— Preset laden —</option>` +
+      LCD_PRESET_ORDER.map(k => `<option value="${k}">${LCD_PRESETS[k].label}</option>`).join("");
   }
 }
 

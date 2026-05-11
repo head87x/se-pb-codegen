@@ -145,9 +145,15 @@
               <input id="lcd-composer-surface" type="number" min="0" max="15" step="1" value="0" oninput="onLcdComposerSurfaceInput(this.value)">
               <div class="help-text">PB hat meist nur Index 0. Cockpits: 0–7 je nach Modell.</div>
             </div>
-            <div style="margin-top:8px;">
-              <label>LCD-Format (nur für Vorschau)</label>
-              <select id="lcd-composer-resolution" onchange="onLcdComposerResolutionChange(this.value)"></select>
+            <div class="row row-2" style="margin-top:8px;">
+              <div>
+                <label>LCD-Format (nur für Vorschau)</label>
+                <select id="lcd-composer-resolution" onchange="onLcdComposerResolutionChange(this.value)"></select>
+              </div>
+              <div>
+                <label>Schnellstart</label>
+                <select id="lcd-composer-preset" onchange="onLcdPresetSelect(this.value)"></select>
+              </div>
             </div>
             <div class="help-text" style="margin-top:6px;">Widgets per Maus in der Vorschau positionieren und skalieren. Der generierte C#-Code nutzt zur Laufzeit das echte LCD-Format aus dem Spiel.</div>
             <div id="lcd-composer-list" style="margin-top:12px;"></div>
