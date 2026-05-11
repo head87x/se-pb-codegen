@@ -103,7 +103,11 @@ function generateLcdComposerCode(ensureBlock) {
     const w = lc.widgets[idx];
     const def = LCD_WIDGETS[w.type];
     if (!def) continue;
-    const height = def.height;
+    // Spacer-Widget hat dynamische Höhe aus dem Parameter
+    let height = def.height;
+    if (w.type === "spacer") {
+      height = Math.max(8, Math.min(200, parseFloat(w.spaceHeight) || 20));
+    }
     out += `\n            // Widget #${idx + 1}: ${w.type}\n`;
     out += `            {\n`;
     out += _emitWidget(w, ensureBlock);
@@ -353,6 +357,177 @@ function _emitWidget(w, ensureBlock) {
     out += `                    sp.Position = new Vector2(rect.Position.X + lcdComp.SurfaceSize.X / 2f, yPos + 12f);\n`;
     out += `                    frame.Add(sp);\n`;
     out += `                }\n`;
+
+  // ============ Phase 4c ============
+
+  } else if (w.type === "section") {
+    // Voll breiter Streifen mit großem Text
+    out += `                sp = MySprite.CreateSprite("SquareSimple", new Vector2(rect.Position.X + lcdComp.SurfaceSize.X / 2f, yPos + 14f), new Vector2(widthInner, 22f));\n`;
+    out += `                sp.Color = ${_csColor(w.bgColor, "new Color(78, 197, 255)")};\n`;
+    out += `                frame.Add(sp);\n`;
+    out += `                sp = MySprite.CreateText(${_csString(w.text || "")}, "White", ${_csColor(w.textColor, "new Color(10, 14, 18)")}, 0.9f, TextAlignment.CENTER);\n`;
+    out += `                sp.Position = new Vector2(rect.Position.X + lcdComp.SurfaceSize.X / 2f, yPos + 4f);\n`;
+    out += `                frame.Add(sp);\n`;
+
+  } else if (w.type === "divider") {
+    if (!w.text) {
+      // Reine Linie
+      out += `                sp = MySprite.CreateSprite("SquareSimple", new Vector2(rect.Position.X + lcdComp.SurfaceSize.X / 2f, yPos + 9f), new Vector2(widthInner, 1f));\n`;
+      out += `                sp.Color = ${_csColor(w.color, "new Color(42, 52, 66)")};\n`;
+      out += `                frame.Add(sp);\n`;
+    } else {
+      // Zwei kurze Linien + Text in der Mitte
+      out += `                float textW = ${_csString(w.text)}.Length * 7f + 16f;\n`;
+      out += `                sp = MySprite.CreateSprite("SquareSimple", new Vector2(rect.Position.X + padX + (widthInner - textW) / 4f, yPos + 9f), new Vector2((widthInner - textW) / 2f, 1f));\n`;
+      out += `                sp.Color = ${_csColor(w.color, "new Color(42, 52, 66)")};\n`;
+      out += `                frame.Add(sp);\n`;
+      out += `                sp = MySprite.CreateSprite("SquareSimple", new Vector2(rect.Position.X + lcdComp.SurfaceSize.X - padX - (widthInner - textW) / 4f, yPos + 9f), new Vector2((widthInner - textW) / 2f, 1f));\n`;
+      out += `                sp.Color = ${_csColor(w.color, "new Color(42, 52, 66)")};\n`;
+      out += `                frame.Add(sp);\n`;
+      out += `                sp = MySprite.CreateText(${_csString(w.text || "")}, "White", ${_csColor(w.color, "new Color(42, 52, 66)")}, 0.65f, TextAlignment.CENTER);\n`;
+      out += `                sp.Position = new Vector2(rect.Position.X + lcdComp.SurfaceSize.X / 2f, yPos + 1f);\n`;
+      out += `                frame.Add(sp);\n`;
+    }
+
+  } else if (w.type === "spacer") {
+    // Spacer zeichnet nichts — Y-Position wird unten erhöht
+    out += `                /* Spacer: keine Sprites */\n`;
+
+  } else if (w.type === "clock") {
+    const fmt = w.format || "HH:mm:ss";
+    const alignCs = w.align === "left" ? "TextAlignment.LEFT"
+                  : w.align === "right" ? "TextAlignment.RIGHT"
+                  : "TextAlignment.CENTER";
+    const xExpr = w.align === "left"
+      ? "rect.Position.X + padX"
+      : w.align === "right"
+      ? "rect.Position.X + lcdComp.SurfaceSize.X - padX"
+      : "rect.Position.X + lcdComp.SurfaceSize.X / 2f";
+    out += `                sp = MySprite.CreateText(DateTime.Now.ToString(${_csString(fmt)}), "White", ${_csColor(w.color, "new Color(78, 197, 255)")}, ${parseFloat(w.size) || 1.2}f, ${alignCs});\n`;
+    out += `                sp.Position = new Vector2(${xExpr}, yPos + 4f);\n`;
+    out += `                frame.Add(sp);\n`;
+
+  } else if (w.type === "bigvalue") {
+    const entry = _ensureSourceBlock(ensureBlock, w.source, w.sourceBlock);
+    const valueExpr = entry ? _sourceExpr(w.source, entry.varName) : "0f";
+    const src = findLcdSource(w.source);
+    const unit = src ? src.unit : "";
+    const fmt = _formatSpec(w.format);
+    // Kleines Label oben
+    out += `                sp = MySprite.CreateText(${_csString(w.label || "")}, "White", new Color(216,225,236), 0.6f, TextAlignment.CENTER);\n`;
+    out += `                sp.Position = new Vector2(rect.Position.X + lcdComp.SurfaceSize.X / 2f, yPos + 2f);\n`;
+    out += `                frame.Add(sp);\n`;
+    // Große Zahl
+    out += `                sp = MySprite.CreateText((${valueExpr}).ToString(${_csString(fmt)}), "White", ${_csColor(w.color)}, 2.5f, TextAlignment.CENTER);\n`;
+    out += `                sp.Position = new Vector2(rect.Position.X + lcdComp.SurfaceSize.X / 2f, yPos + 16f);\n`;
+    out += `                frame.Add(sp);\n`;
+    // Einheit rechts unten
+    if (unit) {
+      out += `                sp = MySprite.CreateText(${_csString(unit)}, "White", ${_csColor(w.color)}, 0.7f, TextAlignment.RIGHT);\n`;
+      out += `                sp.Position = new Vector2(rect.Position.X + lcdComp.SurfaceSize.X - padX, yPos + 56f);\n`;
+      out += `                frame.Add(sp);\n`;
+    }
+
+  } else if (w.type === "iconvalue") {
+    const entry = _ensureSourceBlock(ensureBlock, w.source, w.sourceBlock);
+    const valueExpr = entry ? _sourceExpr(w.source, entry.varName) : "0f";
+    const src = findLcdSource(w.source);
+    const unit = src ? src.unit : "";
+    const fmt = _formatSpec(w.format);
+    const icon = w.icon || "Cross";
+    // Icon links
+    out += `                sp = MySprite.CreateSprite(${_csString(icon)}, new Vector2(rect.Position.X + padX + 16f, yPos + 18f), new Vector2(28f, 28f));\n`;
+    out += `                sp.Color = ${_csColor(w.color)};\n`;
+    out += `                frame.Add(sp);\n`;
+    // Label
+    out += `                sp = MySprite.CreateText(${_csString(w.label || "")}, "White", new Color(216,225,236), 0.7f, TextAlignment.LEFT);\n`;
+    out += `                sp.Position = new Vector2(rect.Position.X + padX + 38f, yPos + 4f);\n`;
+    out += `                frame.Add(sp);\n`;
+    // Wert + Einheit rechts
+    out += `                sp = MySprite.CreateText((${valueExpr}).ToString(${_csString(fmt)}) + ${_csString(" " + unit)}, "White", ${_csColor(w.color)}, 1.1f, TextAlignment.RIGHT);\n`;
+    out += `                sp.Position = new Vector2(rect.Position.X + lcdComp.SurfaceSize.X - padX, yPos + 10f);\n`;
+    out += `                frame.Add(sp);\n`;
+
+  } else if (w.type === "aggregator") {
+    // Multi-Block-Aggregation via GetBlocksOfType<...>
+    const agg = w.aggregateType || "battery_charge";
+    let iface, expr, unit;
+    switch (agg) {
+      case "battery_charge": iface = "IMyBatteryBlock";    expr = "(b.CurrentStoredPower / b.MaxStoredPower) * 100f"; unit = "%"; break;
+      case "battery_input":  iface = "IMyBatteryBlock";    expr = "b.CurrentInput";                                    unit = " MW"; break;
+      case "battery_output": iface = "IMyBatteryBlock";    expr = "b.CurrentOutput";                                   unit = " MW"; break;
+      case "tank_fill":      iface = "IMyGasTank";         expr = "(float)b.FilledRatio * 100f";                       unit = "%"; break;
+      case "cargo_fill":     iface = "IMyCargoContainer";  expr = "((float)b.GetInventory().CurrentVolume / (float)b.GetInventory().MaxVolume) * 100f"; unit = "%"; break;
+      case "cargo_mass":     iface = "IMyCargoContainer";  expr = "(float)b.GetInventory().CurrentMass";               unit = " kg"; break;
+      case "reactor_output": iface = "IMyReactor";         expr = "b.CurrentOutput";                                   unit = " MW"; break;
+      case "solar_output":   iface = "IMySolarPanel";      expr = "b.CurrentOutput * 1000f";                           unit = " kW"; break;
+      default:               iface = "IMyBatteryBlock";    expr = "0f";                                                unit = ""; break;
+    }
+    const mode = w.mode || "avg";
+    out += `                var bs = new List<${iface}>();\n`;
+    out += `                GridTerminalSystem.GetBlocksOfType(bs);\n`;
+    out += `                float aggVal = 0f; int aggCnt = 0;\n`;
+    if (mode === "min") out += `                float aggMin = float.MaxValue;\n`;
+    if (mode === "max") out += `                float aggMax = float.MinValue;\n`;
+    out += `                foreach (var b in bs)\n`;
+    out += `                {\n`;
+    out += `                    float v = ${expr};\n`;
+    if (mode === "sum" || mode === "avg") out += `                    aggVal += v;\n`;
+    if (mode === "min") out += `                    if (v < aggMin) aggMin = v;\n`;
+    if (mode === "max") out += `                    if (v > aggMax) aggMax = v;\n`;
+    out += `                    aggCnt++;\n`;
+    out += `                }\n`;
+    if (mode === "avg") out += `                float result = aggCnt > 0 ? aggVal / aggCnt : 0f;\n`;
+    else if (mode === "min") out += `                float result = aggCnt > 0 ? aggMin : 0f;\n`;
+    else if (mode === "max") out += `                float result = aggCnt > 0 ? aggMax : 0f;\n`;
+    else out += `                float result = aggVal;\n`;
+    const symbol = mode === "sum" ? "Σ" : (mode === "min" ? "↓" : (mode === "max" ? "↑" : "Ø"));
+    out += `                sp = MySprite.CreateText(${_csString(symbol)}, "White", ${_csColor(w.color)}, 1.1f, TextAlignment.LEFT);\n`;
+    out += `                sp.Position = new Vector2(rect.Position.X + padX, yPos + 4f);\n`;
+    out += `                frame.Add(sp);\n`;
+    out += `                sp = MySprite.CreateText(${_csString(w.label || "")}, "White", new Color(216,225,236), 0.7f, TextAlignment.LEFT);\n`;
+    out += `                sp.Position = new Vector2(rect.Position.X + padX + 18f, yPos + 4f);\n`;
+    out += `                frame.Add(sp);\n`;
+    out += `                sp = MySprite.CreateText(result.ToString("0") + ${_csString(unit)}, "White", ${_csColor(w.color)}, 1.1f, TextAlignment.RIGHT);\n`;
+    out += `                sp.Position = new Vector2(rect.Position.X + lcdComp.SurfaceSize.X - padX, yPos + 12f);\n`;
+    out += `                frame.Add(sp);\n`;
+    out += `                sp = MySprite.CreateText("(" + aggCnt + " Blöcke)", "White", new Color(107,122,141), 0.55f, TextAlignment.LEFT);\n`;
+    out += `                sp.Position = new Vector2(rect.Position.X + padX + 18f, yPos + 20f);\n`;
+    out += `                frame.Add(sp);\n`;
+
+  } else if (w.type === "gauge") {
+    const entry = _ensureSourceBlock(ensureBlock, w.source, w.sourceBlock);
+    const valueExpr = entry ? _sourceExpr(w.source, entry.varName) : "0f";
+    const minVal = parseFloat(w.min) || 0;
+    const maxVal = parseFloat(w.max) || 100;
+    // Halbring: 270° von -135° bis +135° (klassisch Tacho)
+    out += `                float gVal = (float)Math.Max(${minVal}f, Math.Min(${maxVal}f, ${valueExpr}));\n`;
+    out += `                float gT = (gVal - ${minVal}f) / (${maxVal}f - ${minVal}f);\n`;
+    out += `                float cx = rect.Position.X + lcdComp.SurfaceSize.X / 2f;\n`;
+    out += `                float cy = yPos + 70f;\n`;
+    out += `                int segs = 24;\n`;
+    out += `                int gFilled = (int)Math.Round(segs * gT);\n`;
+    out += `                float radius = 55f;\n`;
+    out += `                float startA = -(float)Math.PI * 0.75f;\n`;
+    out += `                float endA   =  (float)Math.PI * 0.75f;\n`;
+    out += `                for (int i = 0; i < segs; i++)\n`;
+    out += `                {\n`;
+    out += `                    float t = i / (float)(segs - 1);\n`;
+    out += `                    float ang = startA + (endA - startA) * t;\n`;
+    out += `                    float px = cx + (float)Math.Cos(ang) * radius;\n`;
+    out += `                    float py = cy + (float)Math.Sin(ang) * radius;\n`;
+    out += `                    sp = MySprite.CreateSprite("Circle", new Vector2(px, py), new Vector2(8f, 8f));\n`;
+    out += `                    sp.Color = (i < gFilled) ? ${_csColor(w.color)} : ${_csColor(w.bgColor, "new Color(42, 52, 66)")};\n`;
+    out += `                    frame.Add(sp);\n`;
+    out += `                }\n`;
+    // Großer Wert in der Mitte
+    const fmt = "0.0";
+    out += `                sp = MySprite.CreateText(gVal.ToString(${_csString(fmt)}), "White", ${_csColor(w.color)}, 1.4f, TextAlignment.CENTER);\n`;
+    out += `                sp.Position = new Vector2(cx, cy - 4f);\n`;
+    out += `                frame.Add(sp);\n`;
+    out += `                sp = MySprite.CreateText(${_csString(w.label || "")}, "White", new Color(216,225,236), 0.6f, TextAlignment.CENTER);\n`;
+    out += `                sp.Position = new Vector2(cx, cy + 20f);\n`;
+    out += `                frame.Add(sp);\n`;
   }
 
   return out;

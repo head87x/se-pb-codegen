@@ -655,6 +655,27 @@ footer .accent { color: var(--accent); }
   border-bottom: 1px dashed var(--border);
 }
 
+/* Theme-Auswahlleiste (Phase 4c) */
+.lcd-theme-bar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 12px;
+  padding: 6px 8px;
+  background: rgba(0,0,0,0.2);
+  border: 1px solid var(--border);
+  border-radius: 2px;
+  flex-wrap: wrap;
+}
+
+.lcd-theme-label {
+  font-family: 'Consolas', monospace;
+  font-size: 10px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
 button.small:disabled {
   opacity: 0.35;
   cursor: not-allowed;

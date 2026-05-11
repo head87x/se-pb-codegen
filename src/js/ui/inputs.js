@@ -192,3 +192,33 @@ function updateLcdWidgetAndRender(i, field, val) {
   state.lcdComposer.widgets[i][field] = val;
   render();
 }
+
+// Theme auf alle bestehenden Widgets anwenden. Ersetzt die bekannten
+// Standard-Farben durch die Theme-Farben — Custom-Farben bleiben erhalten.
+function applyLcdTheme(themeName) {
+  const t = LCD_THEMES[themeName];
+  if (!t) return;
+  // Map: Default-Farb-String → neue Theme-Farbe für die "Slots"
+  const defaultsMap = LCD_THEMES.default;
+  const colorMap = {
+    [defaultsMap.accent]:  t.accent,
+    [defaultsMap.accent2]: t.accent2,
+    [defaultsMap.success]: t.success,
+    [defaultsMap.warning]: t.warning,
+    [defaultsMap.danger]:  t.danger,
+    [defaultsMap.text]:    t.text,
+    [defaultsMap.bg]:      t.bg
+  };
+  let changed = 0;
+  for (const w of state.lcdComposer.widgets) {
+    for (const key of Object.keys(w)) {
+      if (typeof w[key] === "string" && colorMap[w[key]]) {
+        w[key] = colorMap[w[key]];
+        changed++;
+      }
+    }
+  }
+  state.lcdComposer.theme = themeName;
+  render();
+  showToast(`Theme "${t.label}" angewendet — ${changed} Farben umgestellt.`);
+}

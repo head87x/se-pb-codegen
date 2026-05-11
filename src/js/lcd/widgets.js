@@ -292,13 +292,209 @@ const LCD_WIDGETS = {
 
 // Reihenfolge der Add-Buttons im UI (gruppiert nach Typ)
 const LCD_WIDGET_ORDER = [
-  "header",
+  "header", "section", "divider", "spacer", "clock",
   "statusbar", "statusbar_v", "statusbar_seg", "bar_double",
-  "value",
-  "donut", "dot",
+  "value", "bigvalue", "iconvalue",
+  "donut", "gauge", "dot",
+  "aggregator",
   "checklist",
   "warning", "alarm"
 ];
+
+// ============ Phase 4c — Mega-Anzeigen + Kosmetik ============
+
+LCD_WIDGETS.section = {
+  label: "Section-Header (farbiger Streifen)",
+  height: 28,
+  defaults: { text: "SYSTEME", bgColor: "78,197,255", textColor: "10,14,18" },
+  fields: [
+    { key: "text",      label: "Text",                  type: "text" },
+    { key: "bgColor",   label: "Hintergrundfarbe",      type: "text", hint: "z.B. 78,197,255" },
+    { key: "textColor", label: "Textfarbe",             type: "text", hint: "z.B. 10,14,18 (fast Schwarz)" }
+  ]
+};
+
+LCD_WIDGETS.divider = {
+  label: "Trennlinie",
+  height: 18,
+  defaults: { text: "", color: "42,52,66" },
+  fields: [
+    { key: "text",  label: "Text in der Mitte (optional)", type: "text", hint: "leer = nur Linie" },
+    { key: "color", label: "Linienfarbe (R,G,B)",          type: "text", hint: "z.B. 42,52,66" }
+  ]
+};
+
+LCD_WIDGETS.spacer = {
+  label: "Spacer (vertikale Lücke)",
+  height: 20,   // wird per height-Param überschrieben in composer
+  defaults: { spaceHeight: 20 },
+  fields: [
+    { key: "spaceHeight", label: "Höhe in Pixeln", type: "number", hint: "z.B. 20" }
+  ]
+};
+
+LCD_WIDGETS.clock = {
+  label: "Uhr",
+  height: 32,
+  defaults: { format: "HH:mm:ss", align: "center", color: "78,197,255", size: 1.2 },
+  fields: [
+    { key: "format", label: "Format", type: "select", options: [
+      { value: "HH:mm:ss",        label: "14:23:45" },
+      { value: "HH:mm",           label: "14:23" },
+      { value: "dd.MM.yyyy HH:mm", label: "11.05.2026 14:23" },
+      { value: "yyyy-MM-dd",      label: "2026-05-11" }
+    ]},
+    { key: "align", label: "Ausrichtung", type: "select", options: [
+      { value: "left",   label: "Links" },
+      { value: "center", label: "Zentriert" },
+      { value: "right",  label: "Rechts" }
+    ]},
+    { key: "color", label: "Farbe (R,G,B)",   type: "text" },
+    { key: "size",  label: "Schriftgröße",    type: "number", hint: "z.B. 1.2" }
+  ]
+};
+
+LCD_WIDGETS.bigvalue = {
+  label: "Großes Zahlenfeld",
+  height: 70,
+  defaults: { label: "GESCHWINDIGKEIT", sourceBlock: "", source: "ship_speed", format: "0.0", color: "255,140,26" },
+  fields: [
+    { key: "label",       label: "Label oben",        type: "text" },
+    { key: "sourceBlock", label: "Block-Name",        type: "text" },
+    { key: "source",      label: "Datenquelle",       type: "lcd-source" },
+    { key: "format",      label: "Nachkommastellen",  type: "select", options: [
+      { value: "0",    label: "0 (ganzzahlig)" },
+      { value: "0.0",  label: "1 Nachkommastelle" },
+      { value: "0.00", label: "2 Nachkommastellen" }
+    ]},
+    { key: "color", label: "Farbe (R,G,B)", type: "text" }
+  ]
+};
+
+LCD_WIDGETS.iconvalue = {
+  label: "Icon + Wert",
+  height: 38,
+  defaults: { label: "O₂", icon: "IconOxygen", sourceBlock: "", source: "tank_fill", format: "0", color: "78,197,255" },
+  fields: [
+    { key: "label",       label: "Label",         type: "text" },
+    { key: "icon",        label: "Icon",          type: "select", options: [
+      { value: "IconEnergy",   label: "⚡ Energy" },
+      { value: "IconHydrogen", label: "💧 Hydrogen" },
+      { value: "IconOxygen",   label: "💨 Oxygen" },
+      { value: "IconUranium",  label: "☢ Uranium" },
+      { value: "Construction", label: "🔧 Construction" },
+      { value: "Computer",     label: "💻 Computer" },
+      { value: "Display",      label: "📺 Display" },
+      { value: "Medkit",       label: "🩹 Medkit" },
+      { value: "Powerkit",     label: "🔋 Powerkit" },
+      { value: "Danger",       label: "⚠ Danger" },
+      { value: "Cross",        label: "✕ Cross" },
+      { value: "CrossHair",    label: "⊕ Crosshair" },
+      { value: "Arrow",        label: "→ Arrow" }
+    ]},
+    { key: "sourceBlock", label: "Block-Name",    type: "text" },
+    { key: "source",      label: "Datenquelle",   type: "lcd-source" },
+    { key: "format",      label: "Nachkommastellen", type: "select", options: [
+      { value: "0",    label: "0 (ganzzahlig)" },
+      { value: "0.0",  label: "1 Nachkommastelle" },
+      { value: "0.00", label: "2 Nachkommastellen" }
+    ]},
+    { key: "color", label: "Farbe (R,G,B)", type: "text" }
+  ]
+};
+
+LCD_WIDGETS.aggregator = {
+  label: "Multi-Block-Aggregator",
+  height: 38,
+  defaults: { label: "Akkus gesamt", aggregateType: "battery_charge", mode: "avg", color: "94,212,123" },
+  fields: [
+    { key: "label",         label: "Label",          type: "text" },
+    { key: "aggregateType", label: "Was zählen?",    type: "select", options: [
+      { value: "battery_charge", label: "Alle Akkus (Ladung Ø)" },
+      { value: "battery_input",  label: "Alle Akkus (Strom-Input Σ)" },
+      { value: "battery_output", label: "Alle Akkus (Strom-Output Σ)" },
+      { value: "tank_fill",      label: "Alle Tanks (Füllstand Ø)" },
+      { value: "cargo_fill",     label: "Alle Cargo (Volumen-% Ø)" },
+      { value: "cargo_mass",     label: "Alle Cargo (Masse Σ kg)" },
+      { value: "reactor_output", label: "Alle Reaktoren (MW Σ)" },
+      { value: "solar_output",   label: "Alle Solar (kW Σ)" }
+    ]},
+    { key: "mode", label: "Modus", type: "select", options: [
+      { value: "avg", label: "Durchschnitt (Ø)" },
+      { value: "sum", label: "Summe (Σ)" },
+      { value: "min", label: "Minimum" },
+      { value: "max", label: "Maximum" }
+    ]},
+    { key: "color", label: "Farbe (R,G,B)", type: "text" }
+  ]
+};
+
+LCD_WIDGETS.gauge = {
+  label: "Tachometer (Halbring)",
+  height: 130,
+  defaults: { label: "Speed", sourceBlock: "", source: "ship_speed", min: 0, max: 110, color: "255,140,26", bgColor: "42,52,66" },
+  fields: [
+    { key: "label",       label: "Label",         type: "text" },
+    { key: "sourceBlock", label: "Block-Name",    type: "text" },
+    { key: "source",      label: "Datenquelle",   type: "lcd-source" },
+    { key: "min",         label: "Min-Wert",      type: "number", hint: "z.B. 0" },
+    { key: "max",         label: "Max-Wert",      type: "number", hint: "z.B. 110 (Speed) oder 100 (%)" },
+    { key: "color",       label: "Zeiger-Farbe",  type: "text",   hint: "z.B. 255,140,26" },
+    { key: "bgColor",     label: "Skala-Farbe",   type: "text",   hint: "Standard: 42,52,66" }
+  ]
+};
+
+// Definitionen sind jetzt vorhanden — Aggregator-Quellen werden vom Composer
+// direkt umgesetzt (GetBlocksOfType<...>), brauchen keinen Eintrag in LCD_SOURCES.
+
+// ============ THEMES (Phase 4c) ============
+
+// WICHTIG für Theme-Apply: die Default-Farben müssen alle UNIQUE sein,
+// sonst überschreiben sich Mappings (JS-Object-Key-Kollision).
+const LCD_THEMES = {
+  default: {
+    label: "Orange / Cyan (Standard)",
+    accent:  "255,140,26",
+    accent2: "78,197,255",
+    success: "94,212,123",
+    warning: "255,200,80",
+    danger:  "255,85,96",
+    text:    "216,225,236",
+    bg:      "42,52,66"
+  },
+  alarm: {
+    label: "Rotes Alarm-Display",
+    accent:  "255,85,96",
+    accent2: "255,140,26",
+    success: "94,212,123",
+    warning: "255,200,80",
+    danger:  "200,40,55",
+    text:    "216,225,236",
+    bg:      "62,32,32"
+  },
+  industrial: {
+    label: "Grünes Industrie-Display",
+    accent:  "94,212,123",
+    accent2: "216,225,236",
+    success: "60,180,90",
+    warning: "255,200,80",
+    danger:  "255,85,96",
+    text:    "216,225,236",
+    bg:      "32,42,38"
+  },
+  cyan: {
+    label: "Blaues Sci-Fi",
+    accent:  "78,197,255",
+    accent2: "255,140,26",
+    success: "94,212,123",
+    warning: "255,200,80",
+    danger:  "255,85,96",
+    text:    "216,225,236",
+    bg:      "32,42,62"
+  }
+};
+
+const LCD_THEME_ORDER = ["default", "alarm", "industrial", "cyan"];
 
 function findLcdWidget(type) {
   return LCD_WIDGETS[type];

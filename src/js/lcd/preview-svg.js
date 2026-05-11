@@ -202,6 +202,146 @@ const LCD_PREVIEWS = {
   }
 };
 
+// ============ Phase 4c ============
+
+LCD_PREVIEWS.section = (w) => {
+  const bg = _parseColor(w.bgColor, "rgb(78,197,255)");
+  const tc = _parseColor(w.textColor, "rgb(10,14,18)");
+  const text = _escapeSvgText(w.text || "Section");
+  return `<svg viewBox="0 0 200 28" xmlns="http://www.w3.org/2000/svg">
+    <rect width="200" height="28" fill="#07090c"/>
+    <rect x="0" y="4" width="200" height="20" fill="${bg}"/>
+    <text x="100" y="19" font-family="Consolas,monospace" font-size="12" font-weight="bold" fill="${tc}" text-anchor="middle" letter-spacing="2">${text}</text>
+  </svg>`;
+};
+
+LCD_PREVIEWS.divider = (w) => {
+  const color = _parseColor(w.color, "rgb(42,52,66)");
+  const text = _escapeSvgText(w.text || "");
+  if (!text) {
+    return `<svg viewBox="0 0 200 18" xmlns="http://www.w3.org/2000/svg">
+      <rect width="200" height="18" fill="#07090c"/>
+      <line x1="8" y1="9" x2="192" y2="9" stroke="${color}" stroke-width="1"/>
+    </svg>`;
+  }
+  // Mit Text: zwei kurze Linien links + rechts vom Text
+  return `<svg viewBox="0 0 200 18" xmlns="http://www.w3.org/2000/svg">
+    <rect width="200" height="18" fill="#07090c"/>
+    <line x1="8" y1="9" x2="70" y2="9" stroke="${color}" stroke-width="1"/>
+    <line x1="130" y1="9" x2="192" y2="9" stroke="${color}" stroke-width="1"/>
+    <text x="100" y="13" font-family="Consolas,monospace" font-size="10" fill="${color}" text-anchor="middle">${text}</text>
+  </svg>`;
+};
+
+LCD_PREVIEWS.spacer = (w) => {
+  const h = Math.max(8, Math.min(80, parseFloat(w.spaceHeight) || 20));
+  return `<svg viewBox="0 0 200 ${h}" xmlns="http://www.w3.org/2000/svg">
+    <rect width="200" height="${h}" fill="#07090c"/>
+    <text x="100" y="${h/2 + 4}" font-family="Consolas,monospace" font-size="9" fill="#3a4252" text-anchor="middle" font-style="italic">— Spacer (${Math.round(h)}px) —</text>
+  </svg>`;
+};
+
+LCD_PREVIEWS.clock = (w) => {
+  const color = _parseColor(w.color, "rgb(78,197,255)");
+  const size = Math.max(10, Math.min(22, (parseFloat(w.size) || 1.2) * 12));
+  const text = w.format === "HH:mm" ? "14:23"
+             : w.format === "yyyy-MM-dd" ? "2026-05-11"
+             : w.format === "dd.MM.yyyy HH:mm" ? "11.05.2026 14:23"
+             : "14:23:45";
+  const x = w.align === "left" ? 8 : (w.align === "right" ? 192 : 100);
+  const anchor = w.align === "left" ? "start" : (w.align === "right" ? "end" : "middle");
+  return `<svg viewBox="0 0 200 32" xmlns="http://www.w3.org/2000/svg">
+    <rect width="200" height="32" fill="#07090c"/>
+    <text x="${x}" y="22" font-family="Consolas,monospace" font-size="${size}" font-weight="bold" fill="${color}" text-anchor="${anchor}">${text}</text>
+  </svg>`;
+};
+
+LCD_PREVIEWS.bigvalue = (w) => {
+  const color = _parseColor(w.color, "rgb(255,140,26)");
+  const label = _escapeSvgText(w.label || "WERT");
+  const source = findLcdSource(w.source);
+  const unit = source ? source.unit : "";
+  const demoVal = w.format === "0" ? "42" : (w.format === "0.00" ? "42.50" : "42.5");
+  return `<svg viewBox="0 0 200 70" xmlns="http://www.w3.org/2000/svg">
+    <rect width="200" height="70" fill="#07090c"/>
+    <text x="100" y="18" font-family="Consolas,monospace" font-size="11" fill="#d8e1ec" text-anchor="middle" letter-spacing="2">${label}</text>
+    <text x="100" y="55" font-family="Consolas,monospace" font-size="36" font-weight="bold" fill="${color}" text-anchor="middle">${demoVal}</text>
+    <text x="192" y="65" font-family="Consolas,monospace" font-size="10" fill="${color}" text-anchor="end">${unit}</text>
+  </svg>`;
+};
+
+LCD_PREVIEWS.iconvalue = (w) => {
+  const color = _parseColor(w.color, "rgb(78,197,255)");
+  const label = _escapeSvgText(w.label || "Icon");
+  const source = findLcdSource(w.source);
+  const unit = source ? source.unit : "";
+  const demoVal = w.format === "0" ? "42" : (w.format === "0.00" ? "42.50" : "42.5");
+  // Vereinfachtes SVG-Icon (anstatt SE-Sprites, weil die im Browser nicht verfügbar sind)
+  let iconSvg = "";
+  switch (w.icon) {
+    case "IconEnergy":   iconSvg = `<path d="M22 12 L14 24 L20 24 L16 32 L26 20 L20 20 Z" fill="${color}"/>`; break;
+    case "IconHydrogen": iconSvg = `<circle cx="20" cy="22" r="9" fill="none" stroke="${color}" stroke-width="2"/><text x="20" y="26" font-family="Consolas" font-size="10" fill="${color}" text-anchor="middle">H</text>`; break;
+    case "IconOxygen":   iconSvg = `<circle cx="20" cy="22" r="9" fill="none" stroke="${color}" stroke-width="2"/><text x="20" y="26" font-family="Consolas" font-size="10" fill="${color}" text-anchor="middle">O</text>`; break;
+    case "IconUranium":  iconSvg = `<circle cx="20" cy="22" r="3" fill="${color}"/><circle cx="20" cy="22" r="9" fill="none" stroke="${color}" stroke-width="1"/>`; break;
+    case "Danger":       iconSvg = `<path d="M20 12 L30 30 L10 30 Z" fill="none" stroke="${color}" stroke-width="2"/><text x="20" y="28" font-family="Consolas" font-size="11" font-weight="bold" fill="${color}" text-anchor="middle">!</text>`; break;
+    case "Cross":        iconSvg = `<path d="M14 16 L26 28 M26 16 L14 28" stroke="${color}" stroke-width="2.5" stroke-linecap="round"/>`; break;
+    case "CrossHair":    iconSvg = `<circle cx="20" cy="22" r="8" fill="none" stroke="${color}" stroke-width="1.5"/><line x1="20" y1="12" x2="20" y2="32" stroke="${color}"/><line x1="10" y1="22" x2="30" y2="22" stroke="${color}"/>`; break;
+    case "Arrow":        iconSvg = `<path d="M12 22 L26 22 M22 18 L26 22 L22 26" stroke="${color}" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>`; break;
+    default:             iconSvg = `<rect x="14" y="16" width="12" height="12" fill="none" stroke="${color}" stroke-width="2"/>`;
+  }
+  return `<svg viewBox="0 0 200 38" xmlns="http://www.w3.org/2000/svg">
+    <rect width="200" height="38" fill="#07090c"/>
+    ${iconSvg}
+    <text x="44" y="20" font-family="Consolas,monospace" font-size="11" fill="#d8e1ec">${label}</text>
+    <text x="192" y="26" font-family="Consolas,monospace" font-size="16" font-weight="bold" fill="${color}" text-anchor="end">${demoVal} ${unit}</text>
+  </svg>`;
+};
+
+LCD_PREVIEWS.aggregator = (w) => {
+  const color = _parseColor(w.color, "rgb(94,212,123)");
+  const label = _escapeSvgText(w.label || "Aggregat");
+  // Demo-Wert je nach Modus
+  const symbol = w.mode === "sum" ? "Σ" : (w.mode === "min" ? "↓" : (w.mode === "max" ? "↑" : "Ø"));
+  const demoVal = "78";
+  const unit = (w.aggregateType || "").includes("output") ? " MW"
+             : (w.aggregateType || "").includes("mass")   ? " kg"
+             : " %";
+  return `<svg viewBox="0 0 200 38" xmlns="http://www.w3.org/2000/svg">
+    <rect width="200" height="38" fill="#07090c"/>
+    <text x="14" y="14" font-family="Consolas,monospace" font-size="14" font-weight="bold" fill="${color}">${symbol}</text>
+    <text x="32" y="14" font-family="Consolas,monospace" font-size="11" fill="#d8e1ec">${label}</text>
+    <text x="192" y="28" font-family="Consolas,monospace" font-size="16" font-weight="bold" fill="${color}" text-anchor="end">${demoVal}${unit}</text>
+    <text x="14" y="28" font-family="Consolas,monospace" font-size="9" fill="#6b7a8d">${w.mode || "avg"} aller Blöcke</text>
+  </svg>`;
+};
+
+LCD_PREVIEWS.gauge = (w) => {
+  const color = _parseColor(w.color, "rgb(255,140,26)");
+  const bg = _parseColor(w.bgColor, "rgb(42,52,66)");
+  const label = _escapeSvgText(w.label || "Gauge");
+  // Halbring 270° (von -135° bis +135°)
+  const cx = 100, cy = 90, r = 60;
+  const startAng = -Math.PI * 0.75;
+  const endAng = Math.PI * 0.75;
+  // Demo: 65% des Bereichs
+  const valAng = startAng + (endAng - startAng) * 0.65;
+  // Polar zu cartesian
+  const polar = (a, rad) => `${cx + Math.cos(a) * rad},${cy + Math.sin(a) * rad}`;
+  // Background-Arc (270°)
+  const bgArc = `M ${polar(startAng, r)} A ${r} ${r} 0 1 1 ${polar(endAng, r)}`;
+  // Wert-Arc
+  const valArc = `M ${polar(startAng, r)} A ${r} ${r} 0 ${(valAng - startAng) > Math.PI ? 1 : 0} 1 ${polar(valAng, r)}`;
+  return `<svg viewBox="0 0 200 130" xmlns="http://www.w3.org/2000/svg">
+    <rect width="200" height="130" fill="#07090c"/>
+    <path d="${bgArc}" fill="none" stroke="${bg}" stroke-width="10"/>
+    <path d="${valArc}" fill="none" stroke="${color}" stroke-width="10" stroke-linecap="butt"/>
+    <text x="${cx}" y="${cy + 8}" font-family="Consolas,monospace" font-size="22" font-weight="bold" fill="${color}" text-anchor="middle">42</text>
+    <text x="${cx}" y="${cy + 26}" font-family="Consolas,monospace" font-size="10" fill="#d8e1ec" text-anchor="middle">${label}</text>
+  </svg>`;
+};
+
+// ============ End Phase 4c ============
+
 function renderLcdWidgetPreview(widget) {
   const fn = LCD_PREVIEWS[widget.type];
   if (!fn) return "";

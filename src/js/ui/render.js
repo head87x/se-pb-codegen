@@ -275,15 +275,31 @@ function renderLcdComposer() {
     return `<button class="small" onclick="addLcdWidget('${type}')">+ ${escapeHtml(def.label)}</button>`;
   }).join("");
 
+  // Theme-Buttons (Phase 4c)
+  const themeButtons = LCD_THEME_ORDER.map(key => {
+    const t = LCD_THEMES[key];
+    const accent = t.accent.split(",").map(s => s.trim()).join(",");
+    const isActive = state.lcdComposer.theme === key ? " primary" : "";
+    return `<button class="small${isActive}" style="border-left:3px solid rgb(${accent})" onclick="applyLcdTheme('${key}')">${escapeHtml(t.label)}</button>`;
+  }).join("");
+
+  const themeBar = `
+    <div class="lcd-theme-bar">
+      <span class="lcd-theme-label">Theme:</span>
+      <div class="btn-row">${themeButtons}</div>
+    </div>`;
+
   const widgets = state.lcdComposer.widgets;
   if (widgets.length === 0) {
     root.innerHTML = `
+      ${themeBar}
       <div class="btn-row" style="margin-bottom:10px;">${addButtons}</div>
       <span class="empty-hint">Noch keine Widgets. Klick einen Button oben.</span>`;
     return;
   }
 
   root.innerHTML = `
+    ${themeBar}
     <div class="btn-row" style="margin-bottom:10px;">${addButtons}</div>
     ${widgets.map((w, i) => {
       const def = LCD_WIDGETS[w.type] || { label: w.type };

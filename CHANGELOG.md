@@ -7,6 +7,29 @@ das Projekt folgt [Semantic Versioning](https://semver.org/lang/de/).
 
 ## [Unreleased]
 
+### Hinzugefügt (Phase 4c — Mega-Anzeigen, Kosmetik, Themes)
+- **8 weitere LCD-Widgets**:
+  - **Großes Zahlenfeld** — eine wichtige Zahl groß und fett mit Label oben.
+  - **Icon + Wert** — SE-Built-in-Sprite (Energy/Hydrogen/Oxygen/Uranium/
+    Construction/Computer/Display/Medkit/Powerkit/Danger/Cross/CrossHair/Arrow)
+    links, Wert rechts.
+  - **Multi-Block-Aggregator** — summiert/durchschnittet/min/max über
+    alle Blöcke eines Typs (z. B. "Alle Akkus zusammen Ø 87 %"). Nutzt
+    `GridTerminalSystem.GetBlocksOfType<T>()`.
+  - **Tachometer-Gauge** — 270°-Halbring mit 24 Segmenten, Min/Max
+    konfigurierbar, großer Wert in der Mitte.
+  - **Trennlinie** — horizontaler Strich, mit oder ohne Text mittendrin.
+  - **Uhr** — Echtzeit in HH:mm:ss / HH:mm / dd.MM.yyyy HH:mm / yyyy-MM-dd.
+  - **Spacer** — reine vertikale Lücke, Höhe in Pixeln einstellbar.
+  - **Section-Header** — farbig hinterlegter Sektions-Streifen.
+- **Theme-System**: 4 Quick-Apply-Themes (Orange/Cyan Standard,
+  Rotes Alarm-Display, Grünes Industrie-Display, Blaues Sci-Fi).
+  Quick-Apply färbt alle bestehenden Widgets mit Standard-Farben
+  passend um — Custom-Farben bleiben unangetastet.
+- 13 numerische Aggregat-Quellen ergänzt für den Aggregator
+  (Akku-Ladung Ø, Akku-Strom-Input/Output Σ, Tank Ø, Cargo % Ø,
+  Cargo Masse Σ, Reaktor Σ, Solar Σ).
+
 ### Hinzugefügt (Phase 4b — LCD-Baukasten visueller Sprung)
 - **8 neue Widget-Typen** zusätzlich zu den Phase-4a-Widgets:
   - **Statusleiste vertikal** — Säulen-Style, gut nebeneinander.
