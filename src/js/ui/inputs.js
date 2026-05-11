@@ -202,8 +202,12 @@ function addLcdWidget(type) {
   if (!def) return;
   const widget = { type, ...JSON.parse(JSON.stringify(def.defaults)) };
 
-  // Aktuelles Theme direkt auf das neue Widget anwenden,
-  // damit es sofort die richtige Farbe hat (kein extra Klick nötig).
+  // Default colSpan = 1: neue Widgets sind 1 Spalte breit. Bei
+  // 1-Spalten-Layout = volle Breite, bei 2/3 Spalten halbe/drittel.
+  // So passen sich neue Widgets automatisch an die Spaltenanzahl an.
+  widget.colSpan = 1;
+
+  // Aktuelles Theme direkt auf das neue Widget anwenden
   const themeName = state.lcdComposer.theme || "default";
   const theme = LCD_THEMES[themeName];
   const slots = LCD_WIDGET_COLOR_SLOTS[type];
@@ -233,14 +237,24 @@ function moveLcdWidget(i, dir) {
 
 // Werteänderung an einem Widget — kein Re-Render bei Text-Inputs
 // (Fokus-Erhalt). Für Selects gibt's updateLcdWidgetAndRender.
+// AUSNAHMEN: Layout-Felder (widgetHeight, colSpan) verschieben
+// alle Y-Positionen → voller Re-Render nötig.
 function updateLcdWidget(i, field, val) {
   state.lcdComposer.widgets[i][field] = val;
-  // SVG-Preview manuell updaten, ohne den ganzen Composer neu zu rendern
+
+  // Layout-Felder triggern Full-Render, weil sie das gesamte
+  // Stack-Layout verschieben.
+  if (field === "widgetHeight" || field === "colSpan" || field === "spaceHeight") {
+    render();
+    return;
+  }
+
+  // Mini-Vorschau im Widget-Editor
   const previewEl = document.getElementById(`lcd-widget-preview-${i}`);
   if (previewEl) previewEl.innerHTML = renderLcdWidgetPreview(state.lcdComposer.widgets[i]);
-  // Auch die zugehörige Zeile in der Full-Preview aktualisieren
-  const fullRow = document.querySelectorAll(".lcd-full-preview .lcd-full-row")[i];
-  if (fullRow) fullRow.innerHTML = renderLcdWidgetPreview(state.lcdComposer.widgets[i]);
+  // Live-Vorschau-Cell (Selector korrigiert: .lcd-full-cell statt -row)
+  const fullCell = document.querySelectorAll(".lcd-full-preview .lcd-full-cell")[i];
+  if (fullCell) fullCell.innerHTML = renderLcdWidgetPreview(state.lcdComposer.widgets[i]);
   generateCode();
 }
 
