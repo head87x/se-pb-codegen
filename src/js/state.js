@@ -14,9 +14,11 @@ var state = {
   lcdComposer: {     // Phase 4a — LCD-Baukasten (Sprite-API)
     enabled: false,
     displayMode: "external", // "external" | "pb" | "cockpit"
-    lcdName: "",             // bei external + cockpit
-    surfaceIndex: 0,         // bei pb + cockpit (Display-Index)
-    widgets: []              // { type, ...params }
+    lcdName: "",
+    surfaceIndex: 0,
+    resolution: "square",    // LCD-Format-Key aus LCD_RESOLUTIONS
+    columns: 1,              // 1, 2 oder 3 Spalten
+    widgets: []              // { type, ...params, widgetHeight?, colSpan? }
   }
 };
 

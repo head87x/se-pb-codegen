@@ -32,6 +32,9 @@ function loadTemplate(i) {
   // Neue Felder ab "Display-Quelle"-Update
   if (!state.lcdComposer.displayMode)  state.lcdComposer.displayMode = "external";
   if (state.lcdComposer.surfaceIndex == null) state.lcdComposer.surfaceIndex = 0;
+  // Phase 4d Felder
+  if (!state.lcdComposer.resolution)   state.lcdComposer.resolution = "square";
+  if (!state.lcdComposer.columns)      state.lcdComposer.columns = 1;
   // Re-apply UI fields
   document.getElementById("exec-mode").value = state.execMode;
   document.getElementById("lcd-enable").checked = !!state.lcdEnable;
@@ -41,6 +44,8 @@ function loadTemplate(i) {
   document.getElementById("lcd-composer-name").value = state.lcdComposer.lcdName || "";
   document.getElementById("lcd-composer-mode").value = state.lcdComposer.displayMode;
   document.getElementById("lcd-composer-surface").value = state.lcdComposer.surfaceIndex;
+  document.getElementById("lcd-composer-resolution").value = state.lcdComposer.resolution;
+  document.getElementById("lcd-composer-columns").value = String(state.lcdComposer.columns);
   document.getElementById("lcd-composer-config").style.display = state.lcdComposer.enabled ? "block" : "none";
   render();
   showToast(`"${templates[i].name}" geladen`);
@@ -58,7 +63,7 @@ function newProject() {
   state = {
     conditions: [], actionsThen: [], actionsElse: [],
     execMode: "argument", lcdEnable: false, lcdName: "",
-    lcdComposer: { enabled: false, displayMode: "external", lcdName: "", surfaceIndex: 0, widgets: [] }
+    lcdComposer: { enabled: false, displayMode: "external", lcdName: "", surfaceIndex: 0, resolution: "square", columns: 1, widgets: [] }
   };
   document.getElementById("exec-mode").value = "argument";
   document.getElementById("lcd-enable").checked = false;
@@ -68,6 +73,8 @@ function newProject() {
   document.getElementById("lcd-composer-name").value = "";
   document.getElementById("lcd-composer-mode").value = "external";
   document.getElementById("lcd-composer-surface").value = 0;
+  document.getElementById("lcd-composer-resolution").value = "square";
+  document.getElementById("lcd-composer-columns").value = "1";
   document.getElementById("lcd-composer-config").style.display = "none";
   render();
 }

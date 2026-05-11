@@ -7,6 +7,26 @@ das Projekt folgt [Semantic Versioning](https://semver.org/lang/de/).
 
 ## [Unreleased]
 
+### Hinzugefügt (Phase 4d — Layout-Engine)
+- **LCD-Format wählbar**: Standard 1:1, Wide 2:1, Tall 1:2, Big 3×3.
+  Beeinflusst nur die Vorschau-Größe und das Layout-Aspect; der
+  generierte C#-Code passt sich zur Laufzeit an das tatsächliche
+  LCD-Format im Spiel an.
+- **Multi-Spalten-Layout** (1, 2 oder 3 Spalten pro LCD). Jedes
+  Widget hat ein **colSpan**-Feld (1 / 2 / volle Breite).
+  Damit kannst du z. B. zwei Donut-Indikatoren oder vier
+  Wert-Anzeigen nebeneinander platzieren.
+- **Widget-Höhe pro Widget einstellbar** (8–400 px). Default
+  = bisheriger Standardwert je Widget-Typ. Damit kannst du
+  z. B. Donut von 140 auf 80 px verkleinern.
+- **Feste Vorschau-Größe**: Live-Vorschau zeigt jetzt 1:1 das
+  echte LCD-Aspect. Wenn deine Widgets nicht reinpassen, erscheint
+  ein roter **„⚠ Widgets passen nicht aufs LCD"-Hinweis** unten
+  in der Vorschau.
+- **Composer-Layout-Engine** komplett umgebaut auf Spalten +
+  custom Höhe + colSpan. Generiert sauberen C#-Code mit
+  `colWidth`-Berechnung pro Zeile.
+
 ### Hinzugefügt (Phase 4c — Mega-Anzeigen, Kosmetik, Themes)
 - **8 weitere LCD-Widgets**:
   - **Großes Zahlenfeld** — eine wichtige Zahl groß und fett mit Label oben.

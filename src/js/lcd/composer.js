@@ -87,23 +87,21 @@ function generateLcdComposerCode(ensureBlock) {
   const mode = lc.displayMode || "external";
   const surfaceIdx = Math.max(0, Math.min(15, parseInt(lc.surfaceIndex, 10) || 0));
 
-  // Validierung: Modi, die einen Block-Namen brauchen
   if ((mode === "external" || mode === "cockpit") && !lc.lcdName) {
     return { code: "", used: false };
   }
+
+  const totalCols = Math.max(1, Math.min(3, parseInt(lc.columns, 10) || 1));
 
   let out = "";
   out += "\n    // ---------- LCD-Baukasten ----------\n";
 
   if (mode === "pb") {
-    // Display direkt am Programmable Block (Me)
     out += `    IMyTextSurface lcdComp = Me.GetSurface(${surfaceIdx});\n`;
   } else if (mode === "cockpit") {
-    // TextSurfaceProvider (Cockpit/Sitz/Remote) mit Surface-Index
     out += `    var lcdProv = GridTerminalSystem.GetBlockWithName(${_csString(lc.lcdName)}) as IMyTextSurfaceProvider;\n`;
     out += `    IMyTextSurface lcdComp = lcdProv != null && lcdProv.SurfaceCount > ${surfaceIdx} ? lcdProv.GetSurface(${surfaceIdx}) : null;\n`;
   } else {
-    // Eigenständiges LCD-Panel
     out += `    IMyTextSurface lcdComp = GridTerminalSystem.GetBlockWithName(${_csString(lc.lcdName)}) as IMyTextSurface;\n`;
   }
 
@@ -115,31 +113,58 @@ function generateLcdComposerCode(ensureBlock) {
   out += `        {\n`;
   out += `            var rect = new RectangleF((lcdComp.TextureSize - lcdComp.SurfaceSize) / 2f, lcdComp.SurfaceSize);\n`;
   out += `            float padX = ${LCD_PADDING_X}f;\n`;
-  out += `            float widthInner = lcdComp.SurfaceSize.X - 2 * padX;\n`;
+  out += `            int totalCols = ${totalCols};\n`;
+  out += `            float colGap = 4f;\n`;
+  out += `            float fullWidthInner = lcdComp.SurfaceSize.X - 2 * padX;\n`;
+  out += `            float colWidth = (fullWidthInner - (totalCols - 1) * colGap) / totalCols;\n`;
   out += `            float yPos = rect.Position.Y + 8f;\n`;
+  out += `            int colCursor = 0;   // wieviele Spalten in der aktuellen Zeile schon belegt sind\n`;
+  out += `            float rowMaxH = 0f;  // höchstes Widget in der aktuellen Zeile (für Y-Vorschub)\n`;
   out += `            MySprite sp;\n`;
+  out += `            float origPadX = padX;\n`;
+  out += `            float widthInner = colWidth;  // Variable, die jedes Widget benutzt — wird pro Widget gesetzt\n`;
+  out += `            float colOffsetX = 0f;        // X-Offset für die aktuelle Spalten-Position\n`;
 
   for (let idx = 0; idx < lc.widgets.length; idx++) {
     const w = lc.widgets[idx];
     const def = LCD_WIDGETS[w.type];
     if (!def) continue;
-    // Spacer-Widget hat dynamische Höhe aus dem Parameter
-    let height = def.height;
-    if (w.type === "spacer") {
-      height = Math.max(8, Math.min(200, parseFloat(w.spaceHeight) || 20));
-    }
-    out += `\n            // Widget #${idx + 1}: ${w.type}\n`;
+
+    // Spacer: dynamische Höhe
+    let baseHeight = def.height;
+    if (w.type === "spacer") baseHeight = parseFloat(w.spaceHeight) || 20;
+    // Custom-Höhe pro Widget (überschreibt Default)
+    const customH = parseFloat(w.widgetHeight);
+    const height = (!isNaN(customH) && customH > 0)
+      ? Math.max(8, Math.min(400, customH))
+      : baseHeight;
+
+    // colSpan: wieviele Spalten dieses Widget belegt (1..totalCols)
+    const colSpan = Math.max(1, Math.min(totalCols, parseInt(w.colSpan, 10) || totalCols));
+
+    out += `\n            // Widget #${idx + 1}: ${w.type} (colSpan=${colSpan}, h=${height})\n`;
+    // Falls dieses Widget nicht in die aktuelle Zeile passt, neue Zeile beginnen
+    out += `            if (colCursor + ${colSpan} > totalCols) { yPos += rowMaxH; colCursor = 0; rowMaxH = 0f; }\n`;
+    // X-Offset und Breite für dieses Widget berechnen
+    out += `            colOffsetX = padX + colCursor * (colWidth + colGap);\n`;
+    out += `            widthInner = colSpan * colWidth + (colSpan - 1) * colGap;\n`;
+
     out += `            {\n`;
-    // Optionaler Widget-Hintergrund (Phase 4c.1)
     if (w.widgetBg && w.widgetBg.trim()) {
-      out += `                sp = MySprite.CreateSprite("SquareSimple", new Vector2(rect.Position.X + lcdComp.SurfaceSize.X / 2f, yPos + ${height / 2}f), new Vector2(lcdComp.SurfaceSize.X, ${height}f));\n`;
+      out += `                sp = MySprite.CreateSprite("SquareSimple", new Vector2(rect.Position.X + colOffsetX + widthInner / 2f, yPos + ${height / 2}f), new Vector2(widthInner, ${height}f));\n`;
       out += `                sp.Color = ${_csColor(w.widgetBg)};\n`;
       out += `                frame.Add(sp);\n`;
     }
     out += _emitWidget(w, ensureBlock);
     out += `            }\n`;
-    out += `            yPos += ${height}f;\n`;
+    // colCursor weiterschieben, Zeilen-Max-Höhe tracken
+    out += `            colCursor += ${colSpan};\n`;
+    out += `            if (${height}f > rowMaxH) rowMaxH = ${height}f;\n`;
+    out += `            if (colCursor >= totalCols) { yPos += rowMaxH; colCursor = 0; rowMaxH = 0f; }\n`;
   }
+
+  // Falls am Ende eine angefangene Zeile übrig ist (z.B. nur 1 von 2 Spalten gefüllt)
+  out += `\n            if (colCursor > 0) yPos += rowMaxH;\n`;
 
   out += `        }\n`;
   out += `    }\n`;
@@ -166,10 +191,10 @@ function _emitWidget(w, ensureBlock) {
                   : w.align === "right" ? "TextAlignment.RIGHT"
                   : "TextAlignment.CENTER";
     const xExpr = w.align === "left"
-      ? "rect.Position.X + padX"
+      ? "rect.Position.X + colOffsetX"
       : w.align === "right"
-      ? "rect.Position.X + lcdComp.SurfaceSize.X - padX"
-      : "rect.Position.X + lcdComp.SurfaceSize.X / 2f";
+      ? "rect.Position.X + colOffsetX + widthInner"
+      : "rect.Position.X + colOffsetX + widthInner / 2f";
     out += `                sp = MySprite.CreateText(${_csString(w.text || "")}, "White", ${_csColor(w.color)}, ${parseFloat(w.size) || 1.0}f, ${alignCs});\n`;
     out += `                sp.Position = new Vector2(${xExpr}, yPos);\n`;
     out += `                frame.Add(sp);\n`;
@@ -179,16 +204,16 @@ function _emitWidget(w, ensureBlock) {
     const valueExpr = entry ? _sourceExpr(w.source, entry.varName) : "0f";
     out += `                float val = (float)Math.Max(0, Math.Min(100, ${valueExpr}));\n`;
     out += `                sp = MySprite.CreateText(${_csString(w.label || "")}, "White", new Color(216,225,236), 0.7f, TextAlignment.LEFT);\n`;
-    out += `                sp.Position = new Vector2(rect.Position.X + padX, yPos);\n`;
+    out += `                sp.Position = new Vector2(rect.Position.X + colOffsetX, yPos);\n`;
     out += `                frame.Add(sp);\n`;
     out += `                sp = MySprite.CreateText(val.ToString("0") + " %", "White", ${_csColor(w.color)}, 0.7f, TextAlignment.RIGHT);\n`;
-    out += `                sp.Position = new Vector2(rect.Position.X + lcdComp.SurfaceSize.X - padX, yPos);\n`;
+    out += `                sp.Position = new Vector2(rect.Position.X + colOffsetX + widthInner, yPos);\n`;
     out += `                frame.Add(sp);\n`;
-    out += `                sp = MySprite.CreateSprite("SquareSimple", new Vector2(rect.Position.X + padX + widthInner / 2f, yPos + 18f), new Vector2(widthInner, 12f));\n`;
+    out += `                sp = MySprite.CreateSprite("SquareSimple", new Vector2(rect.Position.X + colOffsetX + widthInner / 2f, yPos + 18f), new Vector2(widthInner, 12f));\n`;
     out += `                sp.Color = new Color(42, 52, 66);\n`;
     out += `                frame.Add(sp);\n`;
     out += `                float fillW = (widthInner - 2f) * val / 100f;\n`;
-    out += `                sp = MySprite.CreateSprite("SquareSimple", new Vector2(rect.Position.X + padX + 1f + fillW / 2f, yPos + 18f), new Vector2(fillW, 10f));\n`;
+    out += `                sp = MySprite.CreateSprite("SquareSimple", new Vector2(rect.Position.X + colOffsetX + 1f + fillW / 2f, yPos + 18f), new Vector2(fillW, 10f));\n`;
     out += `                sp.Color = ${_csColor(w.color)};\n`;
     out += `                frame.Add(sp);\n`;
 
@@ -200,17 +225,17 @@ function _emitWidget(w, ensureBlock) {
     const fmt = _formatSpec(w.format);
     const sz = parseFloat(w.size) || 0.9;
     out += `                sp = MySprite.CreateText(${_csString((w.label || "") + ":")}, "White", new Color(216,225,236), ${sz}f, TextAlignment.LEFT);\n`;
-    out += `                sp.Position = new Vector2(rect.Position.X + padX, yPos);\n`;
+    out += `                sp.Position = new Vector2(rect.Position.X + colOffsetX, yPos);\n`;
     out += `                frame.Add(sp);\n`;
     out += `                sp = MySprite.CreateText((${valueExpr}).ToString(${_csString(fmt)}) + ${_csString(" " + unit)}, "White", ${_csColor(w.color)}, ${sz}f, TextAlignment.RIGHT);\n`;
-    out += `                sp.Position = new Vector2(rect.Position.X + lcdComp.SurfaceSize.X - padX, yPos);\n`;
+    out += `                sp.Position = new Vector2(rect.Position.X + colOffsetX + widthInner, yPos);\n`;
     out += `                frame.Add(sp);\n`;
 
   } else if (w.type === "statusbar_v") {
     const entry = _ensureSourceBlock(ensureBlock, w.source, w.sourceBlock);
     const valueExpr = entry ? _sourceExpr(w.source, entry.varName) : "0f";
     out += `                float val = (float)Math.Max(0, Math.Min(100, ${valueExpr}));\n`;
-    out += `                float cx = rect.Position.X + lcdComp.SurfaceSize.X / 2f;\n`;
+    out += `                float cx = rect.Position.X + colOffsetX + widthInner / 2f;\n`;
     out += `                float barW = 36f, barH = 80f, barTop = yPos + 16f;\n`;
     // Label oben
     out += `                sp = MySprite.CreateText(${_csString(w.label || "")}, "White", new Color(216,225,236), 0.7f, TextAlignment.CENTER);\n`;
@@ -241,15 +266,15 @@ function _emitWidget(w, ensureBlock) {
     out += `                float segW = (widthInner - (segCount - 1) * gap) / segCount;\n`;
     // Label + Prozent
     out += `                sp = MySprite.CreateText(${_csString(w.label || "")}, "White", new Color(216,225,236), 0.7f, TextAlignment.LEFT);\n`;
-    out += `                sp.Position = new Vector2(rect.Position.X + padX, yPos);\n`;
+    out += `                sp.Position = new Vector2(rect.Position.X + colOffsetX, yPos);\n`;
     out += `                frame.Add(sp);\n`;
     out += `                sp = MySprite.CreateText(val.ToString("0") + " %", "White", ${_csColor(w.color)}, 0.7f, TextAlignment.RIGHT);\n`;
-    out += `                sp.Position = new Vector2(rect.Position.X + lcdComp.SurfaceSize.X - padX, yPos);\n`;
+    out += `                sp.Position = new Vector2(rect.Position.X + colOffsetX + widthInner, yPos);\n`;
     out += `                frame.Add(sp);\n`;
     // Segmente
     out += `                for (int i = 0; i < segCount; i++)\n`;
     out += `                {\n`;
-    out += `                    float sx = rect.Position.X + padX + i * (segW + gap) + segW / 2f;\n`;
+    out += `                    float sx = rect.Position.X + colOffsetX + i * (segW + gap) + segW / 2f;\n`;
     out += `                    sp = MySprite.CreateSprite("SquareSimple", new Vector2(sx, yPos + 22f), new Vector2(segW, 14f));\n`;
     out += `                    sp.Color = (i < filled) ? ${_csColor(w.color)} : new Color(35, 45, 58);\n`;
     out += `                    frame.Add(sp);\n`;
@@ -264,30 +289,30 @@ function _emitWidget(w, ensureBlock) {
     out += `                float v2 = (float)Math.Max(0, Math.Min(100, ${v2Expr}));\n`;
     // Balken 1
     out += `                sp = MySprite.CreateText(${_csString(w.label1 || "")}, "White", new Color(216,225,236), 0.6f, TextAlignment.LEFT);\n`;
-    out += `                sp.Position = new Vector2(rect.Position.X + padX, yPos);\n`;
+    out += `                sp.Position = new Vector2(rect.Position.X + colOffsetX, yPos);\n`;
     out += `                frame.Add(sp);\n`;
     out += `                sp = MySprite.CreateText(v1.ToString("0") + "%", "White", ${_csColor(w.color1)}, 0.6f, TextAlignment.RIGHT);\n`;
-    out += `                sp.Position = new Vector2(rect.Position.X + lcdComp.SurfaceSize.X - padX, yPos);\n`;
+    out += `                sp.Position = new Vector2(rect.Position.X + colOffsetX + widthInner, yPos);\n`;
     out += `                frame.Add(sp);\n`;
-    out += `                sp = MySprite.CreateSprite("SquareSimple", new Vector2(rect.Position.X + padX + widthInner / 2f, yPos + 14f), new Vector2(widthInner, 8f));\n`;
+    out += `                sp = MySprite.CreateSprite("SquareSimple", new Vector2(rect.Position.X + colOffsetX + widthInner / 2f, yPos + 14f), new Vector2(widthInner, 8f));\n`;
     out += `                sp.Color = new Color(42, 52, 66);\n`;
     out += `                frame.Add(sp);\n`;
     out += `                float fw1 = (widthInner - 2f) * v1 / 100f;\n`;
-    out += `                sp = MySprite.CreateSprite("SquareSimple", new Vector2(rect.Position.X + padX + 1f + fw1 / 2f, yPos + 14f), new Vector2(fw1, 6f));\n`;
+    out += `                sp = MySprite.CreateSprite("SquareSimple", new Vector2(rect.Position.X + colOffsetX + 1f + fw1 / 2f, yPos + 14f), new Vector2(fw1, 6f));\n`;
     out += `                sp.Color = ${_csColor(w.color1)};\n`;
     out += `                frame.Add(sp);\n`;
     // Balken 2
     out += `                sp = MySprite.CreateText(${_csString(w.label2 || "")}, "White", new Color(216,225,236), 0.6f, TextAlignment.LEFT);\n`;
-    out += `                sp.Position = new Vector2(rect.Position.X + padX, yPos + 26f);\n`;
+    out += `                sp.Position = new Vector2(rect.Position.X + colOffsetX, yPos + 26f);\n`;
     out += `                frame.Add(sp);\n`;
     out += `                sp = MySprite.CreateText(v2.ToString("0") + "%", "White", ${_csColor(w.color2)}, 0.6f, TextAlignment.RIGHT);\n`;
-    out += `                sp.Position = new Vector2(rect.Position.X + lcdComp.SurfaceSize.X - padX, yPos + 26f);\n`;
+    out += `                sp.Position = new Vector2(rect.Position.X + colOffsetX + widthInner, yPos + 26f);\n`;
     out += `                frame.Add(sp);\n`;
-    out += `                sp = MySprite.CreateSprite("SquareSimple", new Vector2(rect.Position.X + padX + widthInner / 2f, yPos + 40f), new Vector2(widthInner, 8f));\n`;
+    out += `                sp = MySprite.CreateSprite("SquareSimple", new Vector2(rect.Position.X + colOffsetX + widthInner / 2f, yPos + 40f), new Vector2(widthInner, 8f));\n`;
     out += `                sp.Color = new Color(42, 52, 66);\n`;
     out += `                frame.Add(sp);\n`;
     out += `                float fw2 = (widthInner - 2f) * v2 / 100f;\n`;
-    out += `                sp = MySprite.CreateSprite("SquareSimple", new Vector2(rect.Position.X + padX + 1f + fw2 / 2f, yPos + 40f), new Vector2(fw2, 6f));\n`;
+    out += `                sp = MySprite.CreateSprite("SquareSimple", new Vector2(rect.Position.X + colOffsetX + 1f + fw2 / 2f, yPos + 40f), new Vector2(fw2, 6f));\n`;
     out += `                sp.Color = ${_csColor(w.color2)};\n`;
     out += `                frame.Add(sp);\n`;
 
@@ -295,7 +320,7 @@ function _emitWidget(w, ensureBlock) {
     const entry = _ensureSourceBlock(ensureBlock, w.source, w.sourceBlock);
     const valueExpr = entry ? _sourceExpr(w.source, entry.varName) : "0f";
     out += `                float val = (float)Math.Max(0, Math.Min(100, ${valueExpr}));\n`;
-    out += `                float cx = rect.Position.X + lcdComp.SurfaceSize.X / 2f;\n`;
+    out += `                float cx = rect.Position.X + colOffsetX + widthInner / 2f;\n`;
     out += `                float cy = yPos + 60f;\n`;
     out += `                int segCount = 32;\n`;
     out += `                int filled = (int)Math.Round(segCount * val / 100f);\n`;
@@ -327,18 +352,18 @@ function _emitWidget(w, ensureBlock) {
     out += `                if (val < ${low}f) dotColor = ${_csColor(w.colorLow,  "new Color(255, 85, 96)")};\n`;
     out += `                else if (val >= ${high}f) dotColor = ${_csColor(w.colorHigh, "new Color(94, 212, 123)")};\n`;
     out += `                else dotColor = ${_csColor(w.colorMid,  "new Color(255, 140, 26)")};\n`;
-    out += `                sp = MySprite.CreateSprite("Circle", new Vector2(rect.Position.X + padX + 14f, yPos + 16f), new Vector2(14f, 14f));\n`;
+    out += `                sp = MySprite.CreateSprite("Circle", new Vector2(rect.Position.X + colOffsetX + 14f, yPos + 16f), new Vector2(14f, 14f));\n`;
     out += `                sp.Color = dotColor;\n`;
     out += `                frame.Add(sp);\n`;
     out += `                sp = MySprite.CreateText(${_csString(w.label || "")}, "White", new Color(216,225,236), 0.9f, TextAlignment.LEFT);\n`;
-    out += `                sp.Position = new Vector2(rect.Position.X + padX + 30f, yPos + 8f);\n`;
+    out += `                sp.Position = new Vector2(rect.Position.X + colOffsetX + 30f, yPos + 8f);\n`;
     out += `                frame.Add(sp);\n`;
 
   } else if (w.type === "checklist") {
     out += `                sp = MySprite.CreateText(${_csString(w.title || "")}, "White", new Color(78,197,255), 0.7f, TextAlignment.CENTER);\n`;
-    out += `                sp.Position = new Vector2(rect.Position.X + lcdComp.SurfaceSize.X / 2f, yPos);\n`;
+    out += `                sp.Position = new Vector2(rect.Position.X + colOffsetX + widthInner / 2f, yPos);\n`;
     out += `                frame.Add(sp);\n`;
-    out += `                sp = MySprite.CreateSprite("SquareSimple", new Vector2(rect.Position.X + lcdComp.SurfaceSize.X / 2f, yPos + 15f), new Vector2(widthInner, 1f));\n`;
+    out += `                sp = MySprite.CreateSprite("SquareSimple", new Vector2(rect.Position.X + colOffsetX + widthInner / 2f, yPos + 15f), new Vector2(widthInner, 1f));\n`;
     out += `                sp.Color = new Color(42, 52, 66);\n`;
     out += `                frame.Add(sp);\n`;
     out += `                float rowY = yPos + 22f;\n`;
@@ -358,10 +383,10 @@ function _emitWidget(w, ensureBlock) {
       out += `                {\n`;
       out += `                    bool ok = (${boolExpr});\n`;
       out += `                    sp = MySprite.CreateText(ok ? "✓" : "✗", "White", ok ? ${_csColor(w.colorOk, "new Color(94, 212, 123)")} : ${_csColor(w.colorBad, "new Color(255, 85, 96)")}, 0.9f, TextAlignment.LEFT);\n`;
-      out += `                    sp.Position = new Vector2(rect.Position.X + padX, rowY);\n`;
+      out += `                    sp.Position = new Vector2(rect.Position.X + colOffsetX, rowY);\n`;
       out += `                    frame.Add(sp);\n`;
       out += `                    sp = MySprite.CreateText(${_csString(label)}, "White", new Color(216,225,236), 0.7f, TextAlignment.LEFT);\n`;
-      out += `                    sp.Position = new Vector2(rect.Position.X + padX + 28f, rowY + 4f);\n`;
+      out += `                    sp.Position = new Vector2(rect.Position.X + colOffsetX + 28f, rowY + 4f);\n`;
       out += `                    frame.Add(sp);\n`;
       out += `                    rowY += 20f;\n`;
       out += `                }\n`;
@@ -375,7 +400,7 @@ function _emitWidget(w, ensureBlock) {
     out += `                if (warnActive)\n`;
     out += `                {\n`;
     out += `                    sp = MySprite.CreateText("⚠ " + ${_csString(w.text || "")}, "White", ${_csColor(w.color, "new Color(255, 85, 96)")}, 0.9f, TextAlignment.LEFT);\n`;
-    out += `                    sp.Position = new Vector2(rect.Position.X + padX, yPos + 8f);\n`;
+    out += `                    sp.Position = new Vector2(rect.Position.X + colOffsetX, yPos + 8f);\n`;
     out += `                    frame.Add(sp);\n`;
     out += `                }\n`;
 
@@ -386,11 +411,11 @@ function _emitWidget(w, ensureBlock) {
     out += `                bool alarmActive = (${cmpExpr}) && ${_blinkExpr(w.blink)};\n`;
     out += `                if (alarmActive)\n`;
     out += `                {\n`;
-    out += `                    sp = MySprite.CreateSprite("SquareSimple", new Vector2(rect.Position.X + lcdComp.SurfaceSize.X / 2f, yPos + 22f), new Vector2(widthInner, 40f));\n`;
+    out += `                    sp = MySprite.CreateSprite("SquareSimple", new Vector2(rect.Position.X + colOffsetX + widthInner / 2f, yPos + 22f), new Vector2(widthInner, 40f));\n`;
     out += `                    sp.Color = ${_csColor(w.bgColor, "new Color(255, 85, 96)")};\n`;
     out += `                    frame.Add(sp);\n`;
     out += `                    sp = MySprite.CreateText(${_csString(w.text || "")}, "White", ${_csColor(w.textColor, "Color.White")}, 1.2f, TextAlignment.CENTER);\n`;
-    out += `                    sp.Position = new Vector2(rect.Position.X + lcdComp.SurfaceSize.X / 2f, yPos + 12f);\n`;
+    out += `                    sp.Position = new Vector2(rect.Position.X + colOffsetX + widthInner / 2f, yPos + 12f);\n`;
     out += `                    frame.Add(sp);\n`;
     out += `                }\n`;
 
@@ -398,30 +423,30 @@ function _emitWidget(w, ensureBlock) {
 
   } else if (w.type === "section") {
     // Voll breiter Streifen mit großem Text
-    out += `                sp = MySprite.CreateSprite("SquareSimple", new Vector2(rect.Position.X + lcdComp.SurfaceSize.X / 2f, yPos + 14f), new Vector2(widthInner, 22f));\n`;
+    out += `                sp = MySprite.CreateSprite("SquareSimple", new Vector2(rect.Position.X + colOffsetX + widthInner / 2f, yPos + 14f), new Vector2(widthInner, 22f));\n`;
     out += `                sp.Color = ${_csColor(w.bgColor, "new Color(78, 197, 255)")};\n`;
     out += `                frame.Add(sp);\n`;
     out += `                sp = MySprite.CreateText(${_csString(w.text || "")}, "White", ${_csColor(w.textColor, "new Color(10, 14, 18)")}, 0.9f, TextAlignment.CENTER);\n`;
-    out += `                sp.Position = new Vector2(rect.Position.X + lcdComp.SurfaceSize.X / 2f, yPos + 4f);\n`;
+    out += `                sp.Position = new Vector2(rect.Position.X + colOffsetX + widthInner / 2f, yPos + 4f);\n`;
     out += `                frame.Add(sp);\n`;
 
   } else if (w.type === "divider") {
     if (!w.text) {
       // Reine Linie
-      out += `                sp = MySprite.CreateSprite("SquareSimple", new Vector2(rect.Position.X + lcdComp.SurfaceSize.X / 2f, yPos + 9f), new Vector2(widthInner, 1f));\n`;
+      out += `                sp = MySprite.CreateSprite("SquareSimple", new Vector2(rect.Position.X + colOffsetX + widthInner / 2f, yPos + 9f), new Vector2(widthInner, 1f));\n`;
       out += `                sp.Color = ${_csColor(w.color, "new Color(42, 52, 66)")};\n`;
       out += `                frame.Add(sp);\n`;
     } else {
       // Zwei kurze Linien + Text in der Mitte
       out += `                float textW = ${_csString(w.text)}.Length * 7f + 16f;\n`;
-      out += `                sp = MySprite.CreateSprite("SquareSimple", new Vector2(rect.Position.X + padX + (widthInner - textW) / 4f, yPos + 9f), new Vector2((widthInner - textW) / 2f, 1f));\n`;
+      out += `                sp = MySprite.CreateSprite("SquareSimple", new Vector2(rect.Position.X + colOffsetX + (widthInner - textW) / 4f, yPos + 9f), new Vector2((widthInner - textW) / 2f, 1f));\n`;
       out += `                sp.Color = ${_csColor(w.color, "new Color(42, 52, 66)")};\n`;
       out += `                frame.Add(sp);\n`;
-      out += `                sp = MySprite.CreateSprite("SquareSimple", new Vector2(rect.Position.X + lcdComp.SurfaceSize.X - padX - (widthInner - textW) / 4f, yPos + 9f), new Vector2((widthInner - textW) / 2f, 1f));\n`;
+      out += `                sp = MySprite.CreateSprite("SquareSimple", new Vector2(rect.Position.X + colOffsetX + widthInner - (widthInner - textW) / 4f, yPos + 9f), new Vector2((widthInner - textW) / 2f, 1f));\n`;
       out += `                sp.Color = ${_csColor(w.color, "new Color(42, 52, 66)")};\n`;
       out += `                frame.Add(sp);\n`;
       out += `                sp = MySprite.CreateText(${_csString(w.text || "")}, "White", ${_csColor(w.color, "new Color(42, 52, 66)")}, 0.65f, TextAlignment.CENTER);\n`;
-      out += `                sp.Position = new Vector2(rect.Position.X + lcdComp.SurfaceSize.X / 2f, yPos + 1f);\n`;
+      out += `                sp.Position = new Vector2(rect.Position.X + colOffsetX + widthInner / 2f, yPos + 1f);\n`;
       out += `                frame.Add(sp);\n`;
     }
 
@@ -435,10 +460,10 @@ function _emitWidget(w, ensureBlock) {
                   : w.align === "right" ? "TextAlignment.RIGHT"
                   : "TextAlignment.CENTER";
     const xExpr = w.align === "left"
-      ? "rect.Position.X + padX"
+      ? "rect.Position.X + colOffsetX"
       : w.align === "right"
-      ? "rect.Position.X + lcdComp.SurfaceSize.X - padX"
-      : "rect.Position.X + lcdComp.SurfaceSize.X / 2f";
+      ? "rect.Position.X + colOffsetX + widthInner"
+      : "rect.Position.X + colOffsetX + widthInner / 2f";
     out += `                sp = MySprite.CreateText(DateTime.Now.ToString(${_csString(fmt)}), "White", ${_csColor(w.color, "new Color(78, 197, 255)")}, ${parseFloat(w.size) || 1.2}f, ${alignCs});\n`;
     out += `                sp.Position = new Vector2(${xExpr}, yPos + 4f);\n`;
     out += `                frame.Add(sp);\n`;
@@ -452,16 +477,16 @@ function _emitWidget(w, ensureBlock) {
     const sz = parseFloat(w.size) || 2.5;
     // Kleines Label oben
     out += `                sp = MySprite.CreateText(${_csString(w.label || "")}, "White", new Color(216,225,236), 0.6f, TextAlignment.CENTER);\n`;
-    out += `                sp.Position = new Vector2(rect.Position.X + lcdComp.SurfaceSize.X / 2f, yPos + 2f);\n`;
+    out += `                sp.Position = new Vector2(rect.Position.X + colOffsetX + widthInner / 2f, yPos + 2f);\n`;
     out += `                frame.Add(sp);\n`;
     // Große Zahl
     out += `                sp = MySprite.CreateText((${valueExpr}).ToString(${_csString(fmt)}), "White", ${_csColor(w.color)}, ${sz}f, TextAlignment.CENTER);\n`;
-    out += `                sp.Position = new Vector2(rect.Position.X + lcdComp.SurfaceSize.X / 2f, yPos + 16f);\n`;
+    out += `                sp.Position = new Vector2(rect.Position.X + colOffsetX + widthInner / 2f, yPos + 16f);\n`;
     out += `                frame.Add(sp);\n`;
     // Einheit rechts unten
     if (unit) {
       out += `                sp = MySprite.CreateText(${_csString(unit)}, "White", ${_csColor(w.color)}, 0.7f, TextAlignment.RIGHT);\n`;
-      out += `                sp.Position = new Vector2(rect.Position.X + lcdComp.SurfaceSize.X - padX, yPos + 56f);\n`;
+      out += `                sp.Position = new Vector2(rect.Position.X + colOffsetX + widthInner, yPos + 56f);\n`;
       out += `                frame.Add(sp);\n`;
     }
 
@@ -474,16 +499,16 @@ function _emitWidget(w, ensureBlock) {
     const icon = w.icon || "Cross";
     const ivSize = parseFloat(w.size) || 1.1;
     // Icon links
-    out += `                sp = MySprite.CreateSprite(${_csString(icon)}, new Vector2(rect.Position.X + padX + 16f, yPos + 18f), new Vector2(28f, 28f));\n`;
+    out += `                sp = MySprite.CreateSprite(${_csString(icon)}, new Vector2(rect.Position.X + colOffsetX + 16f, yPos + 18f), new Vector2(28f, 28f));\n`;
     out += `                sp.Color = ${_csColor(w.color)};\n`;
     out += `                frame.Add(sp);\n`;
     // Label
     out += `                sp = MySprite.CreateText(${_csString(w.label || "")}, "White", new Color(216,225,236), 0.7f, TextAlignment.LEFT);\n`;
-    out += `                sp.Position = new Vector2(rect.Position.X + padX + 38f, yPos + 4f);\n`;
+    out += `                sp.Position = new Vector2(rect.Position.X + colOffsetX + 38f, yPos + 4f);\n`;
     out += `                frame.Add(sp);\n`;
     // Wert + Einheit rechts
     out += `                sp = MySprite.CreateText((${valueExpr}).ToString(${_csString(fmt)}) + ${_csString(" " + unit)}, "White", ${_csColor(w.color)}, ${ivSize}f, TextAlignment.RIGHT);\n`;
-    out += `                sp.Position = new Vector2(rect.Position.X + lcdComp.SurfaceSize.X - padX, yPos + 10f);\n`;
+    out += `                sp.Position = new Vector2(rect.Position.X + colOffsetX + widthInner, yPos + 10f);\n`;
     out += `                frame.Add(sp);\n`;
 
   } else if (w.type === "aggregator") {
@@ -521,16 +546,16 @@ function _emitWidget(w, ensureBlock) {
     else out += `                float result = aggVal;\n`;
     const symbol = mode === "sum" ? "Σ" : (mode === "min" ? "↓" : (mode === "max" ? "↑" : "Ø"));
     out += `                sp = MySprite.CreateText(${_csString(symbol)}, "White", ${_csColor(w.color)}, 1.1f, TextAlignment.LEFT);\n`;
-    out += `                sp.Position = new Vector2(rect.Position.X + padX, yPos + 4f);\n`;
+    out += `                sp.Position = new Vector2(rect.Position.X + colOffsetX, yPos + 4f);\n`;
     out += `                frame.Add(sp);\n`;
     out += `                sp = MySprite.CreateText(${_csString(w.label || "")}, "White", new Color(216,225,236), 0.7f, TextAlignment.LEFT);\n`;
-    out += `                sp.Position = new Vector2(rect.Position.X + padX + 18f, yPos + 4f);\n`;
+    out += `                sp.Position = new Vector2(rect.Position.X + colOffsetX + 18f, yPos + 4f);\n`;
     out += `                frame.Add(sp);\n`;
     out += `                sp = MySprite.CreateText(result.ToString("0") + ${_csString(unit)}, "White", ${_csColor(w.color)}, 1.1f, TextAlignment.RIGHT);\n`;
-    out += `                sp.Position = new Vector2(rect.Position.X + lcdComp.SurfaceSize.X - padX, yPos + 12f);\n`;
+    out += `                sp.Position = new Vector2(rect.Position.X + colOffsetX + widthInner, yPos + 12f);\n`;
     out += `                frame.Add(sp);\n`;
     out += `                sp = MySprite.CreateText("(" + aggCnt + " Blöcke)", "White", new Color(107,122,141), 0.55f, TextAlignment.LEFT);\n`;
-    out += `                sp.Position = new Vector2(rect.Position.X + padX + 18f, yPos + 20f);\n`;
+    out += `                sp.Position = new Vector2(rect.Position.X + colOffsetX + 18f, yPos + 20f);\n`;
     out += `                frame.Add(sp);\n`;
 
   } else if (w.type === "gauge") {
@@ -541,7 +566,7 @@ function _emitWidget(w, ensureBlock) {
     // Halbring: 270° von -135° bis +135° (klassisch Tacho)
     out += `                float gVal = (float)Math.Max(${minVal}f, Math.Min(${maxVal}f, ${valueExpr}));\n`;
     out += `                float gT = (gVal - ${minVal}f) / (${maxVal}f - ${minVal}f);\n`;
-    out += `                float cx = rect.Position.X + lcdComp.SurfaceSize.X / 2f;\n`;
+    out += `                float cx = rect.Position.X + colOffsetX + widthInner / 2f;\n`;
     out += `                float cy = yPos + 70f;\n`;
     out += `                int segs = 24;\n`;
     out += `                int gFilled = (int)Math.Round(segs * gT);\n`;

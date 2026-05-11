@@ -263,9 +263,33 @@ function _renderLcdWidgetFields(w, i) {
     html += `<div class="lcd-widget-fields">${fields.map(f => _renderLcdSingleField(f, i, w[f.key])).join("")}</div>`;
   }
 
-  // Universelle Zusatz-Felder für jedes Widget (Phase 4c.1)
-  html += `<div class="lcd-widget-group-title">Hintergrund (optional)</div>`;
+  // Universelle Zusatz-Felder für jedes Widget (Phase 4c.1 + 4d)
+  html += `<div class="lcd-widget-group-title">Größe & Layout</div>`;
   html += `<div class="lcd-widget-fields">`;
+
+  // Höhe pro Widget (Default = LCD_WIDGETS[type].height, aber überschreibbar)
+  const def2 = LCD_WIDGETS[w.type];
+  const defaultH = def2 ? def2.height : 30;
+  html += _renderLcdSingleField(
+    { key: "widgetHeight", label: `Höhe (px, default ${defaultH})`, type: "number", hint: "leer = Standard, sonst 8–400" },
+    i,
+    w.widgetHeight
+  );
+
+  // colSpan: wieviele Spalten dieses Widget belegt
+  const totalCols = Math.max(1, Math.min(3, parseInt(state.lcdComposer.columns, 10) || 1));
+  if (totalCols > 1) {
+    const colSpanOpts = [];
+    for (let cs = 1; cs <= totalCols; cs++) {
+      colSpanOpts.push({ value: String(cs), label: cs === totalCols ? `${cs} (volle Breite)` : `${cs} / ${totalCols}` });
+    }
+    html += _renderLcdSingleField(
+      { key: "colSpan", label: "Spalten-Breite", type: "select", options: colSpanOpts },
+      i,
+      String(w.colSpan || totalCols)
+    );
+  }
+
   html += _renderLcdSingleField(
     { key: "widgetBg", label: "Hintergrundfarbe (R,G,B)", type: "text", hint: "leer = kein Hintergrund" },
     i,
@@ -276,24 +300,82 @@ function _renderLcdWidgetFields(w, i) {
   return html;
 }
 
-// Stapelt alle Widget-Vorschauen in einem virtuellen LCD-Frame.
-// Spiegelt das tatsächliche Layout (vertikales Stacking) wider.
-// Demo-Werte für die Datenquellen.
+// Stapelt alle Widget-Vorschauen in einem LCD-Frame mit FIXEN
+// Aspect-Ratio und Multi-Spalten-Layout. Spiegelt das echte Spiel-LCD.
 function _renderFullLcdPreview() {
   const widgets = state.lcdComposer.widgets;
-  const inner = widgets.length === 0
-    ? `<div class="lcd-full-empty">— Display ist leer —</div>`
-    : widgets.map(w => {
-        const def = LCD_WIDGETS[w.type];
-        if (!def) return "";
-        return `<div class="lcd-full-row" data-type="${w.type}">${renderLcdWidgetPreview(w)}</div>`;
-      }).join("");
+  const resKey = state.lcdComposer.resolution || "square";
+  const res = LCD_RESOLUTIONS[resKey] || LCD_RESOLUTIONS.square;
+  const totalCols = Math.max(1, Math.min(3, parseInt(state.lcdComposer.columns, 10) || 1));
+
+  // Vorschau-Container hat feste Pixel-Breite (skaliert), Höhe via Aspect-Ratio
+  const previewWidth = 380;
+  const previewHeight = Math.round(previewWidth * res.h / res.w);
+  // Skalierungsfaktor von LCD-Pixeln zu Browser-Pixeln
+  const scale = previewWidth / res.w;
+
+  if (widgets.length === 0) {
+    return `
+      <div class="lcd-full-preview-wrap">
+        <div class="lcd-full-preview-label">LIVE-VORSCHAU — ${escapeHtml(res.label)}</div>
+        <div class="lcd-full-preview" style="width:${previewWidth}px;height:${previewHeight}px;">
+          <div class="lcd-full-empty">— Display ist leer —</div>
+        </div>
+      </div>`;
+  }
+
+  // Layout-Engine: simuliert den Composer-Algorithmus
+  const colGap = 4;
+  const colWidth = (res.w - 16 - (totalCols - 1) * colGap) / totalCols; // 16 = 2× padX (8)
+  let yPos = 8;
+  let colCursor = 0;
+  let rowMaxH = 0;
+  const placedRows = []; // { y, items: [{ x, w, h, widget }] }
+
+  for (const w of widgets) {
+    const def = LCD_WIDGETS[w.type];
+    if (!def) continue;
+    let baseH = def.height;
+    if (w.type === "spacer") baseH = parseFloat(w.spaceHeight) || 20;
+    const customH = parseFloat(w.widgetHeight);
+    const h = (!isNaN(customH) && customH > 0) ? Math.max(8, Math.min(400, customH)) : baseH;
+    const cs = Math.max(1, Math.min(totalCols, parseInt(w.colSpan, 10) || totalCols));
+
+    // Neue Zeile wenn nötig
+    if (colCursor + cs > totalCols) { yPos += rowMaxH; colCursor = 0; rowMaxH = 0; }
+    const x = 8 + colCursor * (colWidth + colGap);
+    const wPx = cs * colWidth + (cs - 1) * colGap;
+    placedRows.push({ x, y: yPos, w: wPx, h, widget: w });
+    colCursor += cs;
+    if (h > rowMaxH) rowMaxH = h;
+    if (colCursor >= totalCols) { yPos += rowMaxH; colCursor = 0; rowMaxH = 0; }
+  }
+  if (colCursor > 0) yPos += rowMaxH;
+  const totalContentHeight = yPos;
+  const overflowPx = totalContentHeight - res.h;
+  const overflow = overflowPx > 0;
+
+  // Items in absoluter Position rendern, skaliert
+  const items = placedRows.map(p => {
+    const left = Math.round(p.x * scale);
+    const top  = Math.round(p.y * scale);
+    const w    = Math.round(p.w * scale);
+    const h    = Math.round(p.h * scale);
+    return `<div class="lcd-full-cell" style="left:${left}px;top:${top}px;width:${w}px;height:${h}px;">${renderLcdWidgetPreview(p.widget)}</div>`;
+  }).join("");
+
+  const overflowMark = overflow
+    ? `<div class="lcd-overflow-mark">⚠ ${overflowPx}px überschüssig — Widgets passen nicht aufs LCD</div>`
+    : "";
+
   return `
     <div class="lcd-full-preview-wrap">
-      <div class="lcd-full-preview-label">LIVE-VORSCHAU (Demo-Werte)</div>
-      <div class="lcd-full-preview">${inner}</div>
-    </div>
-  `;
+      <div class="lcd-full-preview-label">LIVE-VORSCHAU — ${escapeHtml(res.label)} · ${totalCols} Spalte${totalCols>1?"n":""}</div>
+      <div class="lcd-full-preview" style="width:${previewWidth}px;height:${previewHeight}px;position:relative;">
+        ${items}
+        ${overflowMark}
+      </div>
+    </div>`;
 }
 
 function renderLcdComposer() {

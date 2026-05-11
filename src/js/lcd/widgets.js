@@ -530,6 +530,21 @@ const LCD_WIDGET_COLOR_SLOTS = {
 
 const LCD_THEME_ORDER = ["default", "alarm", "industrial", "cyan"];
 
+// ============ LCD-Auflösungen (Phase 4d) ============
+// w/h sind die LCD-Pixel im Spiel (relevant fürs Aspect-Ratio
+// in der Live-Vorschau). Der generierte C#-Code nutzt zur
+// Runtime `lcdComp.SurfaceSize` und passt sich automatisch
+// an das tatsächliche LCD im Spiel an.
+
+const LCD_RESOLUTIONS = {
+  square:   { label: "Standard LCD / PB (1:1)",      w: 512, h: 512 },
+  wide:     { label: "Wide LCD (2:1)",                w: 512, h: 256 },
+  tall:     { label: "Tall LCD (1:2)",                w: 256, h: 512 },
+  big_3x3:  { label: "Big LCD Panel 3×3 (1:1)",       w: 768, h: 768 }
+};
+
+const LCD_RESOLUTION_ORDER = ["square", "wide", "tall", "big_3x3"];
+
 function findLcdWidget(type) {
   return LCD_WIDGETS[type];
 }

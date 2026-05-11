@@ -145,7 +145,21 @@
               <input id="lcd-composer-surface" type="number" min="0" max="15" step="1" value="0" oninput="onLcdComposerSurfaceInput(this.value)">
               <div class="help-text">PB hat meist nur Index 0. Cockpits: 0–7 je nach Modell.</div>
             </div>
-            <div class="help-text" style="margin-top:6px;">Grafische Widgets via Sprite-API mit Live-Vorschau.</div>
+            <div class="row row-2" style="margin-top:8px;">
+              <div>
+                <label>LCD-Format (nur für Vorschau)</label>
+                <select id="lcd-composer-resolution" onchange="onLcdComposerResolutionChange(this.value)"></select>
+              </div>
+              <div>
+                <label>Spalten</label>
+                <select id="lcd-composer-columns" onchange="onLcdComposerColumnsChange(this.value)">
+                  <option value="1">1 Spalte (volle Breite)</option>
+                  <option value="2">2 Spalten</option>
+                  <option value="3">3 Spalten</option>
+                </select>
+              </div>
+            </div>
+            <div class="help-text" style="margin-top:6px;">Vorschau und Layout-Berechnung passen sich an Format & Spaltenanzahl an. Der generierte C#-Code nutzt zur Laufzeit das echte LCD-Format aus dem Spiel.</div>
             <div id="lcd-composer-list" style="margin-top:12px;"></div>
           </div>
         </div>
@@ -199,7 +213,7 @@
 <script src="src/js/ui/inputs.js"></script>
 <script src="src/js/ui/templates.js"></script>
 <script src="src/js/ui/render.js"></script>
-<script>initPalette(); render();</script>
+<script>initPalette(); initLcdComposerSelects(); render();</script>
 
 </body>
 </html>

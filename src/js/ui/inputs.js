@@ -169,6 +169,34 @@ function onLcdComposerSurfaceInput(val) {
   generateCode();
 }
 
+function onLcdComposerResolutionChange(val) {
+  state.lcdComposer.resolution = val;
+  render(); // Vorschau muss neu mit anderem Aspect-Ratio
+}
+
+function onLcdComposerColumnsChange(val) {
+  const cols = Math.max(1, Math.min(3, parseInt(val, 10) || 1));
+  state.lcdComposer.columns = cols;
+  // colSpan jedes Widgets ggf. clampen, damit nicht > totalCols
+  for (const w of state.lcdComposer.widgets) {
+    if (w.colSpan && parseInt(w.colSpan, 10) > cols) w.colSpan = cols;
+  }
+  render();
+}
+
+// Füllt das Resolution-Dropdown beim Init mit den Optionen
+function initLcdComposerSelects() {
+  const sel = document.getElementById("lcd-composer-resolution");
+  if (sel && LCD_RESOLUTION_ORDER) {
+    sel.innerHTML = LCD_RESOLUTION_ORDER.map(k =>
+      `<option value="${k}">${LCD_RESOLUTIONS[k].label}</option>`
+    ).join("");
+    sel.value = state.lcdComposer.resolution || "square";
+  }
+  const cols = document.getElementById("lcd-composer-columns");
+  if (cols) cols.value = String(state.lcdComposer.columns || 1);
+}
+
 function addLcdWidget(type) {
   const def = LCD_WIDGETS[type];
   if (!def) return;
