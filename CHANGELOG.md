@@ -7,6 +7,21 @@ das Projekt folgt [Semantic Versioning](https://semver.org/lang/de/).
 
 ## [Unreleased]
 
+### Geändert (README + TODO)
+- **README.md** komplett überarbeitet: aktueller Feature-Stand (52
+  Block-Typen, 19 LCD-Widgets, Drag-and-Drop, Themes, Presets,
+  Inventar-Prüfungen, manuelles Positionieren), Live-URL ergänzt,
+  Architektur-Baum aktualisiert.
+- **TODO.md** neu — Roadmap mit Block-Gruppen, mehreren WENN/DANN-
+  Paketen, Multi-LCD-Anordnung (Phase 5), Touch-Support,
+  Steam-Workshop-Export, Import-Funktion, Tool-Theme, i18n,
+  Vorlagen-Export, Smart-Snap usw.
+
+### Behoben (Tachometer-Vorschau)
+- Unterer Bogen-Scheitel des 270°-Halbrings wurde durch die viewBox-
+  Untergrenze abgeschnitten. Zentrum von cy=48 auf cy=40 verschoben,
+  Texte proportional nachjustiert. Seitenverhältnis 1.25:1 bleibt.
+
 ### Geändert (Manueller Modus — enger Rahmen + Aspect-Lock)
 - **Gestrichelter Manual-Rahmen liegt jetzt eng am Widget-Inhalt**
   an — egal welcher Widget-Typ. Die Default-Größen aller 18 Widgets
