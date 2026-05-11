@@ -70,24 +70,36 @@ const ITEM_SUBTYPES = [
   }
 ];
 
-// Erzeugt eine globale <datalist>, die als list-Quelle für
-// alle Item-Subtype-Inputs dient. So bekommt der User beim
-// Eintippen Browser-native Auto-Vorschläge — kann aber auch
-// einen exotischen Subtype (Mods etc.) frei eingeben.
-function initSubtypeDatalist() {
-  const dl = document.createElement("datalist");
-  dl.id = "se-subtypes-list";
+// Liefert HTML-Optionen für ein <select>, gruppiert nach Kategorie.
+// "selected" wird im passenden <option> als selected markiert.
+// Ganz unten gibt's eine "Custom…"-Option (Wert "_custom"), die
+// im Renderer dazu führt, dass zusätzlich ein Text-Feld erscheint
+// — für exotische Mod-Subtypes.
+function subtypeOptions(selected) {
+  let html = `<option value=""${!selected ? " selected" : ""}>— wählen —</option>`;
   const seen = new Set();
-  const opts = [];
   for (const g of ITEM_SUBTYPES) {
+    html += `<optgroup label="${g.group}">`;
     for (const item of g.items) {
+      // Dupes (z. B. "Iron" als Ore + Ingot) nur einmal pro Gruppe
       const key = item + "|" + g.group;
       if (seen.has(key)) continue;
       seen.add(key);
-      // Browser zeigen 'label' rechts neben dem Wert
-      opts.push(`<option value="${item}" label="${g.group}"></option>`);
+      const sel = item === selected ? " selected" : "";
+      html += `<option value="${item}"${sel}>${item}</option>`;
     }
+    html += `</optgroup>`;
   }
-  dl.innerHTML = opts.join("");
-  document.body.appendChild(dl);
+  const customSel = selected === "_custom" ? " selected" : "";
+  html += `<option value="_custom"${customSel}>Custom (selbst eintragen)…</option>`;
+  return html;
+}
+
+// Prüft, ob der gegebene Wert in der Standard-Subtype-Liste vorkommt.
+function isKnownSubtype(value) {
+  if (!value || value === "_custom") return false;
+  for (const g of ITEM_SUBTYPES) {
+    if (g.items.includes(value)) return true;
+  }
+  return false;
 }

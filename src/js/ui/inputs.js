@@ -130,3 +130,17 @@ function onLcdNameInput(val) {
   state.lcdName = val;
   generateCode();
 }
+
+// Varianten von updateCond/updateAct, die IMMER ein vollständiges
+// render() auslösen — für Auswahl-Dropdowns wie das Subtype-Select,
+// damit das Custom-Mode-Text-Feld dynamisch erscheinen/verschwinden
+// kann. Beim Tippen im Text-Feld nicht verwenden (Fokus-Verlust).
+function updateCondAndRender(i, field, val) {
+  state.conditions[i][field] = val;
+  render();
+}
+function updateActAndRender(which, i, field, val) {
+  const list = which === "then" ? state.actionsThen : state.actionsElse;
+  list[i][field] = val;
+  render();
+}

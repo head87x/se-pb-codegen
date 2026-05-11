@@ -7,6 +7,18 @@ das Projekt folgt [Semantic Versioning](https://semver.org/lang/de/).
 
 ## [Unreleased]
 
+### Geändert (Design-Konsistenz)
+- Subtype-Auswahl ist jetzt ein **styled `<select>`** im Sci-Fi-Look
+  (mit `<optgroup>`-Gruppen), nicht mehr ein Browser-natives
+  `<datalist>`-Popup. Sieht aus wie alle anderen Dropdowns im Tool.
+- Für Mod-Subtypes gibt's eine **„Custom (selbst eintragen)…"**-Option
+  am Ende der Liste — sobald gewählt, erscheint ein dezentes
+  Text-Feld direkt darunter, ebenfalls im selben Stil.
+- Internes UI-Helper-Refactoring: `_argField()` nimmt jetzt ein
+  Mutator-Object statt einen Handler-String, wodurch
+  Select-Auswahl (mit Re-Render) und Text-Input (ohne Re-Render
+  → Fokus-Erhalt) sauber getrennt sind.
+
 ### Hinzugefügt (Item-Auswahl per Liste + Mengen-Feld)
 - **Vorgefertigte Subtype-Liste** in `src/js/blocks/item_subtypes.js`
   mit über 70 Item-Subtypes aus vanilla SE (Erze, Ingots, Komponenten,

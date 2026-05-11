@@ -2,20 +2,43 @@
 // UI RENDERING (Conditions, Actions, Help-Text, Master-render)
 // ============================================================
 
-// Helper: rendert ein einzelnes Argument-Input. argType kann sein:
-//   "subtype" → Text-Input mit list="se-subtypes-list" (Autovorschläge)
-//   "number"  → number-Input
-//   sonst     → Text-Input
-function _argField(handler, value, argType, hint) {
+// Helper: rendert ein einzelnes Argument-Eingabefeld.
+// mutator: Beschreibung des State-Mutators, z. B.
+//   { kind: "cond", i: 0, field: "arg" }
+//   { kind: "act",  which: "then", i: 0, field: "arg" }
+// argType: "subtype" → styled <select> + ggf. Custom-Textfeld
+//          "number"  → Number-Input
+//          sonst     → Text-Input
+function _mutatorCall(m, withRender) {
+  const suffix = withRender ? "AndRender" : "";
+  if (m.kind === "cond") return `updateCond${suffix}(${m.i}, '${m.field}', this.value)`;
+  return `updateAct${suffix}('${m.which}', ${m.i}, '${m.field}', this.value)`;
+}
+
+function _argField(mutator, value, argType, hint) {
   const safeVal = escapeAttr(value || "");
   const placeholder = hint ? ` placeholder="${escapeAttr(hint)}"` : "";
+
   if (argType === "subtype") {
-    return `<input type="text" list="se-subtypes-list" value="${safeVal}" oninput="${handler}"${placeholder}>`;
+    // Dropdown-Wert bestimmen: bei Standard-Subtype → der Wert selbst.
+    // Bei unbekanntem Wert oder explizitem "_custom" → "_custom"-Option.
+    const isStandard = isKnownSubtype(value);
+    const showCustomField = value === "_custom" || (value && !isStandard);
+    const dropdownVal = isStandard ? value : (value ? "_custom" : "");
+    const selectHandler = _mutatorCall(mutator, true);   // immer render
+    const textHandler   = _mutatorCall(mutator, false);  // kein render (Fokus halten)
+    const textVal = (value === "_custom" ? "" : safeVal);
+    const customInput = showCustomField
+      ? `<input type="text" value="${textVal}" oninput="${textHandler}" placeholder="Custom Subtype-ID" style="margin-top:4px;">`
+      : "";
+    return `<select onchange="${selectHandler}">${subtypeOptions(dropdownVal)}</select>${customInput}`;
   }
+
+  const oninput = _mutatorCall(mutator, false);
   if (argType === "number") {
-    return `<input type="number" step="any" value="${safeVal}" oninput="${handler}"${placeholder}>`;
+    return `<input type="number" step="any" value="${safeVal}" oninput="${oninput}"${placeholder}>`;
   }
-  return `<input type="text" value="${safeVal}" oninput="${handler}"${placeholder}>`;
+  return `<input type="text" value="${safeVal}" oninput="${oninput}"${placeholder}>`;
 }
 
 function renderConditions() {
@@ -39,12 +62,12 @@ function renderConditions() {
     const argHtml  = needsArg ? `
           <div>
             <label>${escapeHtml(cond.arg)}</label>
-            ${_argField(`updateCond(${i}, 'arg', this.value)`, c.arg, cond.argType, cond.arg)}
+            ${_argField({kind:"cond", i, field:"arg"},  c.arg,  cond.argType,  cond.arg)}
           </div>` : "";
     const arg2Html = needsArg2 ? `
           <div>
             <label>${escapeHtml(cond.arg2)}</label>
-            ${_argField(`updateCond(${i}, 'arg2', this.value)`, c.arg2, cond.arg2Type, cond.arg2)}
+            ${_argField({kind:"cond", i, field:"arg2"}, c.arg2, cond.arg2Type, cond.arg2)}
           </div>` : "";
     return `
       ${logicSelect}
@@ -100,12 +123,12 @@ function renderActions(which) {
     const argHtml  = needsArg ? `
           <div>
             <label>${escapeHtml(act.arg)}</label>
-            ${_argField(`updateAct('${which}', ${i}, 'arg', this.value)`, a.arg, act.argType, act.arg)}
+            ${_argField({kind:"act", which, i, field:"arg"},  a.arg,  act.argType,  act.arg)}
           </div>` : "";
     const arg2Html = needsArg2 ? `
           <div>
             <label>${escapeHtml(act.arg2)}</label>
-            ${_argField(`updateAct('${which}', ${i}, 'arg2', this.value)`, a.arg2, act.arg2Type, act.arg2)}
+            ${_argField({kind:"act", which, i, field:"arg2"}, a.arg2, act.arg2Type, act.arg2)}
           </div>` : "";
     return `
       <div class="action-block ${which === "else" ? "else-block" : ""}">

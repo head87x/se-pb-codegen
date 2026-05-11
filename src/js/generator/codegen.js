@@ -17,13 +17,21 @@ function safeVar(name, suffix) {
 // PLATZHALTER-ERSETZUNG ({arg} zuerst, dann {v})
 // ============================================================
 
+// "_custom" ist ein UI-Sentinel — kommt nur vor, wenn der User
+// "Custom..." im Subtype-Dropdown gewählt, aber noch nichts ins
+// Text-Feld getippt hat. Im Generator wie leerer Wert behandeln.
+function _safeArg(val, fallback) {
+  if (val === "_custom" || val === undefined || val === null) return fallback;
+  return val || fallback;
+}
+
 function condExpr(c, varName) {
   const cond = findCond(c.blockType, c.condId);
   if (!cond) return "true";
   let expr = cond.expr;
   // arg2 zuerst, damit "{arg2}" nicht durch "{arg}"-Match gestört wird
-  if (cond.arg2) expr = expr.replace(/\{arg2\}/g, c.arg2 || "0");
-  if (cond.arg)  expr = expr.replace(/\{arg\}/g,  c.arg  || "0");
+  if (cond.arg2) expr = expr.replace(/\{arg2\}/g, _safeArg(c.arg2, "0"));
+  if (cond.arg)  expr = expr.replace(/\{arg\}/g,  _safeArg(c.arg,  "0"));
   expr = expr.replace(/\{v\}/g, varName);
   return expr;
 }
@@ -32,8 +40,8 @@ function actCode(a, varName) {
   const act = findAct(a.blockType, a.actId);
   if (!act) return "// (keine Aktion)";
   let code = act.code;
-  if (act.arg2) code = code.replace(/\{arg2\}/g, a.arg2 || "");
-  if (act.arg)  code = code.replace(/\{arg\}/g,  a.arg  || "");
+  if (act.arg2) code = code.replace(/\{arg2\}/g, _safeArg(a.arg2, ""));
+  if (act.arg)  code = code.replace(/\{arg\}/g,  _safeArg(a.arg,  ""));
   code = code.replace(/\{v\}/g, varName);
   return code;
 }
