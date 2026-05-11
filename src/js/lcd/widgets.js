@@ -434,7 +434,7 @@ LCD_WIDGETS.aggregator = {
 
 LCD_WIDGETS.gauge = {
   label: "Tachometer (Halbring)",
-  height: 130,
+  height: 140,
   defaults: { label: "Speed", sourceBlock: "", source: "ship_speed", min: 0, max: 110, color: "255,140,26", bgColor: "42,52,66" },
   fields: [
     { key: "label",       label: "Label",         type: "text" },

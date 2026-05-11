@@ -319,24 +319,21 @@ LCD_PREVIEWS.gauge = (w) => {
   const color = _parseColor(w.color, "rgb(255,140,26)");
   const bg = _parseColor(w.bgColor, "rgb(42,52,66)");
   const label = _escapeSvgText(w.label || "Gauge");
-  // Halbring 270° (von -135° bis +135°)
-  const cx = 100, cy = 90, r = 60;
+  // Halbring 270° (von -135° bis +135°) — viewBox 140 hoch, damit der
+  // untere Bogen (bei cy+r·sin(135°) ≈ cy+42) plus Stroke nicht abschneidet.
+  const cx = 100, cy = 82, r = 56;
   const startAng = -Math.PI * 0.75;
   const endAng = Math.PI * 0.75;
-  // Demo: 65% des Bereichs
   const valAng = startAng + (endAng - startAng) * 0.65;
-  // Polar zu cartesian
   const polar = (a, rad) => `${cx + Math.cos(a) * rad},${cy + Math.sin(a) * rad}`;
-  // Background-Arc (270°)
   const bgArc = `M ${polar(startAng, r)} A ${r} ${r} 0 1 1 ${polar(endAng, r)}`;
-  // Wert-Arc
   const valArc = `M ${polar(startAng, r)} A ${r} ${r} 0 ${(valAng - startAng) > Math.PI ? 1 : 0} 1 ${polar(valAng, r)}`;
-  return `<svg viewBox="0 0 200 130" xmlns="http://www.w3.org/2000/svg">
-    <rect width="200" height="130" fill="#07090c"/>
+  return `<svg viewBox="0 0 200 140" xmlns="http://www.w3.org/2000/svg">
+    <rect width="200" height="140" fill="#07090c"/>
     <path d="${bgArc}" fill="none" stroke="${bg}" stroke-width="10"/>
     <path d="${valArc}" fill="none" stroke="${color}" stroke-width="10" stroke-linecap="butt"/>
     <text x="${cx}" y="${cy + 8}" font-family="Consolas,monospace" font-size="22" font-weight="bold" fill="${color}" text-anchor="middle">42</text>
-    <text x="${cx}" y="${cy + 26}" font-family="Consolas,monospace" font-size="10" fill="#d8e1ec" text-anchor="middle">${label}</text>
+    <text x="${cx}" y="${cy + 28}" font-family="Consolas,monospace" font-size="10" fill="#d8e1ec" text-anchor="middle">${label}</text>
   </svg>`;
 };
 
