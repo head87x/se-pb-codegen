@@ -449,13 +449,14 @@ LCD_WIDGETS.gauge = {
 
 // ============ THEMES (Phase 4c) ============
 
-// WICHTIG für Theme-Apply: die Default-Farben müssen alle UNIQUE sein,
-// sonst überschreiben sich Mappings (JS-Object-Key-Kollision).
+// Themes ändern nur accent / accent2 / bg.
+// success / warning / danger / text sind UNIVERSELL — grün = OK,
+// gelb = Warnung, rot = Fehler. Bleibt über alle Themes konstant.
 const LCD_THEMES = {
   default: {
-    label: "Orange / Cyan (Standard)",
-    accent:  "255,140,26",
-    accent2: "78,197,255",
+    label: "Orange / Cyan",
+    accent:  "255,140,26",   // Orange
+    accent2: "78,197,255",   // Cyan
     success: "94,212,123",
     warning: "255,200,80",
     danger:  "255,85,96",
@@ -464,19 +465,19 @@ const LCD_THEMES = {
   },
   alarm: {
     label: "Rotes Alarm-Display",
-    accent:  "255,85,96",
-    accent2: "255,140,26",
+    accent:  "255,85,96",    // Rot
+    accent2: "255,140,140",  // Pink (statt orange, bleibt in rot-familie)
     success: "94,212,123",
     warning: "255,200,80",
-    danger:  "200,40,55",
+    danger:  "255,85,96",
     text:    "216,225,236",
     bg:      "62,32,32"
   },
   industrial: {
-    label: "Grünes Industrie-Display",
-    accent:  "94,212,123",
-    accent2: "180,220,200",
-    success: "60,180,90",
+    label: "Grünes Industrie",
+    accent:  "94,212,123",   // Grün
+    accent2: "180,220,170",  // Hellgrün
+    success: "94,212,123",
     warning: "255,200,80",
     danger:  "255,85,96",
     text:    "216,225,236",
@@ -484,14 +485,40 @@ const LCD_THEMES = {
   },
   cyan: {
     label: "Blaues Sci-Fi",
-    accent:  "78,197,255",
-    accent2: "255,140,26",
+    accent:  "78,197,255",   // Cyan
+    accent2: "140,210,255",  // Hellblau (statt orange)
     success: "94,212,123",
     warning: "255,200,80",
     danger:  "255,85,96",
     text:    "216,225,236",
     bg:      "32,42,62"
   }
+};
+
+// Welcher Theme-Slot bestimmt welche Widget-Farbe?
+// Beim Theme-Apply werden diese Felder eindeutig anhand des Slots
+// auf die neue Theme-Farbe gesetzt — unabhängig vom aktuellen Wert.
+// Felder, die hier nicht aufgeführt sind (z.B. alarm.textColor=white),
+// werden beim Theme-Wechsel NICHT angetastet.
+const LCD_WIDGET_COLOR_SLOTS = {
+  header:        { color:    "accent" },
+  statusbar:     { color:    "success" },
+  statusbar_v:   { color:    "accent2" },
+  statusbar_seg: { color:    "accent" },
+  bar_double:    { color1:   "success", color2: "danger" },
+  donut:         { color:    "success", bgColor: "bg" },
+  dot:           { colorLow: "danger",  colorMid: "accent", colorHigh: "success" },
+  checklist:     { colorOk:  "success", colorBad: "danger" },
+  warning:       { color:    "danger" },
+  alarm:         { bgColor:  "danger" },
+  section:       { bgColor:  "accent2" },
+  divider:       { color:    "bg" },
+  clock:         { color:    "accent2" },
+  value:         { color:    "text" },
+  bigvalue:      { color:    "accent" },
+  iconvalue:     { color:    "accent2" },
+  aggregator:    { color:    "success" },
+  gauge:         { color:    "accent",  bgColor: "bg" }
 };
 
 const LCD_THEME_ORDER = ["default", "alarm", "industrial", "cyan"];

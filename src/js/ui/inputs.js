@@ -193,32 +193,27 @@ function updateLcdWidgetAndRender(i, field, val) {
   render();
 }
 
-// Theme auf alle bestehenden Widgets anwenden. Mappt die Farben
-// vom aktuell aktiven Theme zum gewünschten neuen Theme (Slot-weise).
-// Custom-Farben (alles, was nicht zu einem Theme-Slot gehört) bleiben.
+// Theme auf alle bestehenden Widgets anwenden.
+// SLOT-BASIERT: für jeden Widget-Typ ist in LCD_WIDGET_COLOR_SLOTS
+// hinterlegt, welches Feld zu welchem Theme-Slot gehört. Die Farbe
+// wird direkt aus dem neuen Theme gesetzt — unabhängig vom aktuellen
+// Wert. Dadurch sind beliebig viele Theme-Wechsel deterministisch.
+//
+// Custom-Felder (z.B. alarm.textColor) bleiben unangetastet, weil
+// sie keinen Slot im Mapping haben.
 function applyLcdTheme(themeName) {
   const newT = LCD_THEMES[themeName];
   if (!newT) return;
 
-  const currentName = state.lcdComposer.theme || "default";
-  const currT = LCD_THEMES[currentName] || LCD_THEMES.default;
-
-  // Map: aktuelle Theme-Farbe → neue Theme-Farbe
-  const colorMap = {
-    [currT.accent]:  newT.accent,
-    [currT.accent2]: newT.accent2,
-    [currT.success]: newT.success,
-    [currT.warning]: newT.warning,
-    [currT.danger]:  newT.danger,
-    [currT.text]:    newT.text,
-    [currT.bg]:      newT.bg
-  };
-
   let changed = 0;
   for (const w of state.lcdComposer.widgets) {
-    for (const key of Object.keys(w)) {
-      if (typeof w[key] === "string" && colorMap[w[key]] && colorMap[w[key]] !== w[key]) {
-        w[key] = colorMap[w[key]];
+    const slots = LCD_WIDGET_COLOR_SLOTS[w.type];
+    if (!slots) continue;
+    for (const field of Object.keys(slots)) {
+      const slotName = slots[field];
+      const newColor = newT[slotName];
+      if (newColor && w[field] !== newColor) {
+        w[field] = newColor;
         changed++;
       }
     }
