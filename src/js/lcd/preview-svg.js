@@ -320,8 +320,10 @@ LCD_PREVIEWS.gauge = (w) => {
   const color = _parseColor(w.color, "rgb(255,140,26)");
   const bg = _parseColor(w.bgColor, "rgb(42,52,66)");
   const label = _escapeSvgText(w.label || "Gauge");
-  // Kompakte viewBox — Halbring füllt fast die ganze Fläche
-  const cx = 50, cy = 48, r = 36;
+  // Halbring 270°: Bogen geht von -135° über oben/rechts/unten nach +135°
+  // — der untere Scheitel sitzt bei cy+r. Mit stroke=7 muss
+  // cy + r + 3.5 ≤ 80 und cy - r - 3.5 ≥ 0 sein, sonst Abschneiden.
+  const cx = 50, cy = 40, r = 36;
   const startAng = -Math.PI * 0.75;
   const endAng = Math.PI * 0.75;
   const valAng = startAng + (endAng - startAng) * 0.65;
@@ -332,8 +334,8 @@ LCD_PREVIEWS.gauge = (w) => {
     <rect width="100" height="80" fill="#07090c"/>
     <path d="${bgArc}" fill="none" stroke="${bg}" stroke-width="7"/>
     <path d="${valArc}" fill="none" stroke="${color}" stroke-width="7" stroke-linecap="butt"/>
-    <text x="${cx}" y="${cy + 5}" font-family="Consolas,monospace" font-size="14" font-weight="bold" fill="${color}" text-anchor="middle">42</text>
-    <text x="${cx}" y="${cy + 18}" font-family="Consolas,monospace" font-size="7" fill="#d8e1ec" text-anchor="middle">${label}</text>
+    <text x="${cx}" y="${cy + 4}" font-family="Consolas,monospace" font-size="14" font-weight="bold" fill="${color}" text-anchor="middle">42</text>
+    <text x="${cx}" y="${cy + 16}" font-family="Consolas,monospace" font-size="7" fill="#d8e1ec" text-anchor="middle">${label}</text>
   </svg>`;
 };
 
