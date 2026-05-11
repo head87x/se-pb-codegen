@@ -244,7 +244,9 @@ function updateLcdWidget(i, field, val) {
 
   // Layout-Felder triggern Full-Render, weil sie das gesamte
   // Stack-Layout verschieben.
-  if (field === "widgetHeight" || field === "colSpan" || field === "spaceHeight") {
+  if (field === "widgetHeight" || field === "colSpan" || field === "spaceHeight" ||
+      field === "manualPos" || field === "manualX" || field === "manualY" ||
+      field === "manualW"    || field === "manualH") {
     render();
     return;
   }

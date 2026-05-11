@@ -130,22 +130,40 @@ function generateLcdComposerCode(ensureBlock) {
     const def = LCD_WIDGETS[w.type];
     if (!def) continue;
 
-    // Spacer: dynamische Höhe
+    // ============ MANUAL-Modus: absolute Position ============
+    if (w.manualPos) {
+      const mx = Math.max(0, parseFloat(w.manualX) || 0);
+      const my = Math.max(0, parseFloat(w.manualY) || 0);
+      const mw = Math.max(8, parseFloat(w.manualW) || 100);
+      const mh = Math.max(8, parseFloat(w.manualH) || 40);
+      out += `\n            // Widget #${idx + 1}: ${w.type} (manuell, x=${mx} y=${my} w=${mw} h=${mh})\n`;
+      out += `            {\n`;
+      out += `                float savedY = yPos, savedColX = colOffsetX, savedW = widthInner;\n`;
+      out += `                yPos = rect.Position.Y + ${my}f;\n`;
+      out += `                colOffsetX = ${mx}f;\n`;
+      out += `                widthInner = ${mw}f;\n`;
+      if (w.widgetBg && w.widgetBg.trim()) {
+        out += `                sp = MySprite.CreateSprite("SquareSimple", new Vector2(rect.Position.X + colOffsetX + widthInner / 2f, yPos + ${mh / 2}f), new Vector2(widthInner, ${mh}f));\n`;
+        out += `                sp.Color = ${_csColor(w.widgetBg)};\n`;
+        out += `                frame.Add(sp);\n`;
+      }
+      out += _emitWidget(w, ensureBlock);
+      out += `                yPos = savedY; colOffsetX = savedColX; widthInner = savedW;\n`;
+      out += `            }\n`;
+      continue;  // Manual-Widget beeinflusst Grid-yPos nicht
+    }
+
+    // ============ AUTO/GRID-Modus: Spalten-Layout ============
     let baseHeight = def.height;
     if (w.type === "spacer") baseHeight = parseFloat(w.spaceHeight) || 20;
-    // Custom-Höhe pro Widget (überschreibt Default)
     const customH = parseFloat(w.widgetHeight);
     const height = (!isNaN(customH) && customH > 0)
       ? Math.max(8, Math.min(400, customH))
       : baseHeight;
-
-    // colSpan: wieviele Spalten dieses Widget belegt (1..totalCols)
     const colSpan = Math.max(1, Math.min(totalCols, parseInt(w.colSpan, 10) || totalCols));
 
     out += `\n            // Widget #${idx + 1}: ${w.type} (colSpan=${colSpan}, h=${height})\n`;
-    // Falls dieses Widget nicht in die aktuelle Zeile passt, neue Zeile beginnen
     out += `            if (colCursor + ${colSpan} > totalCols) { yPos += rowMaxH; colCursor = 0; rowMaxH = 0f; }\n`;
-    // X-Offset und Breite für dieses Widget berechnen
     out += `            colOffsetX = padX + colCursor * (colWidth + colGap);\n`;
     out += `            widthInner = colSpan * colWidth + (colSpan - 1) * colGap;\n`;
 
@@ -157,13 +175,11 @@ function generateLcdComposerCode(ensureBlock) {
     }
     out += _emitWidget(w, ensureBlock);
     out += `            }\n`;
-    // colCursor weiterschieben, Zeilen-Max-Höhe tracken
     out += `            colCursor += ${colSpan};\n`;
     out += `            if (${height}f > rowMaxH) rowMaxH = ${height}f;\n`;
     out += `            if (colCursor >= totalCols) { yPos += rowMaxH; colCursor = 0; rowMaxH = 0f; }\n`;
   }
 
-  // Falls am Ende eine angefangene Zeile übrig ist (z.B. nur 1 von 2 Spalten gefüllt)
   out += `\n            if (colCursor > 0) yPos += rowMaxH;\n`;
 
   out += `        }\n`;
