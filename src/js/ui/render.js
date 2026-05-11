@@ -2,6 +2,22 @@
 // UI RENDERING (Conditions, Actions, Help-Text, Master-render)
 // ============================================================
 
+// Helper: rendert ein einzelnes Argument-Input. argType kann sein:
+//   "subtype" → Text-Input mit list="se-subtypes-list" (Autovorschläge)
+//   "number"  → number-Input
+//   sonst     → Text-Input
+function _argField(handler, value, argType, hint) {
+  const safeVal = escapeAttr(value || "");
+  const placeholder = hint ? ` placeholder="${escapeAttr(hint)}"` : "";
+  if (argType === "subtype") {
+    return `<input type="text" list="se-subtypes-list" value="${safeVal}" oninput="${handler}"${placeholder}>`;
+  }
+  if (argType === "number") {
+    return `<input type="number" step="any" value="${safeVal}" oninput="${handler}"${placeholder}>`;
+  }
+  return `<input type="text" value="${safeVal}" oninput="${handler}"${placeholder}>`;
+}
+
 function renderConditions() {
   const root = document.getElementById("conditions");
   if (state.conditions.length === 0) {
@@ -10,7 +26,8 @@ function renderConditions() {
   }
   root.innerHTML = state.conditions.map((c, i) => {
     const cond = findCond(c.blockType, c.condId);
-    const needsArg = cond && cond.arg;
+    const needsArg  = cond && cond.arg;
+    const needsArg2 = cond && cond.arg2;
     const logicSelect = i > 0 ? `
       <div class="logic-op">
         <select onchange="updateCond(${i}, 'logicOp', this.value)">
@@ -18,6 +35,17 @@ function renderConditions() {
           <option value="OR" ${c.logicOp === "OR" ? "selected" : ""}>ODER</option>
         </select>
       </div>` : "";
+    const rowClass = (needsArg && needsArg2) ? "row-3" : (needsArg ? "row-2" : "");
+    const argHtml  = needsArg ? `
+          <div>
+            <label>${escapeHtml(cond.arg)}</label>
+            ${_argField(`updateCond(${i}, 'arg', this.value)`, c.arg, cond.argType, cond.arg)}
+          </div>` : "";
+    const arg2Html = needsArg2 ? `
+          <div>
+            <label>${escapeHtml(cond.arg2)}</label>
+            ${_argField(`updateCond(${i}, 'arg2', this.value)`, c.arg2, cond.arg2Type, cond.arg2)}
+          </div>` : "";
     return `
       ${logicSelect}
       <div class="condition-block">
@@ -35,16 +63,12 @@ function renderConditions() {
             <input value="${escapeAttr(c.blockName)}" oninput="updateCond(${i}, 'blockName', this.value)" placeholder="exakter Name aus Terminal">
           </div>
         </div>
-        <div class="row ${needsArg ? "row-2" : ""}">
+        <div class="row ${rowClass}">
           <div>
             <label>Prüfung ${tooltipBadge(c.blockType, c.condId, 'conditions')}</label>
             <select onchange="updateCond(${i}, 'condId', this.value)">${condOptions(c.blockType)}</select>
           </div>
-          ${needsArg ? `
-          <div>
-            <label>${cond.arg}</label>
-            <input value="${escapeAttr(c.arg)}" oninput="updateCond(${i}, 'arg', this.value)">
-          </div>` : ""}
+          ${argHtml}${arg2Html}
         </div>
       </div>
     `;
@@ -70,7 +94,19 @@ function renderActions(which) {
   }
   root.innerHTML = list.map((a, i) => {
     const act = findAct(a.blockType, a.actId);
-    const needsArg = act && act.arg;
+    const needsArg  = act && act.arg;
+    const needsArg2 = act && act.arg2;
+    const rowClass = (needsArg && needsArg2) ? "row-3" : (needsArg ? "row-2" : "");
+    const argHtml  = needsArg ? `
+          <div>
+            <label>${escapeHtml(act.arg)}</label>
+            ${_argField(`updateAct('${which}', ${i}, 'arg', this.value)`, a.arg, act.argType, act.arg)}
+          </div>` : "";
+    const arg2Html = needsArg2 ? `
+          <div>
+            <label>${escapeHtml(act.arg2)}</label>
+            ${_argField(`updateAct('${which}', ${i}, 'arg2', this.value)`, a.arg2, act.arg2Type, act.arg2)}
+          </div>` : "";
     return `
       <div class="action-block ${which === "else" ? "else-block" : ""}">
         <div class="act-header">
@@ -87,16 +123,12 @@ function renderActions(which) {
             <input value="${escapeAttr(a.blockName)}" oninput="updateAct('${which}', ${i}, 'blockName', this.value)" placeholder="exakter Name aus Terminal">
           </div>
         </div>
-        <div class="row ${needsArg ? "row-2" : ""}">
+        <div class="row ${rowClass}">
           <div>
             <label>Aktion ${tooltipBadge(a.blockType, a.actId, 'actions')}</label>
             <select onchange="updateAct('${which}', ${i}, 'actId', this.value)">${actOptions(a.blockType)}</select>
           </div>
-          ${needsArg ? `
-          <div>
-            <label>${act.arg}</label>
-            <input value="${escapeAttr(a.arg)}" oninput="updateAct('${which}', ${i}, 'arg', this.value)">
-          </div>` : ""}
+          ${argHtml}${arg2Html}
         </div>
       </div>
     `;

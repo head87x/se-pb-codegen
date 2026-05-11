@@ -21,9 +21,9 @@ function condExpr(c, varName) {
   const cond = findCond(c.blockType, c.condId);
   if (!cond) return "true";
   let expr = cond.expr;
-  if (cond.arg) {
-    expr = expr.replace(/\{arg\}/g, c.arg || "0");
-  }
+  // arg2 zuerst, damit "{arg2}" nicht durch "{arg}"-Match gestört wird
+  if (cond.arg2) expr = expr.replace(/\{arg2\}/g, c.arg2 || "0");
+  if (cond.arg)  expr = expr.replace(/\{arg\}/g,  c.arg  || "0");
   expr = expr.replace(/\{v\}/g, varName);
   return expr;
 }
@@ -32,9 +32,8 @@ function actCode(a, varName) {
   const act = findAct(a.blockType, a.actId);
   if (!act) return "// (keine Aktion)";
   let code = act.code;
-  if (act.arg) {
-    code = code.replace(/\{arg\}/g, a.arg || "");
-  }
+  if (act.arg2) code = code.replace(/\{arg2\}/g, a.arg2 || "");
+  if (act.arg)  code = code.replace(/\{arg\}/g,  a.arg  || "");
   code = code.replace(/\{v\}/g, varName);
   return code;
 }

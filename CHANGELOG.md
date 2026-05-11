@@ -7,6 +7,22 @@ das Projekt folgt [Semantic Versioning](https://semver.org/lang/de/).
 
 ## [Unreleased]
 
+### Hinzugefügt (Item-Auswahl per Liste + Mengen-Feld)
+- **Vorgefertigte Subtype-Liste** in `src/js/blocks/item_subtypes.js`
+  mit über 70 Item-Subtypes aus vanilla SE (Erze, Ingots, Komponenten,
+  Munition, Werkzeuge, Verbrauch). Frei eingebbare Subtypes (Mods)
+  weiterhin möglich.
+- **Datenmodell erweitert** um `argType` und optional zweites Argument
+  (`arg2`, `arg2Type`). Renderer schaltet Input-Type automatisch um:
+  - `argType: "subtype"` → Text-Input mit `<datalist>`-Autovorschlägen
+  - `argType: "number"` → Number-Input (Spinner)
+  - sonst → normales Text-Feld
+- **Item-Conditions** in 9 Blöcken haben jetzt zwei getrennte Eingabefelder:
+  - Feld 1: Item-Subtype (mit Auto-Vorschlägen)
+  - Feld 2: Mindest-/Höchst-Menge (nur Zahl)
+- `_invConds` als single source of truth — die drei Inventar-Conditions
+  werden per JS-Spread (`..._invConds`) in alle Inventar-Blöcke gestreut.
+
 ### Hinzugefügt (Inventar-Prüfungen)
 - **Drei neue Conditions** in 9 Blöcken mit Inventar (Connector,
   Cargo, Refinery, Assembler, Sortierer, Reaktor, Gas-Generator,

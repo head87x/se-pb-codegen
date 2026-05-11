@@ -29,6 +29,7 @@ function addConditionOfType(blockType) {
     blockName: "",
     condId: def.conditions[0].id,
     arg: "",
+    arg2: "",
     logicOp: "AND"
   });
   render();
@@ -46,16 +47,18 @@ function updateCond(i, field, val) {
     // Wechsel des Block-Typs → andere Conditions verfügbar → Strukturwechsel
     state.conditions[i].condId = BLOCKS[val].conditions[0]?.id || "";
     state.conditions[i].arg = "";
+    state.conditions[i].arg2 = "";
     render();
     return;
   }
   if (field === "condId") {
-    // Andere Condition → Argument-Feld kann erscheinen/verschwinden
+    // Andere Condition → Argument-Felder können erscheinen/verschwinden
     state.conditions[i].arg = "";
+    state.conditions[i].arg2 = "";
     render();
     return;
   }
-  // blockName, arg, logicOp: reine Werteänderung, kein Re-Render
+  // blockName, arg, arg2, logicOp: reine Werteänderung, kein Re-Render
   generateCode();
 }
 
@@ -76,7 +79,8 @@ function addActionOfType(which, blockType) {
     blockType,
     blockName: "",
     actId: def.actions[0].id,
-    arg: ""
+    arg: "",
+    arg2: ""
   });
   render();
 }
@@ -94,15 +98,17 @@ function updateAct(which, i, field, val) {
   if (field === "blockType") {
     list[i].actId = BLOCKS[val].actions[0]?.id || "";
     list[i].arg = "";
+    list[i].arg2 = "";
     render();
     return;
   }
   if (field === "actId") {
     list[i].arg = "";
+    list[i].arg2 = "";
     render();
     return;
   }
-  // blockName, arg: reine Werteänderung
+  // blockName, arg, arg2: reine Werteänderung
   generateCode();
 }
 

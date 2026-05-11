@@ -15,10 +15,26 @@
 //     actions:    [{ id, label, code, tier, arg? }]
 //   }
 //
-// {v}   → Block-Variablenname, {arg} → User-Wert
+// {v}   → Block-Variablenname, {arg} → User-Wert, {arg2} → zweiter Wert
 // Tier: "standard" (häufig, intuitiv) / "advanced" (Spezialfälle, Parameter-Setter)
+// argType: "subtype" (Item-Subtype-Dropdown) | undefined (Text-Feld)
+// arg2 / arg2Type: optionales zweites Argument (Hint + Typ)
 // Existierende IDs werden NICHT umbenannt (sonst brechen Vorlagen).
 // ============================================================
+
+// Standard-Inventar-Conditions, die in allen Blöcken mit Inventar
+// gleich aussehen. Per JS-Spread (..._invConds) in conditions[]
+// einbinden — single source of truth.
+const _invConds = [
+  { id: "hasItem",      label: "Enthält Item",   expr: "HasItem({v}, \"{arg}\")",
+    kind: "raw", tier: "standard", argType: "subtype", arg: "Item-Subtype" },
+  { id: "itemAmountGT", label: "Item-Menge > X", expr: "ItemAmountAbove({v}, \"{arg}:{arg2}\")",
+    kind: "raw", tier: "standard", argType: "subtype", arg: "Item",
+    arg2Type: "number", arg2: "Mindest-Menge" },
+  { id: "itemAmountLT", label: "Item-Menge < X", expr: "ItemAmountBelow({v}, \"{arg}:{arg2}\")",
+    kind: "raw", tier: "advanced", argType: "subtype", arg: "Item",
+    arg2Type: "number", arg2: "Höchst-Menge" }
+];
 
 const BLOCKS = {
 
@@ -146,9 +162,7 @@ const BLOCKS = {
       { id: "connected",   label: "Ist verbunden",        expr: "{v}.Status == MyShipConnectorStatus.Connected",   kind: "bool",   tier: "standard" },
       { id: "ready",       label: "Bereit (Connectable)", expr: "{v}.Status == MyShipConnectorStatus.Connectable", kind: "bool",   tier: "standard" },
       { id: "unconnected", label: "Nicht verbunden",      expr: "{v}.Status == MyShipConnectorStatus.Unconnected", kind: "bool",   tier: "standard" },
-      { id: "hasItem",     label: "Enthält Item (Subtype)", expr: "HasItem({v}, \"{arg}\")",                       kind: "raw",    tier: "standard", arg: "z.B. Iron, Stone, SteelPlate" },
-      { id: "itemAmountGT", label: "Item-Menge > X",      expr: "ItemAmountAbove({v}, \"{arg}\")",                 kind: "raw",    tier: "standard", arg: "Iron:100 (Subtype:Menge)" },
-      { id: "itemAmountLT", label: "Item-Menge < X",      expr: "ItemAmountBelow({v}, \"{arg}\")",                 kind: "raw",    tier: "advanced", arg: "Iron:100 (Subtype:Menge)" },
+      ..._invConds,
       { id: "fillGT",      label: "Inventar-Füllstand > X %", expr: "((float){v}.GetInventory().CurrentVolume / (float){v}.GetInventory().MaxVolume) * 100f > {arg}f", kind: "number", tier: "advanced", arg: "%" },
       { id: "enabledTrue", label: "Ist eingeschaltet",    expr: "{v}.Enabled",                                     kind: "bool",   tier: "advanced" },
       { id: "throwOnTrue", label: "Throw-Out aktiv",      expr: "{v}.ThrowOut",                                    kind: "bool",   tier: "advanced" }
@@ -233,9 +247,7 @@ const BLOCKS = {
       { id: "isOn",         label: "Ist eingeschaltet",      expr: "{v}.Enabled",                kind: "bool",   tier: "standard" },
       { id: "isWorking",    label: "Arbeitet",               expr: "{v}.IsWorking",              kind: "bool",   tier: "advanced" },
       { id: "maxOutGT",     label: "Max-Output > X (MW)",    expr: "{v}.MaxOutput > {arg}f",     kind: "number", tier: "advanced", arg: "MW" },
-      { id: "hasItem",      label: "Enthält Item (Subtype)", expr: "HasItem({v}, \"{arg}\")",       kind: "raw", tier: "standard", arg: "Uranium" },
-      { id: "itemAmountGT", label: "Item-Menge > X",         expr: "ItemAmountAbove({v}, \"{arg}\")", kind: "raw", tier: "standard", arg: "Uranium:5" },
-      { id: "itemAmountLT", label: "Item-Menge < X",         expr: "ItemAmountBelow({v}, \"{arg}\")", kind: "raw", tier: "standard", arg: "Uranium:1 (Treibstoff niedrig)" }
+      ..._invConds
     ],
     actions: [
       { id: "on",  label: "Einschalten", code: "{v}.Enabled = true;",  tier: "standard" },
@@ -297,9 +309,7 @@ const BLOCKS = {
       { id: "drainAll",     label: "Drain-All aktiv",       expr: "{v}.DrainAll",                    kind: "bool", tier: "standard" },
       { id: "isOn",         label: "Ist eingeschaltet",     expr: "{v}.Enabled",                     kind: "bool", tier: "standard" },
       { id: "isWorking",    label: "Arbeitet",              expr: "{v}.IsWorking",                   kind: "bool", tier: "advanced" },
-      { id: "hasItem",      label: "Enthält Item (Subtype)", expr: "HasItem({v}, \"{arg}\")",       kind: "raw", tier: "advanced", arg: "z.B. Iron" },
-      { id: "itemAmountGT", label: "Item-Menge > X",         expr: "ItemAmountAbove({v}, \"{arg}\")", kind: "raw", tier: "advanced", arg: "Iron:100" },
-      { id: "itemAmountLT", label: "Item-Menge < X",         expr: "ItemAmountBelow({v}, \"{arg}\")", kind: "raw", tier: "advanced", arg: "Iron:100" }
+      ..._invConds
     ],
     actions: [
       { id: "drainOn",   label: "Drain-All einschalten", code: "{v}.DrainAll = true;",  tier: "standard" },
@@ -318,9 +328,7 @@ const BLOCKS = {
       { id: "empty",     label: "Ist leer",                expr: "{v}.GetInventory().CurrentVolume == 0",                                                          kind: "bool",   tier: "standard" },
       { id: "massGT",       label: "Masse > X (kg)",          expr: "(float){v}.GetInventory().CurrentMass > {arg}f",  kind: "number", tier: "advanced", arg: "kg" },
       { id: "itemCntGT",    label: "Item-Anzahl > X",         expr: "{v}.GetInventory().ItemCount > {arg}",            kind: "number", tier: "advanced", arg: "Anzahl" },
-      { id: "hasItem",      label: "Enthält Item (Subtype)",  expr: "HasItem({v}, \"{arg}\")",                          kind: "raw",    tier: "standard", arg: "z.B. Iron, Stone, SteelPlate" },
-      { id: "itemAmountGT", label: "Item-Menge > X",          expr: "ItemAmountAbove({v}, \"{arg}\")",                  kind: "raw",    tier: "standard", arg: "Iron:100 (Subtype:Menge)" },
-      { id: "itemAmountLT", label: "Item-Menge < X",          expr: "ItemAmountBelow({v}, \"{arg}\")",                  kind: "raw",    tier: "advanced", arg: "Iron:100 (Subtype:Menge)" }
+      ..._invConds
     ],
     actions: [
       { id: "setCustom", label: "CustomData setzen", code: "{v}.CustomData = {arg};", tier: "advanced", arg: "\"text\"" }
@@ -340,9 +348,7 @@ const BLOCKS = {
       { id: "useConveyor",  label: "Conveyor genutzt",    expr: "{v}.UseConveyorSystem", kind: "bool", tier: "standard" },
       { id: "isOn",         label: "Ist eingeschaltet",   expr: "{v}.Enabled",          kind: "bool", tier: "standard" },
       { id: "isWorking",    label: "Arbeitet",            expr: "{v}.IsWorking",        kind: "bool", tier: "advanced" },
-      { id: "hasItem",      label: "Enthält Item (Subtype)", expr: "HasItem({v}, \"{arg}\")",       kind: "raw", tier: "standard", arg: "z.B. Iron, Stone (durchsucht In+Out)" },
-      { id: "itemAmountGT", label: "Item-Menge > X",      expr: "ItemAmountAbove({v}, \"{arg}\")", kind: "raw", tier: "standard", arg: "Iron:100 (Subtype:Menge)" },
-      { id: "itemAmountLT", label: "Item-Menge < X",      expr: "ItemAmountBelow({v}, \"{arg}\")", kind: "raw", tier: "advanced", arg: "Iron:100" }
+      ..._invConds
     ],
     actions: [
       { id: "convOn",  label: "Conveyor an",         code: "{v}.UseConveyorSystem = true;",  tier: "standard" },
@@ -364,9 +370,7 @@ const BLOCKS = {
       { id: "coopOn",          label: "Kooperativ aktiv",      expr: "{v}.CooperativeMode",                          kind: "bool", tier: "advanced" },
       { id: "repeatOn",        label: "Wiederholung aktiv",    expr: "{v}.Repeating",                                kind: "bool", tier: "advanced" },
       { id: "isOn",            label: "Ist eingeschaltet",     expr: "{v}.Enabled",                                  kind: "bool", tier: "advanced" },
-      { id: "hasItem",         label: "Enthält Item (Subtype)", expr: "HasItem({v}, \"{arg}\")",       kind: "raw", tier: "standard", arg: "z.B. SteelPlate (durchsucht In+Out)" },
-      { id: "itemAmountGT",    label: "Item-Menge > X",         expr: "ItemAmountAbove({v}, \"{arg}\")", kind: "raw", tier: "advanced", arg: "Construction:50" },
-      { id: "itemAmountLT",    label: "Item-Menge < X",         expr: "ItemAmountBelow({v}, \"{arg}\")", kind: "raw", tier: "advanced", arg: "Construction:50" }
+      ..._invConds
     ],
     actions: [
       { id: "assemble",    label: "Modus: Bauen",         code: "{v}.Mode = MyAssemblerMode.Assembly;",    tier: "standard" },
@@ -388,9 +392,7 @@ const BLOCKS = {
       { id: "isOn",         label: "Ist eingeschaltet",      expr: "{v}.Enabled",                       kind: "bool", tier: "standard" },
       { id: "refillOn",     label: "Auto-Refill aktiv",      expr: "{v}.AutoRefill",                    kind: "bool", tier: "standard" },
       { id: "canProd",      label: "Produktion möglich",     expr: "{v}.CanProduce",                    kind: "bool", tier: "advanced" },
-      { id: "hasItem",      label: "Enthält Item (Subtype)", expr: "HasItem({v}, \"{arg}\")",       kind: "raw", tier: "standard", arg: "Ice" },
-      { id: "itemAmountGT", label: "Item-Menge > X",         expr: "ItemAmountAbove({v}, \"{arg}\")", kind: "raw", tier: "standard", arg: "Ice:100" },
-      { id: "itemAmountLT", label: "Item-Menge < X",         expr: "ItemAmountBelow({v}, \"{arg}\")", kind: "raw", tier: "standard", arg: "Ice:10 (Eis niedrig)" }
+      ..._invConds
     ],
     actions: [
       { id: "on",        label: "Einschalten",      code: "{v}.Enabled = true;",   tier: "standard" },
@@ -528,8 +530,7 @@ const BLOCKS = {
       { id: "isOn",         label: "Ist eingeschaltet",      expr: "{v}.Enabled",                     kind: "bool", tier: "standard" },
       { id: "isWorking",    label: "Arbeitet",               expr: "{v}.IsWorking",                   kind: "bool", tier: "advanced" },
       { id: "fillGT",       label: "Inventar-Füllstand > X %", expr: "((float){v}.GetInventory().CurrentVolume / (float){v}.GetInventory().MaxVolume) * 100f > {arg}f", kind: "number", tier: "standard", arg: "%" },
-      { id: "hasItem",      label: "Enthält Item (Subtype)", expr: "HasItem({v}, \"{arg}\")",       kind: "raw", tier: "advanced", arg: "Iron, Stone, ..." },
-      { id: "itemAmountGT", label: "Item-Menge > X",         expr: "ItemAmountAbove({v}, \"{arg}\")", kind: "raw", tier: "advanced", arg: "Iron:1000" }
+      ..._invConds
     ],
     actions: [
       { id: "on",     label: "Einschalten", code: "{v}.Enabled = true;",         tier: "standard" },
@@ -563,8 +564,7 @@ const BLOCKS = {
       { id: "isWorking",    label: "Arbeitet",               expr: "{v}.IsWorking",                   kind: "bool", tier: "advanced" },
       { id: "helpOthers",   label: "Help-Others aktiv",      expr: "{v}.HelpOthers",                  kind: "bool", tier: "advanced" },
       { id: "fillGT",       label: "Inventar-Füllstand > X %", expr: "((float){v}.GetInventory().CurrentVolume / (float){v}.GetInventory().MaxVolume) * 100f > {arg}f", kind: "number", tier: "standard", arg: "%" },
-      { id: "hasItem",      label: "Enthält Item (Subtype)", expr: "HasItem({v}, \"{arg}\")",       kind: "raw", tier: "advanced", arg: "z.B. SteelPlate" },
-      { id: "itemAmountGT", label: "Item-Menge > X",         expr: "ItemAmountAbove({v}, \"{arg}\")", kind: "raw", tier: "advanced", arg: "SteelPlate:50" }
+      ..._invConds
     ],
     actions: [
       { id: "on",         label: "Einschalten",        code: "{v}.Enabled = true;",         tier: "standard" },
