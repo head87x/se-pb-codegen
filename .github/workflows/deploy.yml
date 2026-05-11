@@ -36,13 +36,24 @@ jobs:
       - name: Code aus dem Repo holen
         uses: actions/checkout@v4
 
+      - name: Server-Dir normalisieren (Slash am Ende sicherstellen)
+        id: dir
+        shell: bash
+        run: |
+          DIR='${{ secrets.IONOS_SERVER_DIR }}'
+          case "$DIR" in
+            */) ;;
+            *)  DIR="$DIR/" ;;
+          esac
+          echo "server_dir=$DIR" >> "$GITHUB_OUTPUT"
+
       - name: Per FTPS hochladen
         uses: SamKirkland/FTP-Deploy-Action@v4.3.5
         with:
           server:     ${{ secrets.IONOS_HOST }}
           username:   ${{ secrets.IONOS_USERNAME }}
           password:   ${{ secrets.IONOS_PASSWORD }}
-          server-dir: ${{ secrets.IONOS_SERVER_DIR }}
+          server-dir: ${{ steps.dir.outputs.server_dir }}
           protocol:   ftps
           security:   loose
           local-dir:  ./
