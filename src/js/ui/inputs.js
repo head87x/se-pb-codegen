@@ -174,27 +174,15 @@ function onLcdComposerResolutionChange(val) {
   render(); // Vorschau muss neu mit anderem Aspect-Ratio
 }
 
-function onLcdComposerColumnsChange(val) {
-  const cols = Math.max(1, Math.min(3, parseInt(val, 10) || 1));
-  state.lcdComposer.columns = cols;
-  // colSpan jedes Widgets ggf. clampen, damit nicht > totalCols
-  for (const w of state.lcdComposer.widgets) {
-    if (w.colSpan && parseInt(w.colSpan, 10) > cols) w.colSpan = cols;
-  }
-  render();
-}
-
 // Füllt das Resolution-Dropdown beim Init mit den Optionen
 function initLcdComposerSelects() {
   const sel = document.getElementById("lcd-composer-resolution");
-  if (sel && LCD_RESOLUTION_ORDER) {
+  if (sel && typeof LCD_RESOLUTION_ORDER !== "undefined") {
     sel.innerHTML = LCD_RESOLUTION_ORDER.map(k =>
       `<option value="${k}">${LCD_RESOLUTIONS[k].label}</option>`
     ).join("");
     sel.value = state.lcdComposer.resolution || "square";
   }
-  const cols = document.getElementById("lcd-composer-columns");
-  if (cols) cols.value = String(state.lcdComposer.columns || 1);
 }
 
 function addLcdWidget(type) {
@@ -202,15 +190,24 @@ function addLcdWidget(type) {
   if (!def) return;
   const widget = { type, ...JSON.parse(JSON.stringify(def.defaults)) };
 
-  // Default colSpan = 1: neue Widgets sind 1 Spalte breit. Bei
-  // 1-Spalten-Layout = volle Breite, bei 2/3 Spalten halbe/drittel.
-  // So passen sich neue Widgets automatisch an die Spaltenanzahl an.
-  widget.colSpan = 1;
+  // Manual-Positionierung ist jetzt das einzige Layout-System.
+  // Kompakte Default-Größe pro Widget aus LCD_MANUAL_DEFAULTS.
+  const md = (typeof LCD_MANUAL_DEFAULTS !== "undefined" && LCD_MANUAL_DEFAULTS[type])
+    ? LCD_MANUAL_DEFAULTS[type]
+    : { w: 200, h: 40 };
+  widget.manualW = md.w;
+  widget.manualH = md.h;
+
+  // Auto-Platzierung: setze unter das letzte sichtbare Widget,
+  // damit nicht alle übereinander landen.
+  const placement = _findNextLcdPosition(md.w, md.h);
+  widget.manualX = placement.x;
+  widget.manualY = placement.y;
 
   // Aktuelles Theme direkt auf das neue Widget anwenden
   const themeName = state.lcdComposer.theme || "default";
-  const theme = LCD_THEMES[themeName];
-  const slots = LCD_WIDGET_COLOR_SLOTS[type];
+  const theme = (typeof LCD_THEMES !== "undefined") ? LCD_THEMES[themeName] : null;
+  const slots = (typeof LCD_WIDGET_COLOR_SLOTS !== "undefined") ? LCD_WIDGET_COLOR_SLOTS[type] : null;
   if (theme && slots) {
     for (const field of Object.keys(slots)) {
       const newColor = theme[slots[field]];
@@ -220,6 +217,24 @@ function addLcdWidget(type) {
 
   state.lcdComposer.widgets.push(widget);
   render();
+}
+
+// Findet die nächste freie Position auf dem LCD (vertikales Stacking).
+function _findNextLcdPosition(w, h) {
+  const SNAP = (typeof LCD_SNAP === "number") ? LCD_SNAP : 16;
+  const resKey = state.lcdComposer.resolution || "square";
+  const res = (typeof LCD_RESOLUTIONS !== "undefined") ? LCD_RESOLUTIONS[resKey] : { w: 512, h: 512 };
+  // Tiefster bisheriger Y-Punkt finden
+  let maxBottom = 0;
+  for (const ew of state.lcdComposer.widgets) {
+    const ey = parseFloat(ew.manualY) || 0;
+    const eh = parseFloat(ew.manualH) || 40;
+    if (ey + eh > maxBottom) maxBottom = ey + eh;
+  }
+  let nextY = Math.ceil((maxBottom + 8) / SNAP) * SNAP;
+  // Wenn unten kein Platz mehr: zurück zum Anfang
+  if (nextY + h > res.h) nextY = 8;
+  return { x: 8, y: nextY };
 }
 
 function removeLcdWidget(i) {

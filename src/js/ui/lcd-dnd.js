@@ -51,9 +51,31 @@ function _lcdMouseDown(e) {
     res, container
   };
 
+  // Live-Maße-Badge erzeugen
+  const badge = document.createElement("div");
+  badge.className = "lcd-drag-badge";
+  document.body.appendChild(badge);
+  _lcdDragState.badge = badge;
+  _lcdUpdateBadge();
+
   document.addEventListener("mousemove", _lcdMouseMove);
   document.addEventListener("mouseup", _lcdMouseUp);
-  document.body.style.userSelect = "none";  // verhindert Text-Selektion beim Drag
+  document.body.style.userSelect = "none";
+}
+
+function _lcdUpdateBadge() {
+  const s = _lcdDragState;
+  if (!s || !s.badge) return;
+  const w = s.widget;
+  s.badge.textContent = s.isResize
+    ? `${Math.round(w.manualW)} × ${Math.round(w.manualH)} px`
+    : `X: ${Math.round(w.manualX)}  Y: ${Math.round(w.manualY)} px`;
+  const cell = s.container.querySelector(`.lcd-cell-manual[data-widget-idx="${s.idx}"]`);
+  if (cell) {
+    const r = cell.getBoundingClientRect();
+    s.badge.style.left = (r.right + 6) + "px";
+    s.badge.style.top  = r.top + "px";
+  }
 }
 
 function _lcdMouseMove(e) {
@@ -80,6 +102,7 @@ function _lcdMouseMove(e) {
   }
 
   _lcdUpdateCellGeometry(s.idx);
+  _lcdUpdateBadge();
 }
 
 function _lcdMouseUp() {
@@ -87,8 +110,8 @@ function _lcdMouseUp() {
   document.removeEventListener("mousemove", _lcdMouseMove);
   document.removeEventListener("mouseup", _lcdMouseUp);
   document.body.style.userSelect = "";
+  if (_lcdDragState.badge) _lcdDragState.badge.remove();
   _lcdDragState = null;
-  // Voll-Render: aktualisiert die Editor-Felder UND generateCode()
   render();
 }
 

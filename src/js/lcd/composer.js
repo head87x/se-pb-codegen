@@ -91,8 +91,6 @@ function generateLcdComposerCode(ensureBlock) {
     return { code: "", used: false };
   }
 
-  const totalCols = Math.max(1, Math.min(3, parseInt(lc.columns, 10) || 1));
-
   let out = "";
   out += "\n    // ---------- LCD-Baukasten ----------\n";
 
@@ -112,75 +110,34 @@ function generateLcdComposerCode(ensureBlock) {
   out += `        using (var frame = lcdComp.DrawFrame())\n`;
   out += `        {\n`;
   out += `            var rect = new RectangleF((lcdComp.TextureSize - lcdComp.SurfaceSize) / 2f, lcdComp.SurfaceSize);\n`;
-  out += `            float padX = ${LCD_PADDING_X}f;\n`;
-  out += `            int totalCols = ${totalCols};\n`;
-  out += `            float colGap = 4f;\n`;
-  out += `            float fullWidthInner = lcdComp.SurfaceSize.X - 2 * padX;\n`;
-  out += `            float colWidth = (fullWidthInner - (totalCols - 1) * colGap) / totalCols;\n`;
-  out += `            float yPos = rect.Position.Y + 8f;\n`;
-  out += `            int colCursor = 0;   // wieviele Spalten in der aktuellen Zeile schon belegt sind\n`;
-  out += `            float rowMaxH = 0f;  // höchstes Widget in der aktuellen Zeile (für Y-Vorschub)\n`;
+  out += `            float yPos = 0f;\n`;
+  out += `            float colOffsetX = 0f;\n`;
+  out += `            float widthInner = 100f;\n`;
   out += `            MySprite sp;\n`;
-  out += `            float origPadX = padX;\n`;
-  out += `            float widthInner = colWidth;  // Variable, die jedes Widget benutzt — wird pro Widget gesetzt\n`;
-  out += `            float colOffsetX = 0f;        // X-Offset für die aktuelle Spalten-Position\n`;
 
   for (let idx = 0; idx < lc.widgets.length; idx++) {
     const w = lc.widgets[idx];
     const def = LCD_WIDGETS[w.type];
     if (!def) continue;
+    if (w.hidden) continue;  // Layer-Toggle (Phase B)
 
-    // ============ MANUAL-Modus: absolute Position ============
-    if (w.manualPos) {
-      const mx = Math.max(0, parseFloat(w.manualX) || 0);
-      const my = Math.max(0, parseFloat(w.manualY) || 0);
-      const mw = Math.max(8, parseFloat(w.manualW) || 100);
-      const mh = Math.max(8, parseFloat(w.manualH) || 40);
-      out += `\n            // Widget #${idx + 1}: ${w.type} (manuell, x=${mx} y=${my} w=${mw} h=${mh})\n`;
-      out += `            {\n`;
-      out += `                float savedY = yPos, savedColX = colOffsetX, savedW = widthInner;\n`;
-      out += `                yPos = rect.Position.Y + ${my}f;\n`;
-      out += `                colOffsetX = ${mx}f;\n`;
-      out += `                widthInner = ${mw}f;\n`;
-      if (w.widgetBg && w.widgetBg.trim()) {
-        out += `                sp = MySprite.CreateSprite("SquareSimple", new Vector2(rect.Position.X + colOffsetX + widthInner / 2f, yPos + ${mh / 2}f), new Vector2(widthInner, ${mh}f));\n`;
-        out += `                sp.Color = ${_csColor(w.widgetBg)};\n`;
-        out += `                frame.Add(sp);\n`;
-      }
-      out += _emitWidget(w, ensureBlock);
-      out += `                yPos = savedY; colOffsetX = savedColX; widthInner = savedW;\n`;
-      out += `            }\n`;
-      continue;  // Manual-Widget beeinflusst Grid-yPos nicht
-    }
-
-    // ============ AUTO/GRID-Modus: Spalten-Layout ============
-    let baseHeight = def.height;
-    if (w.type === "spacer") baseHeight = parseFloat(w.spaceHeight) || 20;
-    const customH = parseFloat(w.widgetHeight);
-    const height = (!isNaN(customH) && customH > 0)
-      ? Math.max(8, Math.min(400, customH))
-      : baseHeight;
-    const colSpan = Math.max(1, Math.min(totalCols, parseInt(w.colSpan, 10) || totalCols));
-
-    out += `\n            // Widget #${idx + 1}: ${w.type} (colSpan=${colSpan}, h=${height})\n`;
-    out += `            if (colCursor + ${colSpan} > totalCols) { yPos += rowMaxH; colCursor = 0; rowMaxH = 0f; }\n`;
-    out += `            colOffsetX = padX + colCursor * (colWidth + colGap);\n`;
-    out += `            widthInner = colSpan * colWidth + (colSpan - 1) * colGap;\n`;
-
+    const mx = Math.max(0, parseFloat(w.manualX) || 0);
+    const my = Math.max(0, parseFloat(w.manualY) || 0);
+    const mw = Math.max(8, parseFloat(w.manualW) || 100);
+    const mh = Math.max(8, parseFloat(w.manualH) || 40);
+    out += `\n            // Widget #${idx + 1}: ${w.type} (x=${mx} y=${my} w=${mw} h=${mh})\n`;
     out += `            {\n`;
+    out += `                yPos = rect.Position.Y + ${my}f;\n`;
+    out += `                colOffsetX = ${mx}f;\n`;
+    out += `                widthInner = ${mw}f;\n`;
     if (w.widgetBg && w.widgetBg.trim()) {
-      out += `                sp = MySprite.CreateSprite("SquareSimple", new Vector2(rect.Position.X + colOffsetX + widthInner / 2f, yPos + ${height / 2}f), new Vector2(widthInner, ${height}f));\n`;
+      out += `                sp = MySprite.CreateSprite("SquareSimple", new Vector2(rect.Position.X + colOffsetX + widthInner / 2f, yPos + ${mh / 2}f), new Vector2(widthInner, ${mh}f));\n`;
       out += `                sp.Color = ${_csColor(w.widgetBg)};\n`;
       out += `                frame.Add(sp);\n`;
     }
     out += _emitWidget(w, ensureBlock);
     out += `            }\n`;
-    out += `            colCursor += ${colSpan};\n`;
-    out += `            if (${height}f > rowMaxH) rowMaxH = ${height}f;\n`;
-    out += `            if (colCursor >= totalCols) { yPos += rowMaxH; colCursor = 0; rowMaxH = 0f; }\n`;
   }
-
-  out += `\n            if (colCursor > 0) yPos += rowMaxH;\n`;
 
   out += `        }\n`;
   out += `    }\n`;

@@ -263,61 +263,16 @@ function _renderLcdWidgetFields(w, i) {
     html += `<div class="lcd-widget-fields">${fields.map(f => _renderLcdSingleField(f, i, w[f.key])).join("")}</div>`;
   }
 
-  // Universelle Zusatz-Felder für jedes Widget (Phase 4c.1 + 4d)
-  html += `<div class="lcd-widget-group-title">Größe & Layout</div>`;
-
-  // Modus-Schalter: Auto-Grid vs. Manuell positionieren
+  // Position & Größe (Manual ist jetzt der einzige Modus)
+  html += `<div class="lcd-widget-group-title">Position & Größe</div>`;
   html += `<div class="lcd-widget-fields">`;
-  html += `
-    <div>
-      <label>Layout-Modus</label>
-      <select onchange="updateLcdWidgetAndRender(${i}, 'manualPos', this.value === 'true')">
-        <option value="false" ${!w.manualPos ? "selected" : ""}>Auto (Grid + Spalten)</option>
-        <option value="true" ${w.manualPos ? "selected" : ""}>Manuell positionieren</option>
-      </select>
-    </div>`;
+  html += _renderLcdSingleField({ key: "manualX", label: "X (px)",      type: "number" }, i, w.manualX);
+  html += _renderLcdSingleField({ key: "manualY", label: "Y (px)",      type: "number" }, i, w.manualY);
+  html += _renderLcdSingleField({ key: "manualW", label: "Breite (px)", type: "number" }, i, w.manualW);
+  html += _renderLcdSingleField({ key: "manualH", label: "Höhe (px)",   type: "number" }, i, w.manualH);
   html += `</div>`;
 
-  if (!w.manualPos) {
-    // Auto-Grid-Modus: Höhe + colSpan
-    html += `<div class="lcd-widget-fields">`;
-    const def2 = LCD_WIDGETS[w.type];
-    const defaultH = def2 ? def2.height : 30;
-    html += _renderLcdSingleField(
-      { key: "widgetHeight", label: `Höhe (px, default ${defaultH})`, type: "number", hint: "leer = Standard, sonst 8–400" },
-      i,
-      w.widgetHeight
-    );
-    const totalCols = Math.max(1, Math.min(3, parseInt(state.lcdComposer.columns, 10) || 1));
-    if (totalCols > 1) {
-      const colSpanOpts = [];
-      for (let cs = 1; cs <= totalCols; cs++) {
-        colSpanOpts.push({ value: String(cs), label: cs === totalCols ? `${cs} (volle Breite)` : `${cs} / ${totalCols}` });
-      }
-      html += _renderLcdSingleField(
-        { key: "colSpan", label: "Spalten-Breite", type: "select", options: colSpanOpts },
-        i,
-        String(w.colSpan || 1)
-      );
-    }
-    html += `</div>`;
-  } else {
-    // Manuell-Modus: X, Y, Breite, Höhe in LCD-Pixeln
-    const def2 = LCD_WIDGETS[w.type];
-    const defH = def2 ? def2.height : 40;
-    if (w.manualX == null) w.manualX = 10;
-    if (w.manualY == null) w.manualY = 10;
-    if (w.manualW == null) w.manualW = 200;
-    if (w.manualH == null) w.manualH = defH;
-    html += `<div class="lcd-widget-fields">`;
-    html += _renderLcdSingleField({ key: "manualX", label: "X (px)",     type: "number", hint: "0 = links" },  i, w.manualX);
-    html += _renderLcdSingleField({ key: "manualY", label: "Y (px)",     type: "number", hint: "0 = oben" },   i, w.manualY);
-    html += _renderLcdSingleField({ key: "manualW", label: "Breite (px)", type: "number" },                    i, w.manualW);
-    html += _renderLcdSingleField({ key: "manualH", label: "Höhe (px)",   type: "number" },                    i, w.manualH);
-    html += `</div>`;
-    html += `<div class="help-text">Tipp: ziehe das Widget direkt in der Live-Vorschau, oder ändere die Werte hier.</div>`;
-  }
-
+  html += `<div class="lcd-widget-group-title">Hintergrund (optional)</div>`;
   html += `<div class="lcd-widget-fields">`;
   html += _renderLcdSingleField(
     { key: "widgetBg", label: "Hintergrundfarbe (R,G,B)", type: "text", hint: "leer = kein Hintergrund" },
@@ -329,18 +284,15 @@ function _renderLcdWidgetFields(w, i) {
   return html;
 }
 
-// Stapelt alle Widget-Vorschauen in einem LCD-Frame mit FIXEN
-// Aspect-Ratio und Multi-Spalten-Layout. Spiegelt das echte Spiel-LCD.
+// Live-Vorschau: alle Widgets sind manuell positioniert (absolute
+// LCD-Koordinaten). Container hat das Aspect des gewählten LCD-Formats.
 function _renderFullLcdPreview() {
   const widgets = state.lcdComposer.widgets;
   const resKey = state.lcdComposer.resolution || "square";
   const res = LCD_RESOLUTIONS[resKey] || LCD_RESOLUTIONS.square;
-  const totalCols = Math.max(1, Math.min(3, parseInt(state.lcdComposer.columns, 10) || 1));
 
-  // Vorschau-Container hat feste Pixel-Breite (skaliert), Höhe via Aspect-Ratio
   const previewWidth = 380;
   const previewHeight = Math.round(previewWidth * res.h / res.w);
-  // Skalierungsfaktor von LCD-Pixeln zu Browser-Pixeln
   const scale = previewWidth / res.w;
 
   if (widgets.length === 0) {
@@ -353,83 +305,31 @@ function _renderFullLcdPreview() {
       </div>`;
   }
 
-  // Layout-Engine: trennen in Grid- und Manual-Widgets
-  const gridWidgets = [];
-  const manualWidgets = [];
-  for (let i = 0; i < widgets.length; i++) {
-    if (widgets[i].manualPos) manualWidgets.push({ widget: widgets[i], idx: i });
-    else gridWidgets.push({ widget: widgets[i], idx: i });
-  }
+  const visibleWidgets = widgets
+    .map((w, idx) => ({ w, idx }))
+    .filter(o => !o.w.hidden);
 
-  const colGap = 4;
-  const colWidth = (res.w - 16 - (totalCols - 1) * colGap) / totalCols;
-  let yPos = 8;
-  let colCursor = 0;
-  let rowMaxH = 0;
-  const placedRows = [];
-
-  for (const { widget, idx } of gridWidgets) {
-    const def = LCD_WIDGETS[widget.type];
-    if (!def) continue;
-    let baseH = def.height;
-    if (widget.type === "spacer") baseH = parseFloat(widget.spaceHeight) || 20;
-    const customH = parseFloat(widget.widgetHeight);
-    const h = (!isNaN(customH) && customH > 0) ? Math.max(8, Math.min(400, customH)) : baseH;
-    const cs = Math.max(1, Math.min(totalCols, parseInt(widget.colSpan, 10) || totalCols));
-
-    if (colCursor + cs > totalCols) { yPos += rowMaxH; colCursor = 0; rowMaxH = 0; }
-    const x = 8 + colCursor * (colWidth + colGap);
-    const wPx = cs * colWidth + (cs - 1) * colGap;
-    placedRows.push({ x, y: yPos, w: wPx, h, widget, idx, manual: false });
-    colCursor += cs;
-    if (h > rowMaxH) rowMaxH = h;
-    if (colCursor >= totalCols) { yPos += rowMaxH; colCursor = 0; rowMaxH = 0; }
-  }
-  if (colCursor > 0) yPos += rowMaxH;
-
-  // Manual-Widgets danach: absolute LCD-Koordinaten
-  for (const { widget, idx } of manualWidgets) {
-    const mx = Math.max(0, parseFloat(widget.manualX) || 0);
-    const my = Math.max(0, parseFloat(widget.manualY) || 0);
-    const mw = Math.max(8, parseFloat(widget.manualW) || 100);
-    const mh = Math.max(8, parseFloat(widget.manualH) || 40);
-    placedRows.push({ x: mx, y: my, w: mw, h: mh, widget, idx, manual: true });
-  }
-
-  const totalContentHeight = yPos;
-  const overflowPx = totalContentHeight - res.h;
-  const overflow = overflowPx > 0;
-
-  // Items absolut positioniert rendern (skaliert)
-  const items = placedRows.map(p => {
-    const left = Math.round(p.x * scale);
-    const top  = Math.round(p.y * scale);
-    const w    = Math.round(p.w * scale);
-    const h    = Math.round(p.h * scale);
-    const cls = p.manual ? "lcd-full-cell lcd-cell-manual" : "lcd-full-cell";
-    const resizeHandle = p.manual ? `<div class="lcd-cell-resize" data-widget-idx="${p.idx}"></div>` : "";
-    return `<div class="${cls}" data-widget-idx="${p.idx}" style="left:${left}px;top:${top}px;width:${w}px;height:${h}px;">${renderLcdWidgetPreview(p.widget)}${resizeHandle}</div>`;
+  const items = visibleWidgets.map(({ w, idx }) => {
+    const mx = Math.max(0, parseFloat(w.manualX) || 0);
+    const my = Math.max(0, parseFloat(w.manualY) || 0);
+    const mw = Math.max(8, parseFloat(w.manualW) || 100);
+    const mh = Math.max(8, parseFloat(w.manualH) || 40);
+    const left = Math.round(mx * scale);
+    const top  = Math.round(my * scale);
+    const wPx  = Math.round(mw * scale);
+    const hPx  = Math.round(mh * scale);
+    return `<div class="lcd-full-cell lcd-cell-manual" data-widget-idx="${idx}" style="left:${left}px;top:${top}px;width:${wPx}px;height:${hPx}px;">${renderLcdWidgetPreview(w)}<div class="lcd-cell-resize" data-widget-idx="${idx}"></div></div>`;
   }).join("");
 
-  const overflowMark = overflow
-    ? `<div class="lcd-overflow-mark">⚠ ${overflowPx}px überschüssig — Widgets passen nicht aufs LCD</div>`
-    : "";
-
-  // Grid-Overlay: nur sichtbar, wenn mindestens 1 Manual-Widget existiert
-  // (sonst irrelevant). Größe = LCD-Snap-Schritt × Skalierungsfaktor.
-  let gridOverlay = "";
-  if (manualWidgets.length > 0 && typeof LCD_SNAP === "number") {
-    const snapPx = (LCD_SNAP * scale).toFixed(3);
-    gridOverlay = `<div class="lcd-grid-overlay" style="background-size:${snapPx}px ${snapPx}px;"></div>`;
-  }
+  const snapPx = (LCD_SNAP * scale).toFixed(3);
+  const gridOverlay = `<div class="lcd-grid-overlay" style="background-size:${snapPx}px ${snapPx}px;"></div>`;
 
   return `
     <div class="lcd-full-preview-wrap">
-      <div class="lcd-full-preview-label">LIVE-VORSCHAU — ${escapeHtml(res.label)} · ${totalCols} Spalte${totalCols>1?"n":""}${manualWidgets.length > 0 ? ` · Snap ${LCD_SNAP}px` : ""}</div>
+      <div class="lcd-full-preview-label">LIVE-VORSCHAU — ${escapeHtml(res.label)} · Snap ${LCD_SNAP}px</div>
       <div class="lcd-full-preview" style="width:${previewWidth}px;height:${previewHeight}px;position:relative;">
         ${gridOverlay}
         ${items}
-        ${overflowMark}
       </div>
     </div>`;
 }

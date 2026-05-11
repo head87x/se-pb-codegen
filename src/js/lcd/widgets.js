@@ -545,6 +545,32 @@ const LCD_RESOLUTIONS = {
 
 const LCD_RESOLUTION_ORDER = ["square", "wide", "tall", "big_3x3"];
 
+// Kompakte Default-Größen für Manual-Modus (pro Widget-Typ).
+// In LCD-Pixeln. Werden beim Hinzufügen eines neuen Widgets verwendet.
+// Bewusst klein gewählt, damit Widgets nur ihren Inhalt umschließen
+// und mehr Platz auf dem LCD übrig bleibt.
+const LCD_MANUAL_DEFAULTS = {
+  header:        { w: 256, h: 32 },
+  statusbar:     { w: 256, h: 32 },
+  statusbar_v:   { w: 48,  h: 128 },
+  statusbar_seg: { w: 256, h: 32 },
+  bar_double:    { w: 256, h: 48 },
+  value:         { w: 192, h: 24 },
+  bigvalue:      { w: 192, h: 64 },
+  iconvalue:     { w: 192, h: 32 },
+  donut:         { w: 128, h: 128 },
+  gauge:         { w: 160, h: 128 },
+  dot:           { w: 128, h: 24 },
+  checklist:     { w: 192, h: 112 },
+  warning:       { w: 256, h: 32 },
+  alarm:         { w: 256, h: 48 },
+  section:       { w: 256, h: 24 },
+  divider:       { w: 256, h: 16 },
+  clock:         { w: 128, h: 32 },
+  spacer:        { w: 256, h: 16 },
+  aggregator:    { w: 256, h: 32 }
+};
+
 function findLcdWidget(type) {
   return LCD_WIDGETS[type];
 }
