@@ -7,6 +7,28 @@ das Projekt folgt [Semantic Versioning](https://semver.org/lang/de/).
 
 ## [Unreleased]
 
+### Hinzugefügt (Phase 3b — Katalog-Tiefe)
+- Systematische Vertiefung **aller 52 Block-Typen** auf praktisch
+  vollständige API-Coverage. Pro Block jetzt **10–20 Optionen** dort,
+  wo die SE-API es hergibt, statt vorher 3–8.
+- Konkrete Erweiterungen u. a.:
+  - **Rotor**: Lower/Upper-Limit (Grad), Torque, BrakingTorque,
+    Displacement, RPM-Vergleiche, Enabled/IsWorking, CustomData.
+  - **Kolben**: Min/Max-Limit-Vergleiche, Velocity-Vergleich,
+    IsAttached, IsWorking, CustomData, Komfort-Actions (extendOnce/retractOnce).
+  - **Akku**: CurrentOutput/Input-Vergleiche, ChargeMode-Prüfungen.
+  - **Thruster**: MaxThrust, MaxEffectiveThrust, Override-Wert-Vergleich.
+  - **Sensor**: Detection-Flags (Player/Enemy/Friend) als Setter,
+    alle 6 Reichweiten-Achsen (Front/Back/Left/Right/Top/Bottom) als Setter.
+  - **Cockpit**: Schiffsmasse, Handbremse-Cond, ControlWheels/Thrusters.
+  - **LCD**: Clear-Action, FontColor/BackgroundColor, Alignment (links/zentriert/rechts), Modus-None.
+  - **Lichter**: Radius, BlinkLength, BlinkOffset, Falloff.
+  - **Refinery / Assembler**: Repeating, IsAssembling, IsWorking, vollständigere Modi.
+  - **Connector**: ThrowOut/Ejector-Modus.
+  - **Funkantenne**: Show-on-HUD-Setter, IsOn-Cond.
+- Tooltip-Texte für alle neuen Optionen in `descriptions.js`.
+- **Keine** ID-Änderungen — bestehende Vorlagen funktionieren weiter.
+
 ### Hinzugefügt (Phase 3)
 - **Drag & Drop:** Linke Block-Palette mit allen 52 Block-Typen,
   nach Kategorie aufklappbar. Karten lassen sich per Drag direkt
