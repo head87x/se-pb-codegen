@@ -688,6 +688,10 @@ footer .accent { color: var(--accent); }
   margin-bottom: 8px;
   overflow: hidden;
   line-height: 0;
+  /* kompakter — Editor-Vorschau soll nur ein kleiner Thumbnail sein */
+  max-width: 180px;
+  max-height: 120px;
+  display: inline-block;
 }
 
 .lcd-widget-preview svg {

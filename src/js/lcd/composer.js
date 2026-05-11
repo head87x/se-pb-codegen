@@ -207,25 +207,26 @@ function _emitWidget(w, ensureBlock) {
   } else if (w.type === "statusbar_v") {
     const entry = _ensureSourceBlock(ensureBlock, w.source, w.sourceBlock);
     const valueExpr = entry ? _sourceExpr(w.source, entry.varName) : "0f";
+    const mh = Math.max(8, parseFloat(w.manualH) || 120);
+    // Säule belegt fast die ganze Cell, Label oben + Prozent unten
     out += `                float val = (float)Math.Max(0, Math.Min(100, ${valueExpr}));\n`;
     out += `                float cx = rect.Position.X + colOffsetX + widthInner / 2f;\n`;
-    out += `                float barW = 36f, barH = 80f, barTop = yPos + 16f;\n`;
-    // Label oben
-    out += `                sp = MySprite.CreateText(${_csString(w.label || "")}, "White", new Color(216,225,236), 0.7f, TextAlignment.CENTER);\n`;
-    out += `                sp.Position = new Vector2(cx, yPos);\n`;
+    out += `                float barW = Math.Max(8f, widthInner - 6f);\n`;
+    out += `                float barH = ${mh}f - 24f;\n`;
+    out += `                if (barH < 8f) barH = 8f;\n`;
+    out += `                float barTop = yPos + 12f;\n`;
+    out += `                sp = MySprite.CreateText(${_csString(w.label || "")}, "White", new Color(216,225,236), 0.5f, TextAlignment.CENTER);\n`;
+    out += `                sp.Position = new Vector2(cx, yPos + 1f);\n`;
     out += `                frame.Add(sp);\n`;
-    // Frame
     out += `                sp = MySprite.CreateSprite("SquareSimple", new Vector2(cx, barTop + barH / 2f), new Vector2(barW, barH));\n`;
     out += `                sp.Color = new Color(42, 52, 66);\n`;
     out += `                frame.Add(sp);\n`;
-    // Fill von unten
     out += `                float fillH = (barH - 2f) * val / 100f;\n`;
     out += `                sp = MySprite.CreateSprite("SquareSimple", new Vector2(cx, barTop + barH - 1f - fillH / 2f), new Vector2(barW - 2f, fillH));\n`;
     out += `                sp.Color = ${_csColor(w.color)};\n`;
     out += `                frame.Add(sp);\n`;
-    // Prozent unten
-    out += `                sp = MySprite.CreateText(val.ToString("0") + " %", "White", ${_csColor(w.color)}, 0.7f, TextAlignment.CENTER);\n`;
-    out += `                sp.Position = new Vector2(cx, barTop + barH + 4f);\n`;
+    out += `                sp = MySprite.CreateText(val.ToString("0") + " %", "White", ${_csColor(w.color)}, 0.5f, TextAlignment.CENTER);\n`;
+    out += `                sp.Position = new Vector2(cx, barTop + barH + 2f);\n`;
     out += `                frame.Add(sp);\n`;
 
   } else if (w.type === "statusbar_seg") {
@@ -292,27 +293,32 @@ function _emitWidget(w, ensureBlock) {
   } else if (w.type === "donut") {
     const entry = _ensureSourceBlock(ensureBlock, w.source, w.sourceBlock);
     const valueExpr = entry ? _sourceExpr(w.source, entry.varName) : "0f";
+    const mh = Math.max(8, parseFloat(w.manualH) || 100);
+    // Radius dynamisch: passt sich an die kleinere Cell-Dimension an,
+    // bleibt dadurch rund — auch in rechteckigen Cells.
     out += `                float val = (float)Math.Max(0, Math.Min(100, ${valueExpr}));\n`;
     out += `                float cx = rect.Position.X + colOffsetX + widthInner / 2f;\n`;
-    out += `                float cy = yPos + 60f;\n`;
+    out += `                float cy = yPos + ${mh}f / 2f;\n`;
+    out += `                float radius = Math.Min(widthInner, ${mh}f) / 2f - 8f;\n`;
+    out += `                if (radius < 8f) radius = 8f;\n`;
+    out += `                float segSize = Math.Max(3f, radius * 0.18f);\n`;
     out += `                int segCount = 32;\n`;
     out += `                int filled = (int)Math.Round(segCount * val / 100f);\n`;
-    out += `                float radius = 50f;\n`;
     out += `                for (int i = 0; i < segCount; i++)\n`;
     out += `                {\n`;
     out += `                    float ang = (float)(i / (double)segCount * Math.PI * 2.0 - Math.PI / 2.0);\n`;
     out += `                    float px = cx + (float)Math.Cos(ang) * radius;\n`;
     out += `                    float py = cy + (float)Math.Sin(ang) * radius;\n`;
-    out += `                    sp = MySprite.CreateSprite("Circle", new Vector2(px, py), new Vector2(10f, 10f));\n`;
+    out += `                    sp = MySprite.CreateSprite("Circle", new Vector2(px, py), new Vector2(segSize, segSize));\n`;
     out += `                    sp.Color = (i < filled) ? ${_csColor(w.color)} : ${_csColor(w.bgColor, "new Color(42, 52, 66)")};\n`;
     out += `                    frame.Add(sp);\n`;
     out += `                }\n`;
     // Großer Prozent-Wert in der Mitte
-    out += `                sp = MySprite.CreateText(val.ToString("0") + "%", "White", ${_csColor(w.color)}, 1.5f, TextAlignment.CENTER);\n`;
-    out += `                sp.Position = new Vector2(cx, cy - 12f);\n`;
+    out += `                sp = MySprite.CreateText(val.ToString("0") + "%", "White", ${_csColor(w.color)}, radius * 0.04f, TextAlignment.CENTER);\n`;
+    out += `                sp.Position = new Vector2(cx, cy - radius * 0.3f);\n`;
     out += `                frame.Add(sp);\n`;
-    out += `                sp = MySprite.CreateText(${_csString(w.label || "")}, "White", new Color(216,225,236), 0.7f, TextAlignment.CENTER);\n`;
-    out += `                sp.Position = new Vector2(cx, cy + 18f);\n`;
+    out += `                sp = MySprite.CreateText(${_csString(w.label || "")}, "White", new Color(216,225,236), radius * 0.02f, TextAlignment.CENTER);\n`;
+    out += `                sp.Position = new Vector2(cx, cy + radius * 0.35f);\n`;
     out += `                frame.Add(sp);\n`;
 
   } else if (w.type === "dot") {
@@ -536,14 +542,19 @@ function _emitWidget(w, ensureBlock) {
     const valueExpr = entry ? _sourceExpr(w.source, entry.varName) : "0f";
     const minVal = parseFloat(w.min) || 0;
     const maxVal = parseFloat(w.max) || 100;
-    // Halbring: 270° von -135° bis +135° (klassisch Tacho)
+    const mh = Math.max(8, parseFloat(w.manualH) || 100);
+    // Halbring: 270°. Radius passt sich an Cell-Größe an —
+    // begrenzt durch BEIDE Dimensionen (Halbring ist 1.41× breiter als hoch).
     out += `                float gVal = (float)Math.Max(${minVal}f, Math.Min(${maxVal}f, ${valueExpr}));\n`;
     out += `                float gT = (gVal - ${minVal}f) / (${maxVal}f - ${minVal}f);\n`;
     out += `                float cx = rect.Position.X + colOffsetX + widthInner / 2f;\n`;
-    out += `                float cy = yPos + 70f;\n`;
+    out += `                float cy = yPos + ${mh}f * 0.55f;\n`;
+    // Halbring belegt ca. 1.41× r breit, 1.71× r hoch (vom oberen Bogen-Punkt bis untere)
+    out += `                float radius = Math.Min(widthInner / 1.5f, ${mh}f / 1.75f) - 4f;\n`;
+    out += `                if (radius < 8f) radius = 8f;\n`;
+    out += `                float segSize = Math.Max(3f, radius * 0.15f);\n`;
     out += `                int segs = 24;\n`;
     out += `                int gFilled = (int)Math.Round(segs * gT);\n`;
-    out += `                float radius = 55f;\n`;
     out += `                float startA = -(float)Math.PI * 0.75f;\n`;
     out += `                float endA   =  (float)Math.PI * 0.75f;\n`;
     out += `                for (int i = 0; i < segs; i++)\n`;
@@ -552,17 +563,16 @@ function _emitWidget(w, ensureBlock) {
     out += `                    float ang = startA + (endA - startA) * t;\n`;
     out += `                    float px = cx + (float)Math.Cos(ang) * radius;\n`;
     out += `                    float py = cy + (float)Math.Sin(ang) * radius;\n`;
-    out += `                    sp = MySprite.CreateSprite("Circle", new Vector2(px, py), new Vector2(8f, 8f));\n`;
+    out += `                    sp = MySprite.CreateSprite("Circle", new Vector2(px, py), new Vector2(segSize, segSize));\n`;
     out += `                    sp.Color = (i < gFilled) ? ${_csColor(w.color)} : ${_csColor(w.bgColor, "new Color(42, 52, 66)")};\n`;
     out += `                    frame.Add(sp);\n`;
     out += `                }\n`;
-    // Großer Wert in der Mitte
     const fmt = "0.0";
-    out += `                sp = MySprite.CreateText(gVal.ToString(${_csString(fmt)}), "White", ${_csColor(w.color)}, 1.4f, TextAlignment.CENTER);\n`;
-    out += `                sp.Position = new Vector2(cx, cy - 4f);\n`;
+    out += `                sp = MySprite.CreateText(gVal.ToString(${_csString(fmt)}), "White", ${_csColor(w.color)}, radius * 0.035f, TextAlignment.CENTER);\n`;
+    out += `                sp.Position = new Vector2(cx, cy - radius * 0.25f);\n`;
     out += `                frame.Add(sp);\n`;
-    out += `                sp = MySprite.CreateText(${_csString(w.label || "")}, "White", new Color(216,225,236), 0.6f, TextAlignment.CENTER);\n`;
-    out += `                sp.Position = new Vector2(cx, cy + 20f);\n`;
+    out += `                sp = MySprite.CreateText(${_csString(w.label || "")}, "White", new Color(216,225,236), radius * 0.018f, TextAlignment.CENTER);\n`;
+    out += `                sp.Position = new Vector2(cx, cy + radius * 0.3f);\n`;
     out += `                frame.Add(sp);\n`;
   }
 

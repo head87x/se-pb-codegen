@@ -62,14 +62,15 @@ const LCD_PREVIEWS = {
   statusbar_v: (w) => {
     const color = _parseColor(w.color, "rgb(78,197,255)");
     const label = _escapeSvgText(w.label || "Bar");
+    // Kompakte schmale viewBox — Säule füllt die ganze Breite
     const barH = 80;
     const fillH = barH * _DEMO_PCT / 100;
-    return `<svg viewBox="0 0 200 120" xmlns="http://www.w3.org/2000/svg">
-      <rect width="200" height="120" fill="#07090c"/>
-      <text x="100" y="14" font-family="Consolas,monospace" font-size="11" fill="#d8e1ec" text-anchor="middle">${label}</text>
-      <rect x="86" y="20" width="28" height="${barH}" fill="none" stroke="#2a3442" stroke-width="1"/>
-      <rect x="87" y="${20 + (barH - fillH) + 1}" width="26" height="${fillH - 1}" fill="${color}"/>
-      <text x="100" y="113" font-family="Consolas,monospace" font-size="11" fill="${color}" text-anchor="middle">${_DEMO_PCT}%</text>
+    return `<svg viewBox="0 0 50 120" xmlns="http://www.w3.org/2000/svg">
+      <rect width="50" height="120" fill="#07090c"/>
+      <text x="25" y="11" font-family="Consolas,monospace" font-size="9" fill="#d8e1ec" text-anchor="middle">${label}</text>
+      <rect x="6" y="16" width="38" height="${barH}" fill="none" stroke="#2a3442" stroke-width="1"/>
+      <rect x="7" y="${16 + (barH - fillH) + 1}" width="36" height="${fillH - 1}" fill="${color}"/>
+      <text x="25" y="111" font-family="Consolas,monospace" font-size="9" fill="${color}" text-anchor="middle">${_DEMO_PCT}%</text>
     </svg>`;
   },
 
@@ -116,17 +117,17 @@ const LCD_PREVIEWS = {
     const color = _parseColor(w.color, "rgb(94,212,123)");
     const bg = _parseColor(w.bgColor, "rgb(42,52,66)");
     const label = _escapeSvgText(w.label || "Wert");
-    // Stroke-dasharray-Trick für SVG-Kreis-Fortschritt
-    const r = 38, cx = 70, cy = 70, c = 2 * Math.PI * r;
+    // Kompakte quadratische viewBox — Donut füllt fast die ganze Fläche
+    const r = 44, cx = 50, cy = 50, c = 2 * Math.PI * r;
     const dash = c * _DEMO_PCT / 100;
-    return `<svg viewBox="0 0 200 140" xmlns="http://www.w3.org/2000/svg">
-      <rect width="200" height="140" fill="#07090c"/>
-      <circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="${bg}" stroke-width="8"/>
-      <circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="${color}" stroke-width="8"
+    return `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+      <rect width="100" height="100" fill="#07090c"/>
+      <circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="${bg}" stroke-width="6"/>
+      <circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="${color}" stroke-width="6"
               stroke-dasharray="${dash} ${c}" stroke-dashoffset="0"
               transform="rotate(-90 ${cx} ${cy})" stroke-linecap="butt"/>
-      <text x="${cx}" y="${cy + 3}" font-family="Consolas,monospace" font-size="18" font-weight="bold" fill="${color}" text-anchor="middle">${_DEMO_PCT}%</text>
-      <text x="${cx}" y="${cy + 22}" font-family="Consolas,monospace" font-size="11" fill="#d8e1ec" text-anchor="middle">${label}</text>
+      <text x="${cx}" y="${cy + 3}" font-family="Consolas,monospace" font-size="16" font-weight="bold" fill="${color}" text-anchor="middle">${_DEMO_PCT}%</text>
+      <text x="${cx}" y="${cy + 18}" font-family="Consolas,monospace" font-size="8" fill="#d8e1ec" text-anchor="middle">${label}</text>
     </svg>`;
   },
 
@@ -319,21 +320,20 @@ LCD_PREVIEWS.gauge = (w) => {
   const color = _parseColor(w.color, "rgb(255,140,26)");
   const bg = _parseColor(w.bgColor, "rgb(42,52,66)");
   const label = _escapeSvgText(w.label || "Gauge");
-  // Halbring 270° (von -135° bis +135°) — viewBox 140 hoch, damit der
-  // untere Bogen (bei cy+r·sin(135°) ≈ cy+42) plus Stroke nicht abschneidet.
-  const cx = 100, cy = 82, r = 56;
+  // Kompakte viewBox — Halbring füllt fast die ganze Fläche
+  const cx = 50, cy = 48, r = 36;
   const startAng = -Math.PI * 0.75;
   const endAng = Math.PI * 0.75;
   const valAng = startAng + (endAng - startAng) * 0.65;
   const polar = (a, rad) => `${cx + Math.cos(a) * rad},${cy + Math.sin(a) * rad}`;
   const bgArc = `M ${polar(startAng, r)} A ${r} ${r} 0 1 1 ${polar(endAng, r)}`;
   const valArc = `M ${polar(startAng, r)} A ${r} ${r} 0 ${(valAng - startAng) > Math.PI ? 1 : 0} 1 ${polar(valAng, r)}`;
-  return `<svg viewBox="0 0 200 140" xmlns="http://www.w3.org/2000/svg">
-    <rect width="200" height="140" fill="#07090c"/>
-    <path d="${bgArc}" fill="none" stroke="${bg}" stroke-width="10"/>
-    <path d="${valArc}" fill="none" stroke="${color}" stroke-width="10" stroke-linecap="butt"/>
-    <text x="${cx}" y="${cy + 8}" font-family="Consolas,monospace" font-size="22" font-weight="bold" fill="${color}" text-anchor="middle">42</text>
-    <text x="${cx}" y="${cy + 28}" font-family="Consolas,monospace" font-size="10" fill="#d8e1ec" text-anchor="middle">${label}</text>
+  return `<svg viewBox="0 0 100 80" xmlns="http://www.w3.org/2000/svg">
+    <rect width="100" height="80" fill="#07090c"/>
+    <path d="${bgArc}" fill="none" stroke="${bg}" stroke-width="7"/>
+    <path d="${valArc}" fill="none" stroke="${color}" stroke-width="7" stroke-linecap="butt"/>
+    <text x="${cx}" y="${cy + 5}" font-family="Consolas,monospace" font-size="14" font-weight="bold" fill="${color}" text-anchor="middle">42</text>
+    <text x="${cx}" y="${cy + 18}" font-family="Consolas,monospace" font-size="7" fill="#d8e1ec" text-anchor="middle">${label}</text>
   </svg>`;
 };
 
