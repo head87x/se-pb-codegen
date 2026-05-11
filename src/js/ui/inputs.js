@@ -144,3 +144,51 @@ function updateActAndRender(which, i, field, val) {
   list[i][field] = val;
   render();
 }
+
+// ---------- LCD-Composer ----------
+
+function onLcdComposerEnable(checked) {
+  state.lcdComposer.enabled = checked;
+  document.getElementById("lcd-composer-config").style.display = checked ? "block" : "none";
+  generateCode();
+}
+
+function onLcdComposerNameInput(val) {
+  state.lcdComposer.lcdName = val;
+  generateCode();
+}
+
+function addLcdWidget(type) {
+  const def = LCD_WIDGETS[type];
+  if (!def) return;
+  state.lcdComposer.widgets.push({ type, ...JSON.parse(JSON.stringify(def.defaults)) });
+  render();
+}
+
+function removeLcdWidget(i) {
+  state.lcdComposer.widgets.splice(i, 1);
+  render();
+}
+
+function moveLcdWidget(i, dir) {
+  const ws = state.lcdComposer.widgets;
+  const j = i + dir;
+  if (j < 0 || j >= ws.length) return;
+  [ws[i], ws[j]] = [ws[j], ws[i]];
+  render();
+}
+
+// Werteänderung an einem Widget — kein Re-Render bei Text-Inputs
+// (Fokus-Erhalt). Für Selects gibt's updateLcdWidgetAndRender.
+function updateLcdWidget(i, field, val) {
+  state.lcdComposer.widgets[i][field] = val;
+  // SVG-Preview manuell updaten, ohne den ganzen Composer neu zu rendern
+  const previewEl = document.getElementById(`lcd-widget-preview-${i}`);
+  if (previewEl) previewEl.innerHTML = renderLcdWidgetPreview(state.lcdComposer.widgets[i]);
+  generateCode();
+}
+
+function updateLcdWidgetAndRender(i, field, val) {
+  state.lcdComposer.widgets[i][field] = val;
+  render();
+}

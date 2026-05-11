@@ -71,6 +71,15 @@ function generateCode() {
   state.actionsThen.forEach(a => ensureBlock(a.blockType, a.blockName));
   state.actionsElse.forEach(a => ensureBlock(a.blockType, a.blockName));
 
+  // LCD-Composer-Code vorab aufbauen, damit alle Source-Blocks
+  // in der blockMap landen, BEVOR die Block-Refs gerendert werden.
+  // Der Code-String wird am Ende von Main() angehängt.
+  let composerCode = "";
+  if (typeof generateLcdComposerCode === "function") {
+    const c = generateLcdComposerCode(ensureBlock);
+    if (c.used) composerCode = c.code;
+  }
+
   // === Build code ===
   let code = "";
   code += "// =====================================================\n";
@@ -184,7 +193,7 @@ function generateCode() {
   }
   code += "\n";
 
-  // LCD output
+  // LCD output (alte einfache Status-Ausgabe)
   if (state.lcdEnable && state.lcdName) {
     code += `    // ---------- LCD ausgeben ----------\n`;
     code += `    if (lcd_status != null)\n`;
@@ -194,6 +203,9 @@ function generateCode() {
     code += `    }\n`;
     code += `    Echo(sb.ToString());\n`;
   }
+
+  // LCD-Composer (Phase 4a — Sprite-API), vorab aufgebaut
+  code += composerCode;
 
   code += "}\n";
 

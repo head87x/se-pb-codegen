@@ -593,3 +593,61 @@ footer .accent { color: var(--accent); }
   background: rgba(10, 14, 18, 0.5);
   z-index: 1;
 }
+
+/* ============================================================
+   LCD-COMPOSER (Phase 4a)
+   ============================================================ */
+
+.lcd-widget-block {
+  background: var(--panel-2);
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--accent);
+  border-radius: 2px;
+  padding: 10px;
+  margin-bottom: 10px;
+}
+
+.lcd-widget-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+  font-family: 'Consolas', monospace;
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: var(--muted);
+}
+
+.lcd-widget-preview {
+  border: 1px solid var(--border);
+  border-radius: 2px;
+  background: var(--code-bg);
+  margin-bottom: 8px;
+  overflow: hidden;
+  line-height: 0;
+}
+
+.lcd-widget-preview svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  max-height: 50px;
+}
+
+.lcd-widget-fields {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.lcd-widget-fields > div { min-width: 0; }
+
+button.small:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+button.small:disabled:hover {
+  border-color: var(--border);
+  color: var(--text);
+}

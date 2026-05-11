@@ -27,11 +27,16 @@ function saveTemplate() {
 
 function loadTemplate(i) {
   state = JSON.parse(JSON.stringify(templates[i].state));
+  // Alte Vorlagen haben evtl. keinen lcdComposer — defaulten
+  if (!state.lcdComposer) state.lcdComposer = { enabled: false, lcdName: "", widgets: [] };
   // Re-apply UI fields
   document.getElementById("exec-mode").value = state.execMode;
   document.getElementById("lcd-enable").checked = !!state.lcdEnable;
   document.getElementById("lcd-name").value = state.lcdName || "";
   document.getElementById("lcd-config").style.display = state.lcdEnable ? "block" : "none";
+  document.getElementById("lcd-composer-enable").checked = !!state.lcdComposer.enabled;
+  document.getElementById("lcd-composer-name").value = state.lcdComposer.lcdName || "";
+  document.getElementById("lcd-composer-config").style.display = state.lcdComposer.enabled ? "block" : "none";
   render();
   showToast(`"${templates[i].name}" geladen`);
 }
@@ -47,11 +52,15 @@ function newProject() {
   if (!confirm("Aktuelles Projekt verwerfen und neu starten?")) return;
   state = {
     conditions: [], actionsThen: [], actionsElse: [],
-    execMode: "argument", lcdEnable: false, lcdName: ""
+    execMode: "argument", lcdEnable: false, lcdName: "",
+    lcdComposer: { enabled: false, lcdName: "", widgets: [] }
   };
   document.getElementById("exec-mode").value = "argument";
   document.getElementById("lcd-enable").checked = false;
   document.getElementById("lcd-name").value = "";
   document.getElementById("lcd-config").style.display = "none";
+  document.getElementById("lcd-composer-enable").checked = false;
+  document.getElementById("lcd-composer-name").value = "";
+  document.getElementById("lcd-composer-config").style.display = "none";
   render();
 }

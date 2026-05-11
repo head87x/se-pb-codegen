@@ -103,9 +103,9 @@
         </div>
       </div>
 
-      <!-- LCD OUTPUT -->
+      <!-- LCD OUTPUT (alt — einfache Status-Ausgabe, Text-Modus) -->
       <div class="section">
-        <div class="section-title"><span>::: LCD STATUS-AUSGABE</span></div>
+        <div class="section-title"><span>::: LCD STATUS-AUSGABE (Text)</span></div>
         <div class="section-content">
           <div class="toggle-row">
             <label><input type="checkbox" id="lcd-enable" onchange="onLcdEnableChange(this.checked)"> Aktivieren</label>
@@ -113,7 +113,23 @@
           <div id="lcd-config" style="display:none; margin-top:10px;">
             <label>LCD Block-Name</label>
             <input id="lcd-name" placeholder="z.B. LCD Status" oninput="onLcdNameInput(this.value)">
-            <div class="help-text">Schreibt Status, ausgewertete Bedingungen und ausgeführte Aktionen aufs LCD.</div>
+            <div class="help-text">Einfache Text-Ausgabe: schreibt Status, Bedingungen und Aktionen aufs LCD.</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- LCD BAUKASTEN (Phase 4a — Sprite-API, grafische Widgets) -->
+      <div class="section">
+        <div class="section-title"><span>::: LCD BAUKASTEN (Grafik)</span></div>
+        <div class="section-content">
+          <div class="toggle-row">
+            <label><input type="checkbox" id="lcd-composer-enable" onchange="onLcdComposerEnable(this.checked)"> Aktivieren</label>
+          </div>
+          <div id="lcd-composer-config" style="display:none; margin-top:10px;">
+            <label>LCD Block-Name</label>
+            <input id="lcd-composer-name" placeholder="z.B. LCD Cockpit" oninput="onLcdComposerNameInput(this.value)">
+            <div class="help-text">Grafische Widgets via Sprite-API. Statusleisten, Wert-Anzeigen, Header — mit Live-Vorschau.</div>
+            <div id="lcd-composer-list" style="margin-top:12px;"></div>
           </div>
         </div>
       </div>
@@ -155,6 +171,9 @@
 <script src="src/js/blocks/catalog.js"></script>
 <script src="src/js/blocks/descriptions.js"></script>
 <script src="src/js/state.js"></script>
+<script src="src/js/lcd/widgets.js"></script>
+<script src="src/js/lcd/preview-svg.js"></script>
+<script src="src/js/lcd/composer.js"></script>
 <script src="src/js/generator/highlight.js"></script>
 <script src="src/js/generator/codegen.js"></script>
 <script src="src/js/ui/icons.js"></script>

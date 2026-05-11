@@ -189,7 +189,87 @@ function render() {
   renderActions("else");
   renderTemplates();
   renderExecHelp();
+  renderLcdComposer();
   generateCode();
+}
+
+// ============================================================
+// LCD-COMPOSER (Phase 4a)
+// ============================================================
+
+function _renderLcdWidgetFields(w, i) {
+  const def = LCD_WIDGETS[w.type];
+  if (!def) return "";
+  return def.fields.map(f => {
+    const val = w[f.key];
+    if (f.type === "lcd-source") {
+      const opts = LCD_SOURCES.map(s =>
+        `<option value="${s.value}"${s.value === val ? " selected" : ""}>${escapeHtml(s.label)}</option>`
+      ).join("");
+      return `
+        <div>
+          <label>${escapeHtml(f.label)}</label>
+          <select onchange="updateLcdWidgetAndRender(${i}, '${f.key}', this.value)">${opts}</select>
+        </div>`;
+    }
+    if (f.type === "select") {
+      const opts = f.options.map(o =>
+        `<option value="${o.value}"${o.value === val ? " selected" : ""}>${escapeHtml(o.label)}</option>`
+      ).join("");
+      return `
+        <div>
+          <label>${escapeHtml(f.label)}</label>
+          <select onchange="updateLcdWidgetAndRender(${i}, '${f.key}', this.value)">${opts}</select>
+        </div>`;
+    }
+    const inputType = f.type === "number" ? "number" : "text";
+    const placeholder = f.hint ? ` placeholder="${escapeAttr(f.hint)}"` : "";
+    const step = f.type === "number" ? ' step="any"' : "";
+    return `
+      <div>
+        <label>${escapeHtml(f.label)}</label>
+        <input type="${inputType}"${step} value="${escapeAttr(val)}" oninput="updateLcdWidget(${i}, '${f.key}', this.value)"${placeholder}>
+      </div>`;
+  }).join("");
+}
+
+function renderLcdComposer() {
+  const root = document.getElementById("lcd-composer-list");
+  if (!root) return;
+
+  // Header-Bereich: Add-Buttons
+  const addButtons = LCD_WIDGET_ORDER.map(type => {
+    const def = LCD_WIDGETS[type];
+    return `<button class="small" onclick="addLcdWidget('${type}')">+ ${escapeHtml(def.label)}</button>`;
+  }).join("");
+
+  const widgets = state.lcdComposer.widgets;
+  if (widgets.length === 0) {
+    root.innerHTML = `
+      <div class="btn-row" style="margin-bottom:10px;">${addButtons}</div>
+      <span class="empty-hint">Noch keine Widgets. Klick einen Button oben.</span>`;
+    return;
+  }
+
+  root.innerHTML = `
+    <div class="btn-row" style="margin-bottom:10px;">${addButtons}</div>
+    ${widgets.map((w, i) => {
+      const def = LCD_WIDGETS[w.type] || { label: w.type };
+      return `
+        <div class="lcd-widget-block">
+          <div class="lcd-widget-header">
+            <span>WIDGET #${i + 1} — ${escapeHtml(def.label)}</span>
+            <div class="btn-row">
+              <button class="small" onclick="moveLcdWidget(${i}, -1)" ${i === 0 ? "disabled" : ""}>▲</button>
+              <button class="small" onclick="moveLcdWidget(${i}, 1)" ${i === widgets.length - 1 ? "disabled" : ""}>▼</button>
+              <button class="small danger" onclick="removeLcdWidget(${i})">✕</button>
+            </div>
+          </div>
+          <div class="lcd-widget-preview" id="lcd-widget-preview-${i}">${renderLcdWidgetPreview(w)}</div>
+          <div class="lcd-widget-fields">${_renderLcdWidgetFields(w, i)}</div>
+        </div>`;
+    }).join("")}
+  `;
 }
 
 // ============================================================

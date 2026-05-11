@@ -7,6 +7,29 @@ das Projekt folgt [Semantic Versioning](https://semver.org/lang/de/).
 
 ## [Unreleased]
 
+### Hinzugefügt (Phase 4a — LCD-Baukasten Foundation)
+- **Neue Sektion „LCD BAUKASTEN (Grafik)"** im Builder, parallel zur
+  bisherigen einfachen „LCD STATUS-AUSGABE (Text)". Beide
+  funktionieren unabhängig voneinander.
+- **3 Basis-Widgets** zur Wahl:
+  - **Header / Text** — gestylte Überschrift mit Größe, Farbe, Ausrichtung.
+  - **Statusleiste** — horizontaler Prozent-Balken, gespeist aus Akku /
+    Tank / Cargo / Reaktor / Solar.
+  - **Wert-Anzeige** — numerischer Wert mit Label, formatierbar,
+    inkl. Einheit (kW, MW, m/s usw.).
+- **6 Datenquellen** für Statusleisten/Wert-Anzeigen:
+  Akku-Ladung, Tank-Füllstand, Cargo-Füllstand, Reaktor-Output,
+  Solar-Output, Schiffsgeschwindigkeit (über Cockpit).
+- **Live-SVG-Vorschau** pro Widget — du siehst direkt, wie es
+  ungefähr auf dem LCD aussehen wird (Farbe, Layout, Text).
+- **Sprite-API-Code-Generator** (`src/js/lcd/composer.js`) erzeugt
+  echten C#-Code mit `ContentType.SCRIPT` und `DrawFrame()`-Block.
+  Widgets stapeln vertikal.
+- **Reorder per ▲/▼-Buttons**, Widget entfernen, weitere Widgets
+  pro Klick auf „+ Header" / „+ Statusleiste" / „+ Wert-Anzeige".
+- Neue Module: `src/js/lcd/widgets.js`, `src/js/lcd/preview-svg.js`,
+  `src/js/lcd/composer.js`.
+
 ### Geändert (Design-Konsistenz)
 - Subtype-Auswahl ist jetzt ein **styled `<select>`** im Sci-Fi-Look
   (mit `<optgroup>`-Gruppen), nicht mehr ein Browser-natives
