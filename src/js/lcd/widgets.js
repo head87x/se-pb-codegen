@@ -475,7 +475,7 @@ const LCD_THEMES = {
   industrial: {
     label: "Grünes Industrie-Display",
     accent:  "94,212,123",
-    accent2: "216,225,236",
+    accent2: "180,220,200",
     success: "60,180,90",
     warning: "255,200,80",
     danger:  "255,85,96",

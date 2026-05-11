@@ -632,7 +632,6 @@ footer .accent { color: var(--accent); }
   display: block;
   width: 100%;
   height: auto;
-  max-height: 50px;
 }
 
 .lcd-widget-fields {
