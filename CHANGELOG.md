@@ -7,6 +7,29 @@ das Projekt folgt [Semantic Versioning](https://semver.org/lang/de/).
 
 ## [Unreleased]
 
+## [1.0.1] — 2026-05-12
+
+### Hinzugefügt
+- **Versions-Schema etabliert**: `index.html` zeigt jetzt
+  `v1.0.1` an, CHANGELOG nutzt SemVer-Tags. Künftig wird bei jedem
+  Commit die Version gebumpt (Patch/Minor/Major je nach Größe).
+- **TODO.md** erweitert:
+  - **Tool-Themes** mit konkreten Vorschlägen
+    (Dark, Light, Cyberpunk, Matrix, Hero, Hologram, Industrial)
+    plus Auto-OS-Theme-Erkennung.
+  - **Mehrsprachigkeit DE/EN** als ausgearbeiteter Eintrag
+    (i18n-Layer mit JSON-Stringtable, `data-i18n`-Attribute,
+    LocalStorage-Persistenz, sprachabhängige Block-Labels und
+    Tooltips, optional RU/FR/ES).
+
+## [1.0.0] — 2026-05-12
+
+Erste voll-featured Release nach 0.1.0 — bündelt Phase 2 (Block-Katalog),
+Phase 3 (Drag-and-Drop), Phase 3b (Katalog-Tiefe), Inventar-Prüfungen,
+Item-Subtype-Selector, Phase 4a–4d (LCD-Baukasten, Themes, Presets,
+Layout-Engine, manuelles Positionieren mit Aspect-Lock) und sämtliche
+Folge-Fixes (Tachometer-viewBox, enge Manual-Rahmen, README/TODO).
+
 ### Geändert (README + TODO)
 - **README.md** komplett überarbeitet: aktueller Feature-Stand (52
   Block-Typen, 19 LCD-Widgets, Drag-and-Drop, Themes, Presets,

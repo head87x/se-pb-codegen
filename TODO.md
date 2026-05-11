@@ -46,15 +46,52 @@ sehr ambitioniert, vermutlich nur für selbstgenerierte Skripte
 realistisch (Header-Marker wie `// SE.PB-CODEGEN-VERSION: 1.0`
 + eingebettetes State-JSON in einem Kommentar).
 
-### Theme für das Tool selbst
+### Tool-Themes (mehrere Looks zum Umschalten)
 Aktuell hat die Web-UI nur den Sci-Fi-Look (Orange/Cyan auf Schwarz).
-Dark/Light-Toggle oder mehrere Tool-Themes (analog zu den
-LCD-Themes) wären denkbar. CSS-Variablen sind dafür vorbereitet.
+CSS-Variablen (`--accent`, `--panel`, `--bg`, `--text`, …) sind dafür
+schon vorbereitet — Theme-Wechsel via `data-theme="..."`-Attribut am
+`<html>` plus passender Variablen-Sets.
 
-### Mehrsprachigkeit
-Strings sind aktuell deutsch und großteils im HTML hardcodiert. Ein
-i18n-Layer mit JSON-Stringtable + `data-i18n`-Attributen könnte
-EN/RU/etc. ermöglichen.
+Geplante Themes (Reihenfolge nicht fix, Vorschläge):
+- **Dark** — neutrales dunkles Theme ohne Sci-Fi-Akzente
+  (für lange Sessions, augenschonend, dezent).
+- **Light** — heller Hintergrund, schwarze Schrift, Akzentfarbe
+  (für helle Räume / Tageslicht).
+- **Cyberpunk** — Neon-Pink/Cyan auf Dunkelviolett, Glow-Effekte,
+  Retro-Synthwave-Look.
+- **Matrix** — monochrom Grün auf Schwarz, Terminal-Optik, gerne mit
+  leichtem CRT-Scanline-Effekt.
+- **Hero** — Sci-Fi-Sauber (Star-Citizen-/Destiny-Stil): Weißblau,
+  feine Linien, Glassmorphism.
+- **Hologram** — kühles Türkis, leicht transparent, blass-leuchtend
+  („HUD-Holo-Display").
+- **Industrial** — gedämpftes Orange/Stahlgrau, schwere Kanten,
+  Warntreifen — passend zu Space Engineers' Industrie-Ästhetik.
+
+UI: Theme-Picker oben in der Header-Leiste, Auswahl persistiert
+im LocalStorage. Bonus: „Auto" das dem OS-Theme folgt
+(`prefers-color-scheme`).
+
+### Mehrsprachigkeit (Deutsch / Englisch umschaltbar)
+Strings sind aktuell komplett deutsch und großteils im HTML hardcodiert.
+Ziel: Sprachumschalter in der Header-Leiste (DE / EN), Auswahl
+persistiert im LocalStorage.
+
+Implementierung:
+- i18n-Layer mit JSON-Stringtable je Sprache
+  (`src/i18n/de.json`, `src/i18n/en.json`).
+- Statische Texte über `data-i18n="key"`-Attribute am HTML, ein
+  kleiner Bootstrap-Renderer ersetzt sie beim Laden.
+- Dynamisch erzeugte Texte (Render-Funktionen, Generator-Kommentare)
+  über eine `t('key')`-Helper-Funktion.
+- Block-Katalog-Labels (`BLOCKS["Tür (Door)"].label`) und
+  Tooltip-Texte (`DESCRIPTIONS`) sprachabhängig — zweite
+  Translations-Datei für DE/EN parallel.
+- Optional: weitere Sprachen (RU, FR, ES) — Strings als Fallback
+  auf EN, dann DE.
+
+Generierter C#-Code bleibt in Englisch (Identifier) — nur die
+Kommentar-Strings darin werden lokalisiert.
 
 ### Vorlagen-Export / -Import als JSON-Datei
 Aktuell liegen Vorlagen nur im LocalStorage des Browsers. Datei-
