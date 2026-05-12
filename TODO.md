@@ -46,21 +46,11 @@ sehr ambitioniert, vermutlich nur für selbstgenerierte Skripte
 realistisch (Header-Marker wie `// SE.PB-CODEGEN-VERSION: 1.0`
 + eingebettetes State-JSON in einem Kommentar).
 
-### Tool-Themes (mehrere Looks zum Umschalten)
-Aktuell hat die Web-UI nur den Sci-Fi-Look (Orange/Cyan auf Schwarz).
-CSS-Variablen (`--accent`, `--panel`, `--bg`, `--text`, …) sind dafür
-schon vorbereitet — Theme-Wechsel via `data-theme="..."`-Attribut am
-`<html>` plus passender Variablen-Sets.
+### Tool-Themes — weitere Looks
+**Erledigt in v1.1.0:** Theme-Picker im Header + Persistenz; 5 Themes
+verfügbar (Sci-Fi, Dark, Light, Cyberpunk, Matrix).
 
-Geplante Themes (Reihenfolge nicht fix, Vorschläge):
-- **Dark** — neutrales dunkles Theme ohne Sci-Fi-Akzente
-  (für lange Sessions, augenschonend, dezent).
-- **Light** — heller Hintergrund, schwarze Schrift, Akzentfarbe
-  (für helle Räume / Tageslicht).
-- **Cyberpunk** — Neon-Pink/Cyan auf Dunkelviolett, Glow-Effekte,
-  Retro-Synthwave-Look.
-- **Matrix** — monochrom Grün auf Schwarz, Terminal-Optik, gerne mit
-  leichtem CRT-Scanline-Effekt.
+Noch offene Looks für ein zweites Theme-Set:
 - **Hero** — Sci-Fi-Sauber (Star-Citizen-/Destiny-Stil): Weißblau,
   feine Linien, Glassmorphism.
 - **Hologram** — kühles Türkis, leicht transparent, blass-leuchtend
@@ -68,9 +58,13 @@ Geplante Themes (Reihenfolge nicht fix, Vorschläge):
 - **Industrial** — gedämpftes Orange/Stahlgrau, schwere Kanten,
   Warntreifen — passend zu Space Engineers' Industrie-Ästhetik.
 
-UI: Theme-Picker oben in der Header-Leiste, Auswahl persistiert
-im LocalStorage. Bonus: „Auto" das dem OS-Theme folgt
-(`prefers-color-scheme`).
+Außerdem: „Auto"-Option, die `prefers-color-scheme` folgt
+(Light bei Tag, Dark bei Nacht).
+
+Matrix-Theme könnte einen CRT-Scanline-Overlay-Effekt bekommen
+(`background-image` mit feinen horizontalen Linien) — bewusst
+weggelassen, weil's auf großen Monitoren stört. Falls gewünscht
+optional zuschaltbar.
 
 ### Mehrsprachigkeit (Deutsch / Englisch umschaltbar)
 Strings sind aktuell komplett deutsch und großteils im HTML hardcodiert.

@@ -7,6 +7,31 @@ das Projekt folgt [Semantic Versioning](https://semver.org/lang/de/).
 
 ## [Unreleased]
 
+## [1.1.0] — 2026-05-12
+
+### Hinzugefügt (Tool-Themes)
+- **Theme-Picker im Header** mit 5 Looks zum Sofort-Umschalten:
+  - **Sci-Fi (Standard)** — bisheriger Orange/Cyan-Look
+  - **Dark (neutral)** — gedämpfte Slate-Grau-Töne, weniger Sci-Fi
+  - **Light** — heller Hintergrund mit blauem Akzent, dunkler Text
+  - **Cyberpunk** — Neon-Pink/Cyan auf Dunkelviolett
+  - **Matrix** — monochrom Grün auf Schwarz, Terminal-Optik
+- **Persistenz im LocalStorage** — Auswahl bleibt zwischen Sessions
+  erhalten (Schlüssel `se_pb_tool_theme`).
+- **Theme-Wechsel ohne Re-Render**: CSS-Variablen kaskadieren
+  automatisch, kein UI-Rebuild nötig.
+- **Code-Syntax-Highlighting** ist jetzt theme-fähig — Light nutzt
+  VS-Code-Light-Plus-Farben, Cyberpunk Neon-Pink/Cyan,
+  Matrix Mono-Grün, etc.
+
+### Geändert
+- CSS-Variablen-Set erweitert um `--accent-rgb`, `--text-on-accent`,
+  `--shadow-rgb`, `--lcd-frame-*`, `--body-glow-*`, `--syn-*`
+  (Syntax-Farben). Alle hardcodierten Theme-Farben im CSS durch
+  Variablen ersetzt — Themes können jetzt vollständig durchgreifen.
+- `index.html` Header-Layout: `.header-meta`-Container bündelt
+  Theme-Picker + Version-Tag rechts.
+
 ## [1.0.1] — 2026-05-12
 
 ### Hinzugefügt

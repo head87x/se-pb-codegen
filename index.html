@@ -9,7 +9,13 @@
 
 <header>
   <h1>// SE.PB <span class="accent">CODE</span> GENERATOR</h1>
-  <span class="tag">v1.0.1 :: SPACE ENGINEERS PROGRAMMABLE BLOCK</span>
+  <div class="header-meta">
+    <label class="theme-picker">
+      <span class="theme-picker-label">THEME</span>
+      <select id="tool-theme-select" onchange="setToolTheme(this.value)"></select>
+    </label>
+    <span class="tag">v1.1.0 :: SPACE ENGINEERS PROGRAMMABLE BLOCK</span>
+  </div>
 </header>
 
 <div class="layout">
@@ -204,13 +210,21 @@
 <script src="src/js/generator/highlight.js"></script>
 <script src="src/js/generator/codegen.js"></script>
 <script src="src/js/ui/icons.js"></script>
+<script src="src/js/ui/themes.js"></script>
 <script src="src/js/ui/tooltips.js"></script>
 <script src="src/js/ui/dnd.js"></script>
 <script src="src/js/ui/lcd-dnd.js"></script>
 <script src="src/js/ui/inputs.js"></script>
 <script src="src/js/ui/templates.js"></script>
 <script src="src/js/ui/render.js"></script>
-<script>initPalette(); initLcdComposerSelects(); initLcdDragHandlers(); render();</script>
+<script>
+  initToolTheme();
+  document.getElementById("tool-theme-select").innerHTML = toolThemeOptions();
+  initPalette();
+  initLcdComposerSelects();
+  initLcdDragHandlers();
+  render();
+</script>
 
 </body>
 </html>
