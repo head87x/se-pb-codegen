@@ -7,6 +7,19 @@ das Projekt folgt [Semantic Versioning](https://semver.org/lang/de/).
 
 ## [Unreleased]
 
+## [1.3.4] — 2026-05-12
+
+### Behoben (Korrektur zu v1.3.3 — Scope eingegrenzt)
+- v1.3.3 hat alle Widget-Labels theme-abhängig gemacht. Gemeint war
+  aber nur die **Statusliste-Überschrift** (Default „Systeme").
+  Die Zeilen-Labels darunter (z. B. „Reaktor", „Tür") und die Labels
+  der anderen Widgets (Statusleiste, Donut, Wert-Anzeige usw.) sind
+  jetzt wieder fest in Off-White (`#d8e1ec` / `Color(216,225,236)`) —
+  wie vor v1.3.3.
+- Theme-Folge bleibt **nur für die Checklist-Titel-Zeile** aktiv:
+  oben über der Trennlinie zeigt sich beim Theme-Wechsel die neue
+  Akzent-Farbe.
+
 ## [1.3.3] — 2026-05-12
 
 ### Behoben (Label-Farbe folgt LCD-Theme)

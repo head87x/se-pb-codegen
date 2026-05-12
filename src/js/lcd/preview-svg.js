@@ -39,7 +39,7 @@ const LCD_PREVIEWS = {
     const label = _escapeSvgText(w.label || "Status");
     return `<svg viewBox="0 0 200 40" xmlns="http://www.w3.org/2000/svg">
       <rect width="200" height="40" fill="#07090c"/>
-      <text x="8" y="15" font-family="Consolas,monospace" font-size="11" fill="rgb(${lcdLabelColor()})">${label}</text>
+      <text x="8" y="15" font-family="Consolas,monospace" font-size="11" fill="#d8e1ec">${label}</text>
       <text x="192" y="15" font-family="Consolas,monospace" font-size="11" fill="${color}" text-anchor="end">${_DEMO_PCT}%</text>
       <rect x="8" y="20" width="184" height="14" fill="none" stroke="#2a3442" stroke-width="1"/>
       <rect x="9" y="21" width="${184 * _DEMO_PCT / 100 - 1}" height="12" fill="${color}"/>
@@ -54,7 +54,7 @@ const LCD_PREVIEWS = {
     const demoVal = w.format === "0" ? "42" : (w.format === "0.00" ? "42.50" : "42.5");
     return `<svg viewBox="0 0 200 40" xmlns="http://www.w3.org/2000/svg">
       <rect width="200" height="40" fill="#07090c"/>
-      <text x="8" y="26" font-family="Consolas,monospace" font-size="14" fill="rgb(${lcdLabelColor()})">${label}:</text>
+      <text x="8" y="26" font-family="Consolas,monospace" font-size="14" fill="#d8e1ec">${label}:</text>
       <text x="192" y="26" font-family="Consolas,monospace" font-size="14" fill="${color}" text-anchor="end">${demoVal} ${unit}</text>
     </svg>`;
   },
@@ -67,7 +67,7 @@ const LCD_PREVIEWS = {
     const fillH = barH * _DEMO_PCT / 100;
     return `<svg viewBox="0 0 50 120" xmlns="http://www.w3.org/2000/svg">
       <rect width="50" height="120" fill="#07090c"/>
-      <text x="25" y="11" font-family="Consolas,monospace" font-size="9" fill="rgb(${lcdLabelColor()})" text-anchor="middle">${label}</text>
+      <text x="25" y="11" font-family="Consolas,monospace" font-size="9" fill="#d8e1ec" text-anchor="middle">${label}</text>
       <rect x="6" y="16" width="38" height="${barH}" fill="none" stroke="#2a3442" stroke-width="1"/>
       <rect x="7" y="${16 + (barH - fillH) + 1}" width="36" height="${fillH - 1}" fill="${color}"/>
       <text x="25" y="111" font-family="Consolas,monospace" font-size="9" fill="${color}" text-anchor="middle">${_DEMO_PCT}%</text>
@@ -88,7 +88,7 @@ const LCD_PREVIEWS = {
     }
     return `<svg viewBox="0 0 200 40" xmlns="http://www.w3.org/2000/svg">
       <rect width="200" height="40" fill="#07090c"/>
-      <text x="8" y="15" font-family="Consolas,monospace" font-size="11" fill="rgb(${lcdLabelColor()})">${label}</text>
+      <text x="8" y="15" font-family="Consolas,monospace" font-size="11" fill="#d8e1ec">${label}</text>
       <text x="192" y="15" font-family="Consolas,monospace" font-size="11" fill="${color}" text-anchor="end">${_DEMO_PCT}%</text>
       ${segHtml}
     </svg>`;
@@ -102,11 +102,11 @@ const LCD_PREVIEWS = {
     const v1 = 80, v2 = 35;
     return `<svg viewBox="0 0 200 55" xmlns="http://www.w3.org/2000/svg">
       <rect width="200" height="55" fill="#07090c"/>
-      <text x="8" y="11" font-family="Consolas,monospace" font-size="9" fill="rgb(${lcdLabelColor()})">${l1}</text>
+      <text x="8" y="11" font-family="Consolas,monospace" font-size="9" fill="#d8e1ec">${l1}</text>
       <text x="192" y="11" font-family="Consolas,monospace" font-size="9" fill="${c1}" text-anchor="end">${v1}%</text>
       <rect x="8" y="14" width="184" height="9" fill="none" stroke="#2a3442" stroke-width="0.5"/>
       <rect x="9" y="15" width="${184 * v1 / 100 - 1}" height="7" fill="${c1}"/>
-      <text x="8" y="35" font-family="Consolas,monospace" font-size="9" fill="rgb(${lcdLabelColor()})">${l2}</text>
+      <text x="8" y="35" font-family="Consolas,monospace" font-size="9" fill="#d8e1ec">${l2}</text>
       <text x="192" y="35" font-family="Consolas,monospace" font-size="9" fill="${c2}" text-anchor="end">${v2}%</text>
       <rect x="8" y="38" width="184" height="9" fill="none" stroke="#2a3442" stroke-width="0.5"/>
       <rect x="9" y="39" width="${184 * v2 / 100 - 1}" height="7" fill="${c2}"/>
@@ -127,7 +127,7 @@ const LCD_PREVIEWS = {
               stroke-dasharray="${dash} ${c}" stroke-dashoffset="0"
               transform="rotate(-90 ${cx} ${cy})" stroke-linecap="butt"/>
       <text x="${cx}" y="${cy + 3}" font-family="Consolas,monospace" font-size="16" font-weight="bold" fill="${color}" text-anchor="middle">${_DEMO_PCT}%</text>
-      <text x="${cx}" y="${cy + 18}" font-family="Consolas,monospace" font-size="8" fill="rgb(${lcdLabelColor()})" text-anchor="middle">${label}</text>
+      <text x="${cx}" y="${cy + 18}" font-family="Consolas,monospace" font-size="8" fill="#d8e1ec" text-anchor="middle">${label}</text>
     </svg>`;
   },
 
@@ -143,7 +143,7 @@ const LCD_PREVIEWS = {
         <animate attributeName="r" from="6" to="11" dur="1.5s" repeatCount="indefinite"/>
         <animate attributeName="opacity" from="0.7" to="0" dur="1.5s" repeatCount="indefinite"/>
       </circle>
-      <text x="22" y="16" font-family="Consolas,monospace" font-size="11" fill="rgb(${lcdLabelColor()})">${label}</text>
+      <text x="22" y="16" font-family="Consolas,monospace" font-size="11" fill="#d8e1ec">${label}</text>
     </svg>`;
   },
 
@@ -161,12 +161,12 @@ const LCD_PREVIEWS = {
       const sym = ok ? "✓" : "✗";
       const col = ok ? cOk : cBad;
       rows += `<text x="14" y="${y}" font-family="Consolas,monospace" font-size="13" fill="${col}">${sym}</text>`;
-      rows += `<text x="30" y="${y}" font-family="Consolas,monospace" font-size="11" fill="rgb(${lcdLabelColor()})">${_escapeSvgText(label)}</text>`;
+      rows += `<text x="30" y="${y}" font-family="Consolas,monospace" font-size="11" fill="#d8e1ec">${_escapeSvgText(label)}</text>`;
       y += 18;
     }
     return `<svg viewBox="0 0 200 130" xmlns="http://www.w3.org/2000/svg">
       <rect width="200" height="130" fill="#07090c"/>
-      <text x="100" y="14" font-family="Consolas,monospace" font-size="11" font-weight="bold" fill="#4ec5ff" text-anchor="middle">${title}</text>
+      <text x="100" y="14" font-family="Consolas,monospace" font-size="11" font-weight="bold" fill="rgb(${lcdLabelColor()})" text-anchor="middle">${title}</text>
       <line x1="8" y1="18" x2="192" y2="18" stroke="#2a3442" stroke-width="1"/>
       ${rows}
     </svg>`;
@@ -273,7 +273,7 @@ LCD_PREVIEWS.bigvalue = (w) => {
   // Enge viewBox 140×64: Label oben, große Zahl mittig — kein leerer Rand
   return `<svg viewBox="0 0 140 64" xmlns="http://www.w3.org/2000/svg">
     <rect width="140" height="64" fill="#07090c"/>
-    <text x="70" y="14" font-family="Consolas,monospace" font-size="10" fill="rgb(${lcdLabelColor()})" text-anchor="middle" letter-spacing="1.5">${label}</text>
+    <text x="70" y="14" font-family="Consolas,monospace" font-size="10" fill="#d8e1ec" text-anchor="middle" letter-spacing="1.5">${label}</text>
     <text x="70" y="50" font-family="Consolas,monospace" font-size="32" font-weight="bold" fill="${color}" text-anchor="middle">${demoVal}</text>
     <text x="134" y="60" font-family="Consolas,monospace" font-size="9" fill="${color}" text-anchor="end">${unit}</text>
   </svg>`;
@@ -301,7 +301,7 @@ LCD_PREVIEWS.iconvalue = (w) => {
   return `<svg viewBox="0 0 200 38" xmlns="http://www.w3.org/2000/svg">
     <rect width="200" height="38" fill="#07090c"/>
     ${iconSvg}
-    <text x="44" y="20" font-family="Consolas,monospace" font-size="11" fill="rgb(${lcdLabelColor()})">${label}</text>
+    <text x="44" y="20" font-family="Consolas,monospace" font-size="11" fill="#d8e1ec">${label}</text>
     <text x="192" y="26" font-family="Consolas,monospace" font-size="16" font-weight="bold" fill="${color}" text-anchor="end">${demoVal} ${unit}</text>
   </svg>`;
 };
@@ -318,7 +318,7 @@ LCD_PREVIEWS.aggregator = (w) => {
   return `<svg viewBox="0 0 200 38" xmlns="http://www.w3.org/2000/svg">
     <rect width="200" height="38" fill="#07090c"/>
     <text x="14" y="14" font-family="Consolas,monospace" font-size="14" font-weight="bold" fill="${color}">${symbol}</text>
-    <text x="32" y="14" font-family="Consolas,monospace" font-size="11" fill="rgb(${lcdLabelColor()})">${label}</text>
+    <text x="32" y="14" font-family="Consolas,monospace" font-size="11" fill="#d8e1ec">${label}</text>
     <text x="192" y="28" font-family="Consolas,monospace" font-size="16" font-weight="bold" fill="${color}" text-anchor="end">${demoVal}${unit}</text>
     <text x="14" y="28" font-family="Consolas,monospace" font-size="9" fill="#6b7a8d">${w.mode || "avg"} aller Blöcke</text>
   </svg>`;
@@ -343,7 +343,7 @@ LCD_PREVIEWS.gauge = (w) => {
     <path d="${bgArc}" fill="none" stroke="${bg}" stroke-width="7"/>
     <path d="${valArc}" fill="none" stroke="${color}" stroke-width="7" stroke-linecap="butt"/>
     <text x="${cx}" y="${cy + 4}" font-family="Consolas,monospace" font-size="14" font-weight="bold" fill="${color}" text-anchor="middle">42</text>
-    <text x="${cx}" y="${cy + 16}" font-family="Consolas,monospace" font-size="7" fill="rgb(${lcdLabelColor()})" text-anchor="middle">${label}</text>
+    <text x="${cx}" y="${cy + 16}" font-family="Consolas,monospace" font-size="7" fill="#d8e1ec" text-anchor="middle">${label}</text>
   </svg>`;
 };
 

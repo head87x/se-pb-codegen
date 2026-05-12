@@ -242,7 +242,7 @@ function _emitWidget(w, ensureBlock) {
     const entry = _ensureSourceBlock(ensureBlock, w.source, w.sourceBlock);
     const valueExpr = entry ? _sourceExpr(w.source, entry.varName) : "0f";
     out += `                float val = (float)Math.Max(0, Math.Min(100, ${valueExpr}));\n`;
-    out += `                sp = MySprite.CreateText(${_csString(w.label || "")}, "White", ${_csColor(lcdLabelColor())}, 0.7f, TextAlignment.LEFT);\n`;
+    out += `                sp = MySprite.CreateText(${_csString(w.label || "")}, "White", new Color(216, 225, 236), 0.7f, TextAlignment.LEFT);\n`;
     out += `                sp.Position = new Vector2(rect.Position.X + colOffsetX, yPos);\n`;
     out += `                frame.Add(sp);\n`;
     out += `                sp = MySprite.CreateText(val.ToString("0") + " %", "White", ${_csColor(w.color)}, 0.7f, TextAlignment.RIGHT);\n`;
@@ -263,7 +263,7 @@ function _emitWidget(w, ensureBlock) {
     const unit = src ? src.unit : "";
     const fmt = _formatSpec(w.format);
     const sz = parseFloat(w.size) || 0.9;
-    out += `                sp = MySprite.CreateText(${_csString((w.label || "") + ":")}, "White", ${_csColor(lcdLabelColor())}, ${sz}f, TextAlignment.LEFT);\n`;
+    out += `                sp = MySprite.CreateText(${_csString((w.label || "") + ":")}, "White", new Color(216, 225, 236), ${sz}f, TextAlignment.LEFT);\n`;
     out += `                sp.Position = new Vector2(rect.Position.X + colOffsetX, yPos);\n`;
     out += `                frame.Add(sp);\n`;
     out += `                sp = MySprite.CreateText((${valueExpr}).ToString(${_csString(fmt)}) + ${_csString(" " + unit)}, "White", ${_csColor(w.color)}, ${sz}f, TextAlignment.RIGHT);\n`;
@@ -281,7 +281,7 @@ function _emitWidget(w, ensureBlock) {
     out += `                float barH = ${mh}f - 24f;\n`;
     out += `                if (barH < 8f) barH = 8f;\n`;
     out += `                float barTop = yPos + 12f;\n`;
-    out += `                sp = MySprite.CreateText(${_csString(w.label || "")}, "White", ${_csColor(lcdLabelColor())}, 0.5f, TextAlignment.CENTER);\n`;
+    out += `                sp = MySprite.CreateText(${_csString(w.label || "")}, "White", new Color(216, 225, 236), 0.5f, TextAlignment.CENTER);\n`;
     out += `                sp.Position = new Vector2(cx, yPos + 1f);\n`;
     out += `                frame.Add(sp);\n`;
     out += `                sp = MySprite.CreateSprite("SquareSimple", new Vector2(cx, barTop + barH / 2f), new Vector2(barW, barH));\n`;
@@ -305,7 +305,7 @@ function _emitWidget(w, ensureBlock) {
     out += `                float gap = 2f;\n`;
     out += `                float segW = (widthInner - (segCount - 1) * gap) / segCount;\n`;
     // Label + Prozent
-    out += `                sp = MySprite.CreateText(${_csString(w.label || "")}, "White", ${_csColor(lcdLabelColor())}, 0.7f, TextAlignment.LEFT);\n`;
+    out += `                sp = MySprite.CreateText(${_csString(w.label || "")}, "White", new Color(216, 225, 236), 0.7f, TextAlignment.LEFT);\n`;
     out += `                sp.Position = new Vector2(rect.Position.X + colOffsetX, yPos);\n`;
     out += `                frame.Add(sp);\n`;
     out += `                sp = MySprite.CreateText(val.ToString("0") + " %", "White", ${_csColor(w.color)}, 0.7f, TextAlignment.RIGHT);\n`;
@@ -328,7 +328,7 @@ function _emitWidget(w, ensureBlock) {
     out += `                float v1 = (float)Math.Max(0, Math.Min(100, ${v1Expr}));\n`;
     out += `                float v2 = (float)Math.Max(0, Math.Min(100, ${v2Expr}));\n`;
     // Balken 1
-    out += `                sp = MySprite.CreateText(${_csString(w.label1 || "")}, "White", ${_csColor(lcdLabelColor())}, 0.6f, TextAlignment.LEFT);\n`;
+    out += `                sp = MySprite.CreateText(${_csString(w.label1 || "")}, "White", new Color(216, 225, 236), 0.6f, TextAlignment.LEFT);\n`;
     out += `                sp.Position = new Vector2(rect.Position.X + colOffsetX, yPos);\n`;
     out += `                frame.Add(sp);\n`;
     out += `                sp = MySprite.CreateText(v1.ToString("0") + "%", "White", ${_csColor(w.color1)}, 0.6f, TextAlignment.RIGHT);\n`;
@@ -342,7 +342,7 @@ function _emitWidget(w, ensureBlock) {
     out += `                sp.Color = ${_csColor(w.color1)};\n`;
     out += `                frame.Add(sp);\n`;
     // Balken 2
-    out += `                sp = MySprite.CreateText(${_csString(w.label2 || "")}, "White", ${_csColor(lcdLabelColor())}, 0.6f, TextAlignment.LEFT);\n`;
+    out += `                sp = MySprite.CreateText(${_csString(w.label2 || "")}, "White", new Color(216, 225, 236), 0.6f, TextAlignment.LEFT);\n`;
     out += `                sp.Position = new Vector2(rect.Position.X + colOffsetX, yPos + 26f);\n`;
     out += `                frame.Add(sp);\n`;
     out += `                sp = MySprite.CreateText(v2.ToString("0") + "%", "White", ${_csColor(w.color2)}, 0.6f, TextAlignment.RIGHT);\n`;
@@ -383,7 +383,7 @@ function _emitWidget(w, ensureBlock) {
     out += `                sp = MySprite.CreateText(val.ToString("0") + "%", "White", ${_csColor(w.color)}, radius * 0.04f, TextAlignment.CENTER);\n`;
     out += `                sp.Position = new Vector2(cx, cy - radius * 0.3f);\n`;
     out += `                frame.Add(sp);\n`;
-    out += `                sp = MySprite.CreateText(${_csString(w.label || "")}, "White", ${_csColor(lcdLabelColor())}, radius * 0.02f, TextAlignment.CENTER);\n`;
+    out += `                sp = MySprite.CreateText(${_csString(w.label || "")}, "White", new Color(216, 225, 236), radius * 0.02f, TextAlignment.CENTER);\n`;
     out += `                sp.Position = new Vector2(cx, cy + radius * 0.35f);\n`;
     out += `                frame.Add(sp);\n`;
 
@@ -400,12 +400,12 @@ function _emitWidget(w, ensureBlock) {
     out += `                sp = MySprite.CreateSprite("Circle", new Vector2(rect.Position.X + colOffsetX + 14f, yPos + 16f), new Vector2(14f, 14f));\n`;
     out += `                sp.Color = dotColor;\n`;
     out += `                frame.Add(sp);\n`;
-    out += `                sp = MySprite.CreateText(${_csString(w.label || "")}, "White", ${_csColor(lcdLabelColor())}, 0.9f, TextAlignment.LEFT);\n`;
+    out += `                sp = MySprite.CreateText(${_csString(w.label || "")}, "White", new Color(216, 225, 236), 0.9f, TextAlignment.LEFT);\n`;
     out += `                sp.Position = new Vector2(rect.Position.X + colOffsetX + 30f, yPos + 8f);\n`;
     out += `                frame.Add(sp);\n`;
 
   } else if (w.type === "checklist") {
-    out += `                sp = MySprite.CreateText(${_csString(w.title || "")}, "White", new Color(78,197,255), 0.7f, TextAlignment.CENTER);\n`;
+    out += `                sp = MySprite.CreateText(${_csString(w.title || "")}, "White", ${_csColor(lcdLabelColor())}, 0.7f, TextAlignment.CENTER);\n`;
     out += `                sp.Position = new Vector2(rect.Position.X + colOffsetX + widthInner / 2f, yPos);\n`;
     out += `                frame.Add(sp);\n`;
     out += `                sp = MySprite.CreateSprite("SquareSimple", new Vector2(rect.Position.X + colOffsetX + widthInner / 2f, yPos + 15f), new Vector2(widthInner, 1f));\n`;
@@ -430,7 +430,7 @@ function _emitWidget(w, ensureBlock) {
       out += `                    sp = MySprite.CreateText(ok ? "✓" : "✗", "White", ok ? ${_csColor(w.colorOk, "new Color(94, 212, 123)")} : ${_csColor(w.colorBad, "new Color(255, 85, 96)")}, 0.9f, TextAlignment.LEFT);\n`;
       out += `                    sp.Position = new Vector2(rect.Position.X + colOffsetX, rowY);\n`;
       out += `                    frame.Add(sp);\n`;
-      out += `                    sp = MySprite.CreateText(${_csString(label)}, "White", ${_csColor(lcdLabelColor())}, 0.7f, TextAlignment.LEFT);\n`;
+      out += `                    sp = MySprite.CreateText(${_csString(label)}, "White", new Color(216, 225, 236), 0.7f, TextAlignment.LEFT);\n`;
       out += `                    sp.Position = new Vector2(rect.Position.X + colOffsetX + 28f, rowY + 4f);\n`;
       out += `                    frame.Add(sp);\n`;
       out += `                    rowY += 20f;\n`;
@@ -521,7 +521,7 @@ function _emitWidget(w, ensureBlock) {
     const fmt = _formatSpec(w.format);
     const sz = parseFloat(w.size) || 2.5;
     // Kleines Label oben
-    out += `                sp = MySprite.CreateText(${_csString(w.label || "")}, "White", ${_csColor(lcdLabelColor())}, 0.6f, TextAlignment.CENTER);\n`;
+    out += `                sp = MySprite.CreateText(${_csString(w.label || "")}, "White", new Color(216, 225, 236), 0.6f, TextAlignment.CENTER);\n`;
     out += `                sp.Position = new Vector2(rect.Position.X + colOffsetX + widthInner / 2f, yPos + 2f);\n`;
     out += `                frame.Add(sp);\n`;
     // Große Zahl
@@ -548,7 +548,7 @@ function _emitWidget(w, ensureBlock) {
     out += `                sp.Color = ${_csColor(w.color)};\n`;
     out += `                frame.Add(sp);\n`;
     // Label
-    out += `                sp = MySprite.CreateText(${_csString(w.label || "")}, "White", ${_csColor(lcdLabelColor())}, 0.7f, TextAlignment.LEFT);\n`;
+    out += `                sp = MySprite.CreateText(${_csString(w.label || "")}, "White", new Color(216, 225, 236), 0.7f, TextAlignment.LEFT);\n`;
     out += `                sp.Position = new Vector2(rect.Position.X + colOffsetX + 38f, yPos + 4f);\n`;
     out += `                frame.Add(sp);\n`;
     // Wert + Einheit rechts
@@ -593,7 +593,7 @@ function _emitWidget(w, ensureBlock) {
     out += `                sp = MySprite.CreateText(${_csString(symbol)}, "White", ${_csColor(w.color)}, 1.1f, TextAlignment.LEFT);\n`;
     out += `                sp.Position = new Vector2(rect.Position.X + colOffsetX, yPos + 4f);\n`;
     out += `                frame.Add(sp);\n`;
-    out += `                sp = MySprite.CreateText(${_csString(w.label || "")}, "White", ${_csColor(lcdLabelColor())}, 0.7f, TextAlignment.LEFT);\n`;
+    out += `                sp = MySprite.CreateText(${_csString(w.label || "")}, "White", new Color(216, 225, 236), 0.7f, TextAlignment.LEFT);\n`;
     out += `                sp.Position = new Vector2(rect.Position.X + colOffsetX + 18f, yPos + 4f);\n`;
     out += `                frame.Add(sp);\n`;
     out += `                sp = MySprite.CreateText(result.ToString("0") + ${_csString(unit)}, "White", ${_csColor(w.color)}, 1.1f, TextAlignment.RIGHT);\n`;
@@ -637,7 +637,7 @@ function _emitWidget(w, ensureBlock) {
     out += `                sp = MySprite.CreateText(gVal.ToString(${_csString(fmt)}), "White", ${_csColor(w.color)}, radius * 0.035f, TextAlignment.CENTER);\n`;
     out += `                sp.Position = new Vector2(cx, cy - radius * 0.25f);\n`;
     out += `                frame.Add(sp);\n`;
-    out += `                sp = MySprite.CreateText(${_csString(w.label || "")}, "White", ${_csColor(lcdLabelColor())}, radius * 0.018f, TextAlignment.CENTER);\n`;
+    out += `                sp = MySprite.CreateText(${_csString(w.label || "")}, "White", new Color(216, 225, 236), radius * 0.018f, TextAlignment.CENTER);\n`;
     out += `                sp.Position = new Vector2(cx, cy + radius * 0.3f);\n`;
     out += `                frame.Add(sp);\n`;
   }
