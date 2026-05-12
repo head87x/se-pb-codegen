@@ -225,16 +225,18 @@ function computeMultiLcdNames() {
   return { names, meta, rows, cols };
 }
 
-function onLcdPresetSelect(key) {
+async function onLcdPresetSelect(key) {
   if (!key) return;
   const preset = (typeof LCD_PRESETS !== "undefined") ? LCD_PRESETS[key] : null;
   if (!preset) return;
   const hasExisting = state.lcdComposer.widgets.length > 0;
-  if (hasExisting && !confirm(`Preset "${preset.label}" laden? Die aktuellen ${state.lcdComposer.widgets.length} Widget(s) werden ersetzt.`)) {
-    // Dropdown zurücksetzen
-    const sel = document.getElementById("lcd-composer-preset");
-    if (sel) sel.value = "";
-    return;
+  if (hasExisting) {
+    const ok = await showConfirm(`Preset "${preset.label}" laden? Die aktuellen ${state.lcdComposer.widgets.length} Widget(s) werden ersetzt.`, { confirmLabel: "Ersetzen" });
+    if (!ok) {
+      const sel = document.getElementById("lcd-composer-preset");
+      if (sel) sel.value = "";
+      return;
+    }
   }
 
   // Resolution übernehmen falls definiert

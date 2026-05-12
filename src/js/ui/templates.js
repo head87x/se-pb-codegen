@@ -16,8 +16,8 @@ function renderTemplates() {
   `).join("");
 }
 
-function saveTemplate() {
-  const name = prompt("Name der Vorlage:");
+async function saveTemplate() {
+  const name = await showPrompt("Name der Vorlage:", "", { placeholder: "z.B. Reaktor-Überwachung" });
   if (!name) return;
   templates.push({ name, state: JSON.parse(JSON.stringify(state)) });
   localStorage.setItem("se_pb_templates", JSON.stringify(templates));
@@ -72,15 +72,15 @@ function loadTemplate(i) {
   showToast(`"${templates[i].name}" geladen`);
 }
 
-function deleteTemplate(i) {
-  if (!confirm(`Vorlage "${templates[i].name}" löschen?`)) return;
+async function deleteTemplate(i) {
+  if (!await showConfirm(`Vorlage "${templates[i].name}" löschen?`, { confirmLabel: "Löschen" })) return;
   templates.splice(i, 1);
   localStorage.setItem("se_pb_templates", JSON.stringify(templates));
   render();
 }
 
-function newProject() {
-  if (!confirm("Aktuelles Projekt verwerfen und neu starten?")) return;
+async function newProject() {
+  if (!await showConfirm("Aktuelles Projekt verwerfen und neu starten?", { confirmLabel: "Verwerfen" })) return;
   state = {
     conditions: [], actionsThen: [], actionsElse: [],
     execMode: "argument", lcdEnable: false, lcdName: "",

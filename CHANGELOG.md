@@ -7,6 +7,25 @@ das Projekt folgt [Semantic Versioning](https://semver.org/lang/de/).
 
 ## [Unreleased]
 
+## [1.4.1] — 2026-05-12
+
+### Geändert (Themed Modal-Dialoge)
+- Browser-native `alert()` / `confirm()` / `prompt()` durch eigene
+  themed Modal-Dialoge ersetzt. Folgen jetzt automatisch dem
+  gewählten Tool-Theme (Sci-Fi/Dark/Light/Cyberpunk/Matrix/…), passen
+  zur restlichen Sci-Fi-Ästhetik.
+- Neue Sektion in `src/js/ui/modal.js`: `showConfirm()`, `showPrompt()`,
+  `showAlert()` — alle Promise-basiert, mit Enter/Escape-Support und
+  Overlay-Klick-zum-Abbrechen.
+- Betroffene Stellen:
+  - Vorlage speichern (prompt für Name)
+  - Vorlage löschen (Bestätigung)
+  - Neues Projekt (Bestätigung)
+  - LCD-Preset laden (Bestätigung bei vorhandenen Widgets)
+  - Share-Token laden (Bestätigung mit Token-Inhalts-Zusammenfassung)
+- Aufrufer-Funktionen jetzt `async` — Verhalten bleibt identisch,
+  nur der Look ändert sich.
+
 ## [1.4.0] — 2026-05-12
 
 ### Hinzugefügt (Share-Token)

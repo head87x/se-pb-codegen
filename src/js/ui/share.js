@@ -63,7 +63,7 @@ function exportShareToken() {
 }
 
 // Token aus der Textarea lesen, validieren, State wiederherstellen.
-function importShareToken() {
+async function importShareToken() {
   const ta = document.getElementById("share-token-area");
   if (!ta) return;
   const raw = (ta.value || "").trim();
@@ -91,7 +91,11 @@ function importShareToken() {
   const widgetCount = (payload.state.lcdComposer && payload.state.lcdComposer.widgets || []).length;
   const condCount = (payload.state.conditions || []).length;
   const summary = `${condCount} Bedingung(en), ${widgetCount} LCD-Widget(s)`;
-  if (!confirm(`Aktuellen Stand mit Token-Inhalt ersetzen?\n\nToken enthält: ${summary}\nErzeugt: ${payload.ts || "—"}`)) return;
+  const ok = await showConfirm(
+    `Aktuellen Stand mit Token-Inhalt ersetzen?\n\nToken enthält: ${summary}\nErzeugt: ${payload.ts || "—"}`,
+    { confirmLabel: "Ersetzen" }
+  );
+  if (!ok) return;
 
   state = JSON.parse(JSON.stringify(payload.state));
   _shareApplyDefensiveDefaults();
