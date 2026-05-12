@@ -77,6 +77,62 @@ function _blinkExpr(blink) {
   return "true";
 }
 
+// Liefert die LCD-Namen + Pixel-Offsets pro physikalischem LCD für Multi-LCD.
+// Bei aus-geschaltetem Multi-LCD oder anderem Display-Modus null.
+function _multiLcdLayout(lc) {
+  const ml = lc.multiLcd;
+  if (!ml || !ml.enabled) return null;
+  if ((lc.displayMode || "external") !== "external") return null;
+  const rows = Math.max(1, parseInt(ml.rows, 10) || 1);
+  const cols = Math.max(1, parseInt(ml.cols, 10) || 1);
+  if (rows === 1 && cols === 1) return null;
+  const resKey = lc.resolution || "square";
+  const res = (typeof LCD_RESOLUTIONS !== "undefined" && LCD_RESOLUTIONS[resKey]) || { w: 512, h: 512 };
+  const pattern = ml.namePattern || "LCD {col}{row}";
+  const cells = [];
+  for (let r = 0; r < rows; r++) {
+    for (let c = 0; c < cols; c++) {
+      const name = pattern
+        .replace(/\{col\}/g, String.fromCharCode("A".charCodeAt(0) + c))
+        .replace(/\{row\}/g, String(r + 1))
+        .replace(/\{c\}/g, String(c + 1))
+        .replace(/\{r\}/g, String(r + 1));
+      cells.push({ name, offX: c * res.w, offY: r * res.h });
+    }
+  }
+  return { cells, rows, cols, res };
+}
+
+// Emittiert die Widget-Schleife (gleich für Single- und Multi-LCD —
+// nur lcdOffX/lcdOffY sind Variable, die im umgebenden Scope gesetzt werden).
+function _emitWidgetsBlock(widgets, ensureBlock) {
+  let out = "";
+  for (let idx = 0; idx < widgets.length; idx++) {
+    const w = widgets[idx];
+    const def = LCD_WIDGETS[w.type];
+    if (!def) continue;
+    if (w.hidden) continue;  // Layer-Toggle (Phase B)
+
+    const mx = Math.max(0, parseFloat(w.manualX) || 0);
+    const my = Math.max(0, parseFloat(w.manualY) || 0);
+    const mw = Math.max(8, parseFloat(w.manualW) || 100);
+    const mh = Math.max(8, parseFloat(w.manualH) || 40);
+    out += `\n            // Widget #${idx + 1}: ${w.type} (x=${mx} y=${my} w=${mw} h=${mh})\n`;
+    out += `            {\n`;
+    out += `                yPos = rect.Position.Y + (${my}f - lcdOffY);\n`;
+    out += `                colOffsetX = ${mx}f - lcdOffX;\n`;
+    out += `                widthInner = ${mw}f;\n`;
+    if (w.widgetBg && w.widgetBg.trim()) {
+      out += `                sp = MySprite.CreateSprite("SquareSimple", new Vector2(rect.Position.X + colOffsetX + widthInner / 2f, yPos + ${mh / 2}f), new Vector2(widthInner, ${mh}f));\n`;
+      out += `                sp.Color = ${_csColor(w.widgetBg)};\n`;
+      out += `                frame.Add(sp);\n`;
+    }
+    out += _emitWidget(w, ensureBlock);
+    out += `            }\n`;
+  }
+  return out;
+}
+
 // Hauptfunktion
 function generateLcdComposerCode(ensureBlock) {
   const lc = state.lcdComposer;
@@ -86,14 +142,46 @@ function generateLcdComposerCode(ensureBlock) {
 
   const mode = lc.displayMode || "external";
   const surfaceIdx = Math.max(0, Math.min(15, parseInt(lc.surfaceIndex, 10) || 0));
+  const multi = _multiLcdLayout(lc);
 
-  if ((mode === "external" || mode === "cockpit") && !lc.lcdName) {
+  if ((mode === "external" || mode === "cockpit") && !multi && !lc.lcdName) {
     return { code: "", used: false };
   }
 
   let out = "";
   out += "\n    // ---------- LCD-Baukasten ----------\n";
 
+  if (multi) {
+    // Multi-LCD: pro physischem LCD ein eigener DrawFrame-Block,
+    // alle aus demselben virtuellen Canvas (cols × rows × LCD-Größe).
+    out += `    // Multi-LCD: ${multi.cols}×${multi.rows} = ${multi.cells.length} LCDs als virtuelles ${multi.res.w * multi.cols}×${multi.res.h * multi.rows} Display\n`;
+    out += `    string[] lcdNames_ = new string[] {\n`;
+    out += `        ${multi.cells.map(c => _csString(c.name)).join(", ")}\n`;
+    out += `    };\n`;
+    out += `    float[] lcdOffX_ = new float[] { ${multi.cells.map(c => c.offX + "f").join(", ")} };\n`;
+    out += `    float[] lcdOffY_ = new float[] { ${multi.cells.map(c => c.offY + "f").join(", ")} };\n`;
+    out += `    for (int _li = 0; _li < lcdNames_.Length; _li++)\n`;
+    out += `    {\n`;
+    out += `        var lcdComp = GridTerminalSystem.GetBlockWithName(lcdNames_[_li]) as IMyTextSurface;\n`;
+    out += `        if (lcdComp == null) { Echo("LCD-Composer: Block '" + lcdNames_[_li] + "' nicht gefunden!"); continue; }\n`;
+    out += `        lcdComp.ContentType = ContentType.SCRIPT;\n`;
+    out += `        lcdComp.Script = "";\n`;
+    out += `        using (var frame = lcdComp.DrawFrame())\n`;
+    out += `        {\n`;
+    out += `            var rect = new RectangleF((lcdComp.TextureSize - lcdComp.SurfaceSize) / 2f, lcdComp.SurfaceSize);\n`;
+    out += `            float lcdOffX = lcdOffX_[_li];\n`;
+    out += `            float lcdOffY = lcdOffY_[_li];\n`;
+    out += `            float yPos = 0f;\n`;
+    out += `            float colOffsetX = 0f;\n`;
+    out += `            float widthInner = 100f;\n`;
+    out += `            MySprite sp;\n`;
+    out += _emitWidgetsBlock(lc.widgets, ensureBlock);
+    out += `        }\n`;
+    out += `    }\n`;
+    return { code: out, used: true };
+  }
+
+  // Single-LCD (Standard-Pfad)
   if (mode === "pb") {
     out += `    IMyTextSurface lcdComp = Me.GetSurface(${surfaceIdx});\n`;
   } else if (mode === "cockpit") {
@@ -110,35 +198,13 @@ function generateLcdComposerCode(ensureBlock) {
   out += `        using (var frame = lcdComp.DrawFrame())\n`;
   out += `        {\n`;
   out += `            var rect = new RectangleF((lcdComp.TextureSize - lcdComp.SurfaceSize) / 2f, lcdComp.SurfaceSize);\n`;
+  out += `            float lcdOffX = 0f;\n`;
+  out += `            float lcdOffY = 0f;\n`;
   out += `            float yPos = 0f;\n`;
   out += `            float colOffsetX = 0f;\n`;
   out += `            float widthInner = 100f;\n`;
   out += `            MySprite sp;\n`;
-
-  for (let idx = 0; idx < lc.widgets.length; idx++) {
-    const w = lc.widgets[idx];
-    const def = LCD_WIDGETS[w.type];
-    if (!def) continue;
-    if (w.hidden) continue;  // Layer-Toggle (Phase B)
-
-    const mx = Math.max(0, parseFloat(w.manualX) || 0);
-    const my = Math.max(0, parseFloat(w.manualY) || 0);
-    const mw = Math.max(8, parseFloat(w.manualW) || 100);
-    const mh = Math.max(8, parseFloat(w.manualH) || 40);
-    out += `\n            // Widget #${idx + 1}: ${w.type} (x=${mx} y=${my} w=${mw} h=${mh})\n`;
-    out += `            {\n`;
-    out += `                yPos = rect.Position.Y + ${my}f;\n`;
-    out += `                colOffsetX = ${mx}f;\n`;
-    out += `                widthInner = ${mw}f;\n`;
-    if (w.widgetBg && w.widgetBg.trim()) {
-      out += `                sp = MySprite.CreateSprite("SquareSimple", new Vector2(rect.Position.X + colOffsetX + widthInner / 2f, yPos + ${mh / 2}f), new Vector2(widthInner, ${mh}f));\n`;
-      out += `                sp.Color = ${_csColor(w.widgetBg)};\n`;
-      out += `                frame.Add(sp);\n`;
-    }
-    out += _emitWidget(w, ensureBlock);
-    out += `            }\n`;
-  }
-
+  out += _emitWidgetsBlock(lc.widgets, ensureBlock);
   out += `        }\n`;
   out += `    }\n`;
   // Fehlermeldung je nach Modus

@@ -174,6 +174,57 @@ function onLcdComposerResolutionChange(val) {
   render(); // Vorschau muss neu mit anderem Aspect-Ratio
 }
 
+// ---------- Multi-LCD (Phase 5) ----------
+
+function _ensureMultiLcd() {
+  if (!state.lcdComposer.multiLcd) {
+    state.lcdComposer.multiLcd = { enabled: false, rows: 1, cols: 2, namePattern: "LCD {col}{row}" };
+  }
+  return state.lcdComposer.multiLcd;
+}
+
+function onLcdMultiToggle(checked) {
+  const ml = _ensureMultiLcd();
+  ml.enabled = !!checked;
+  render();  // Vorschau-Größe + Grid-Overlay ändern sich
+}
+
+function onLcdMultiField(field, val) {
+  const ml = _ensureMultiLcd();
+  if (field === "rows" || field === "cols") {
+    const n = parseInt(val, 10);
+    ml[field] = isNaN(n) ? 1 : Math.max(1, Math.min(6, n));
+  } else if (field === "namePattern") {
+    ml.namePattern = String(val || "");
+  }
+  render();
+}
+
+// Erzeugt die Liste aller LCD-Block-Namen für die aktuelle Multi-LCD-Konfiguration.
+// Reihenfolge: Zeilen-weise von oben links (Row 1: A1, B1, C1, ...; Row 2: A2, B2, ...).
+function computeMultiLcdNames() {
+  const ml = _ensureMultiLcd();
+  const rows = Math.max(1, parseInt(ml.rows, 10) || 1);
+  const cols = Math.max(1, parseInt(ml.cols, 10) || 1);
+  const pattern = ml.namePattern || "LCD {col}{row}";
+  const names = [];
+  const meta = [];
+  for (let r = 0; r < rows; r++) {
+    for (let c = 0; c < cols; c++) {
+      const colLetter = String.fromCharCode("A".charCodeAt(0) + c);
+      const rowNumber = r + 1;
+      const name = pattern
+        .replace(/\{col\}/g, colLetter)
+        .replace(/\{row\}/g, String(rowNumber))
+        .replace(/\{c\}/g, String(c + 1))
+        .replace(/\{r\}/g, String(rowNumber));
+      names.push(name);
+      meta.push({ name, col: c, row: r });
+    }
+  }
+  return { names, meta, rows, cols };
+}
+
 function onLcdPresetSelect(key) {
   if (!key) return;
   const preset = (typeof LCD_PRESETS !== "undefined") ? LCD_PRESETS[key] : null;

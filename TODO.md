@@ -20,11 +20,51 @@ Akku < 20 % → Reaktor an", Regel 2: „wenn Sauerstoff < 30 % → Alarm")
 in einem einzigen PB-Skript. UI-mäßig wahrscheinlich Tab-/Karten-Layout.
 
 ### Phase 5 — Multi-LCD-Anordnung
-Mehrere benachbarte LCDs als ein großes virtuelles Display behandeln.
-Grid-Konfigurator (2×1, 3×3 …), Widget kann sich über mehrere LCDs
-spannen, Generator erzeugt pro physikalischem LCD einen eigenen
-Code-Block, der nur „seinen" Ausschnitt rendert.
-Block-Namen-Konvention dafür festlegen (z. B. `LCD Wand A1, A2, B1, B2`).
+**Erledigt in v1.3.0.** Toggle „Multi-LCD-Anordnung" mit Spalten/Reihen
+(1–6 je), Namensmuster (`LCD {col}{row}` → A1/B1/A2/B2), Live-Vorschau
+mit Trennlinien + Namens-Tags pro LCD, Generator mit `for`-Schleife
+über alle LCDs.
+
+Mögliche Verbesserungen, falls Bedarf entsteht:
+- Individuelle LCD-Block-Namen pro Zelle überschreiben (statt nur
+  Pattern) — z. B. wenn ein LCD aus der Reihe „MainScreen A2" heißt
+  statt „LCD A2".
+- Snap-Hilfe an LCD-Grenzen: Widgets, die haarscharf an einer Grenze
+  liegen, sollen einrasten.
+- „Pro LCD anders" — pro LCD eigenes Theme oder eigenes Background-Bild
+  (für gemischte Displays).
+
+### Speicherfunktion mit Token (Share-Code)
+Generierten Code + Baukasten-Zustand unter einem einzigartigen Token
+speichern können. Token kopiert man sich raus; beim nächsten Mal Token
+eingeben → kompletter Bau-Zustand (Bedingungen, Aktionen, LCD-Baukasten,
+LCD-Format, Theme-Auswahl…) wird wiederhergestellt.
+
+**Drei mögliche Implementierungswege**, jeweils mit Trade-off:
+
+1. **Local-only mit Token-Index** — kürzester Weg, kein Backend.
+   Token ist ein zufälliger Slug (z. B. `crimson-falcon-42`); State-JSON
+   liegt im `localStorage` unter `se_pb_save_<token>`. Nachteil: nur
+   im selben Browser wieder einlesbar. Kann mit Vorlagen-Funktion
+   kombiniert werden (Vorlage = lokal, Token = "Share-Slug").
+
+2. **URL-encoded Token (selbstenthaltend)** — State-JSON wird mit
+   `pako`/`lz-string` komprimiert + base64-codiert; Token IST der
+   komprimierte State. Funktioniert überall ohne Backend. Token wird
+   aber je nach State-Größe lang (vermutlich 200–2000 Zeichen).
+   Variante: Token ist eine fertige URL `…/index.html#state=<...>`,
+   die man teilen kann.
+
+3. **Server-Backend** — kurzer Token (z. B. 6 Chars), State-JSON liegt
+   auf einem Server (z. B. Cloudflare KV, Supabase, oder ein eigenes
+   PHP-Script auf IONOS). Token-Lookup gibt State zurück. Echtes
+   Sharing zwischen Geräten und Browsern. Bedingt aber Backend-
+   Aufwand und bricht „komplett offline".
+
+**Vorschlag:** Option 2 als Default (offline-tauglich), optional Option 3
+als opt-in für längerfristige Aufbewahrung. UI: „💾 Speichern → Token
+kopieren" / „📥 Token laden → einfügen". State-Format versionieren
+(`{version: 1, …}`) damit alte Token später migrierbar bleiben.
 
 ### Touch-Support für Drag & Drop
 Aktuell nur Mouse-Events sowohl in der Block-Palette als auch beim

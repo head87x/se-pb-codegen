@@ -7,6 +7,36 @@ das Projekt folgt [Semantic Versioning](https://semver.org/lang/de/).
 
 ## [Unreleased]
 
+## [1.3.0] — 2026-05-12
+
+### Hinzugefügt (Phase 5 — Multi-LCD-Anordnung)
+- **Mehrere benachbarte LCDs als ein virtuelles Display**:
+  per Toggle „Multi-LCD-Anordnung" in der Composer-Sektion. Konfigurierbar
+  mit Spalten- und Reihen-Anzahl (1–6) und einem **Namensmuster** mit
+  Platzhaltern (`{col}` = A,B,C,…  `{row}` = 1,2,3,…  `{c}`/`{r}` =
+  numerisch). Default: `LCD {col}{row}` → ergibt `LCD A1`, `LCD B1`,
+  `LCD A2`, `LCD B2` für ein 2×2-Grid.
+- **Live-Vorschau im virtuellen Canvas-Format**: bei aktivem Multi-LCD
+  wächst die Vorschau auf `cols × rows` Mal die LCD-Größe und zeigt
+  **kräftige Trennlinien zwischen den physischen LCDs** plus einen
+  **Namens-Tag pro LCD-Quadrat** (oben links).
+- **Generator** erzeugt jetzt eine `for`-Schleife über alle LCDs.
+  Jedes physische LCD bekommt seinen eigenen `DrawFrame`-Block und
+  rendert nur seinen Ausschnitt — Widgets, die LCD-Grenzen überspannen,
+  werden auf beiden Seiten korrekt gezeichnet (SE clippt automatisch).
+- Multi-LCD ist nur im **Display-Modus „Eigenständiges LCD"** verfügbar
+  (PB-Surface + Cockpit-Surface sind Einzeldisplays — Toggle wird dort
+  ausgeblendet).
+
+### Geändert
+- Composer-Generator refaktoriert: gemeinsame `_emitWidgetsBlock()`-Funktion
+  für Single- und Multi-LCD. Alle Widget-Emissionen rechnen jetzt mit
+  `yPos = rect.Position.Y + (myF - lcdOffY)` und
+  `colOffsetX = mxF - lcdOffX`. Im Single-LCD-Fall sind lcdOffX/Y = 0,
+  also funktional identisch zur bisherigen Ausgabe.
+- `loadTemplate()` migriert alte Vorlagen ohne `multiLcd`-Feld
+  defensiv auf den Default.
+
 ## [1.2.0] — 2026-05-12
 
 ### Hinzugefügt (3 weitere Themes + Auto-OS)

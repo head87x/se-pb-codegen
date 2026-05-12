@@ -14,7 +14,7 @@
       <span class="theme-picker-label">THEME</span>
       <select id="tool-theme-select" onchange="setToolTheme(this.value)"></select>
     </label>
-    <span class="tag">v1.2.0 :: SPACE ENGINEERS PROGRAMMABLE BLOCK</span>
+    <span class="tag">v1.3.0 :: SPACE ENGINEERS PROGRAMMABLE BLOCK</span>
   </div>
 </header>
 
@@ -161,6 +161,32 @@
                 <select id="lcd-composer-preset" onchange="onLcdPresetSelect(this.value)"></select>
               </div>
             </div>
+
+            <!-- Multi-LCD (Phase 5) — nur bei "external"-Modus -->
+            <div id="lcd-multi-wrap" style="margin-top:10px; padding:8px; border:1px dashed var(--border); border-radius:3px;">
+              <div class="toggle-row">
+                <label><input type="checkbox" id="lcd-multi-enable" onchange="onLcdMultiToggle(this.checked)"> Multi-LCD-Anordnung (mehrere benachbarte LCDs als ein virtuelles Display)</label>
+              </div>
+              <div id="lcd-multi-config" style="display:none; margin-top:8px;">
+                <div class="row row-3">
+                  <div>
+                    <label>Spalten</label>
+                    <input id="lcd-multi-cols" type="number" min="1" max="6" step="1" value="2" oninput="onLcdMultiField('cols', this.value)">
+                  </div>
+                  <div>
+                    <label>Reihen</label>
+                    <input id="lcd-multi-rows" type="number" min="1" max="6" step="1" value="1" oninput="onLcdMultiField('rows', this.value)">
+                  </div>
+                  <div>
+                    <label>Namensmuster</label>
+                    <input id="lcd-multi-pattern" type="text" value="LCD {col}{row}" oninput="onLcdMultiField('namePattern', this.value)">
+                  </div>
+                </div>
+                <div class="help-text" style="margin-top:4px;">Platzhalter: <code>{col}</code> = A, B, C, … · <code>{row}</code> = 1, 2, 3, … · <code>{c}</code>/<code>{r}</code> = numerisch (1, 2, 3, …)</div>
+                <div id="lcd-multi-names-preview" class="help-text" style="margin-top:4px;"></div>
+              </div>
+            </div>
+
             <div class="help-text" style="margin-top:6px;">Widgets per Maus in der Vorschau positionieren und skalieren. Der generierte C#-Code nutzt zur Laufzeit das echte LCD-Format aus dem Spiel.</div>
             <div id="lcd-composer-list" style="margin-top:12px;"></div>
           </div>

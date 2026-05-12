@@ -285,27 +285,68 @@ function _renderLcdWidgetFields(w, i) {
 }
 
 // Live-Vorschau: alle Widgets sind manuell positioniert (absolute
-// LCD-Koordinaten). Container hat das Aspect des gewählten LCD-Formats.
+// LCD-Koordinaten im virtuellen Canvas). Bei Multi-LCD ist der Canvas
+// cols × rows LCDs groß und Grid-Linien zeigen die LCD-Übergänge.
 function _renderFullLcdPreview() {
   const widgets = state.lcdComposer.widgets;
   const resKey = state.lcdComposer.resolution || "square";
   const res = LCD_RESOLUTIONS[resKey] || LCD_RESOLUTIONS.square;
 
-  // Innere Größe (effektives LCD-Display ohne Border) festlegen,
-  // damit Skalierung und Grid genau zueinander passen.
-  // border:3px each side → outer = inner + 6.
+  const ml = state.lcdComposer.multiLcd || { enabled: false, rows: 1, cols: 1 };
+  const multi = ml.enabled === true;
+  const cols = multi ? Math.max(1, parseInt(ml.cols, 10) || 1) : 1;
+  const rows = multi ? Math.max(1, parseInt(ml.rows, 10) || 1) : 1;
+
+  // Virtueller Canvas (alle LCDs zusammen) in LCD-Pixeln.
+  const virtW = res.w * cols;
+  const virtH = res.h * rows;
+
+  // Innere Anzeige-Breite skaliert mit Spaltenzahl, gecapped damit's
+  // ins UI passt. Mehr Spalten → größerer Container, aber pro LCD
+  // bleibt's noch lesbar.
   const BORDER = 3;
-  const innerWidth = 380;
-  const innerHeight = Math.round(innerWidth * res.h / res.w);
-  const scale = innerWidth / res.w;
+  const innerWidth = Math.min(720, Math.max(380, cols * 240));
+  const innerHeight = Math.round(innerWidth * virtH / virtW);
+  const scale = innerWidth / virtW;
   const outerWidth = innerWidth + 2 * BORDER;
   const outerHeight = innerHeight + 2 * BORDER;
+
+  // LCD-Trennlinien-Overlay (nur Multi-LCD): vertikale + horizontale
+  // Linien zwischen Cell-LCDs, plus pro-LCD-Name oben links.
+  let lcdSepOverlay = "";
+  let lcdNamesOverlay = "";
+  if (multi) {
+    const lines = [];
+    for (let c = 1; c < cols; c++) {
+      lines.push(`<div class="lcd-sep" style="left:${Math.round(c * res.w * scale)}px;top:0;width:1px;height:${innerHeight}px;"></div>`);
+    }
+    for (let r = 1; r < rows; r++) {
+      lines.push(`<div class="lcd-sep" style="left:0;top:${Math.round(r * res.h * scale)}px;width:${innerWidth}px;height:1px;"></div>`);
+    }
+    lcdSepOverlay = lines.join("");
+
+    // Namen-Labels in jedem LCD-Quadrat (oben links)
+    const info = (typeof computeMultiLcdNames === "function") ? computeMultiLcdNames() : null;
+    if (info) {
+      lcdNamesOverlay = info.meta.map(m => {
+        const left = Math.round(m.col * res.w * scale) + 4;
+        const top  = Math.round(m.row * res.h * scale) + 4;
+        return `<div class="lcd-name-tag" style="left:${left}px;top:${top}px;">${escapeHtml(m.name)}</div>`;
+      }).join("");
+    }
+  }
+
+  const headerLabel = multi
+    ? `LIVE-VORSCHAU — ${cols}×${rows} ${escapeHtml(res.label)} · Snap ${LCD_SNAP}px`
+    : `LIVE-VORSCHAU — ${escapeHtml(res.label)}${widgets.length > 0 ? ` · Snap ${LCD_SNAP}px` : ""}`;
 
   if (widgets.length === 0) {
     return `
       <div class="lcd-full-preview-wrap">
-        <div class="lcd-full-preview-label">LIVE-VORSCHAU — ${escapeHtml(res.label)}</div>
-        <div class="lcd-full-preview" style="width:${outerWidth}px;height:${outerHeight}px;">
+        <div class="lcd-full-preview-label">${headerLabel}</div>
+        <div class="lcd-full-preview" style="width:${outerWidth}px;height:${outerHeight}px;position:relative;">
+          ${lcdSepOverlay}
+          ${lcdNamesOverlay}
           <div class="lcd-full-empty">— Display ist leer —</div>
         </div>
       </div>`;
@@ -332,9 +373,11 @@ function _renderFullLcdPreview() {
 
   return `
     <div class="lcd-full-preview-wrap">
-      <div class="lcd-full-preview-label">LIVE-VORSCHAU — ${escapeHtml(res.label)} · Snap ${LCD_SNAP}px</div>
+      <div class="lcd-full-preview-label">${headerLabel}</div>
       <div class="lcd-full-preview" style="width:${outerWidth}px;height:${outerHeight}px;position:relative;">
         ${gridOverlay}
+        ${lcdSepOverlay}
+        ${lcdNamesOverlay}
         ${items}
       </div>
     </div>`;
@@ -350,6 +393,32 @@ function renderLcdComposer() {
   const surfaceWrap = document.getElementById("lcd-composer-surface-wrap");
   if (nameWrap)    nameWrap.style.display    = (mode === "pb") ? "none" : "";
   if (surfaceWrap) surfaceWrap.style.display = (mode === "external") ? "none" : "";
+
+  // Multi-LCD: nur bei "external"-Modus aktivierbar
+  const multiWrap   = document.getElementById("lcd-multi-wrap");
+  const multiConfig = document.getElementById("lcd-multi-config");
+  const multiEnable = document.getElementById("lcd-multi-enable");
+  const ml = state.lcdComposer.multiLcd || { enabled: false, rows: 1, cols: 2, namePattern: "LCD {col}{row}" };
+  if (multiWrap)   multiWrap.style.display   = (mode === "external") ? "" : "none";
+  if (multiEnable) multiEnable.checked       = (mode === "external") && !!ml.enabled;
+  if (multiConfig) multiConfig.style.display = (mode === "external" && ml.enabled) ? "block" : "none";
+  // Felder mit State synchronisieren (ohne Re-Render der Inputs, sonst Fokus-Verlust)
+  const colsInp    = document.getElementById("lcd-multi-cols");
+  const rowsInp    = document.getElementById("lcd-multi-rows");
+  const patternInp = document.getElementById("lcd-multi-pattern");
+  if (colsInp    && document.activeElement !== colsInp)    colsInp.value    = ml.cols;
+  if (rowsInp    && document.activeElement !== rowsInp)    rowsInp.value    = ml.rows;
+  if (patternInp && document.activeElement !== patternInp) patternInp.value = ml.namePattern || "LCD {col}{row}";
+  // Namen-Vorschau aktualisieren
+  const namesPrev = document.getElementById("lcd-multi-names-preview");
+  if (namesPrev && mode === "external" && ml.enabled) {
+    const info = (typeof computeMultiLcdNames === "function") ? computeMultiLcdNames() : { names: [] };
+    const sample = info.names.slice(0, 12).join(" · ");
+    const extra = info.names.length > 12 ? ` · …(+${info.names.length - 12})` : "";
+    namesPrev.innerHTML = `LCD-Namen: ${escapeHtml(sample)}${escapeHtml(extra)}`;
+  } else if (namesPrev) {
+    namesPrev.innerHTML = "";
+  }
 
   // Header-Bereich: Add-Buttons
   const addButtons = LCD_WIDGET_ORDER.map(type => {

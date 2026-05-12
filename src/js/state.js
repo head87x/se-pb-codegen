@@ -18,7 +18,13 @@ var state = {
     surfaceIndex: 0,
     resolution: "square",    // LCD-Format-Key aus LCD_RESOLUTIONS
     columns: 1,              // 1, 2 oder 3 Spalten
-    widgets: []              // { type, ...params, widgetHeight?, colSpan? }
+    widgets: [],             // { type, ...params, widgetHeight?, colSpan? }
+    multiLcd: {              // Phase 5 — mehrere LCDs als ein virtuelles Display
+      enabled: false,
+      rows: 1,
+      cols: 2,
+      namePattern: "LCD {col}{row}"   // {col} = A,B,C,... ; {row} = 1,2,3,...
+    }
   }
 };
 

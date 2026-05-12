@@ -34,6 +34,10 @@ function loadTemplate(i) {
   if (state.lcdComposer.surfaceIndex == null) state.lcdComposer.surfaceIndex = 0;
   // Phase 4d Felder
   if (!state.lcdComposer.resolution)   state.lcdComposer.resolution = "square";
+  // Phase 5: Multi-LCD-Default für ältere Vorlagen
+  if (!state.lcdComposer.multiLcd) {
+    state.lcdComposer.multiLcd = { enabled: false, rows: 1, cols: 2, namePattern: "LCD {col}{row}" };
+  }
 
   // Migration: alte Grid-Widgets in Manual-Modus konvertieren.
   // Setzt einen einfachen vertikalen Stack als initiale Position.

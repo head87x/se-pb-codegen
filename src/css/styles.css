@@ -1137,6 +1137,29 @@ footer .accent { color: var(--accent); }
     linear-gradient(to bottom, rgba(var(--accent-rgb), 0.10) 1px, transparent 1px);
 }
 
+/* Multi-LCD: kräftigere Trennlinien zwischen physischen LCDs */
+.lcd-sep {
+  position: absolute;
+  pointer-events: none;
+  z-index: 3;
+  background: rgba(var(--accent-rgb), 0.6);
+  box-shadow: 0 0 4px rgba(var(--accent-rgb), 0.5);
+}
+
+.lcd-name-tag {
+  position: absolute;
+  pointer-events: none;
+  z-index: 3;
+  font-family: 'Consolas', monospace;
+  font-size: 9px;
+  letter-spacing: 0.5px;
+  color: var(--accent);
+  background: rgba(var(--shadow-rgb), 0.5);
+  padding: 1px 4px;
+  border-radius: 2px;
+  text-transform: uppercase;
+}
+
 .lcd-full-cell {
   position: absolute;
   overflow: hidden;
