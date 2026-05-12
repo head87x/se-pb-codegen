@@ -14,7 +14,7 @@
       <span class="theme-picker-label">THEME</span>
       <select id="tool-theme-select" onchange="setToolTheme(this.value)"></select>
     </label>
-    <span class="tag">v1.3.4 :: SPACE ENGINEERS PROGRAMMABLE BLOCK</span>
+    <span class="tag">v1.4.0 :: SPACE ENGINEERS PROGRAMMABLE BLOCK</span>
   </div>
 </header>
 
@@ -57,6 +57,22 @@
           <div id="templates" class="templates-list">
             <span class="empty-hint">Keine Vorlagen gespeichert.</span>
           </div>
+        </div>
+      </div>
+
+      <!-- SHARE-TOKEN (Phase: v1.4.0) -->
+      <div class="section">
+        <div class="section-title">
+          <span>::: SHARE-TOKEN</span>
+          <div class="btn-row">
+            <button class="small primary" onclick="exportShareToken()">💾 Token erzeugen</button>
+            <button class="small" onclick="importShareToken()">📥 Token laden</button>
+          </div>
+        </div>
+        <div class="section-content">
+          <div class="help-text" style="margin-bottom:6px;">Speichert / lädt deine komplette Konfiguration (Bedingungen, Aktionen, LCD-Baukasten) als kopierbaren Token. Token-Inhalt liegt direkt in der Zeichenkette — kein Server, kein Account.</div>
+          <textarea id="share-token-area" class="share-token-area" rows="4" spellcheck="false" oninput="_shareUpdateInfo()" placeholder="Hier Token einfügen und „Token laden" klicken — oder „Token erzeugen" für den aktuellen Stand."></textarea>
+          <div id="share-token-info" class="help-text" style="margin-top:4px;"></div>
         </div>
       </div>
 
@@ -242,6 +258,7 @@
 <script src="src/js/ui/lcd-dnd.js"></script>
 <script src="src/js/ui/inputs.js"></script>
 <script src="src/js/ui/templates.js"></script>
+<script src="src/js/ui/share.js"></script>
 <script src="src/js/ui/render.js"></script>
 <script>
   initToolTheme();

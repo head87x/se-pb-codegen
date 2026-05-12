@@ -506,6 +506,15 @@ input, select, textarea {
   transition: border-color 0.15s;
 }
 
+.share-token-area {
+  font-size: 11px;
+  line-height: 1.35;
+  word-break: break-all;
+  resize: vertical;
+  min-height: 64px;
+  max-height: 280px;
+}
+
 input:focus, select:focus, textarea:focus {
   border-color: var(--accent);
 }

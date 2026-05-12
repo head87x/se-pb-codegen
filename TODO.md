@@ -35,36 +35,17 @@ Mögliche Verbesserungen, falls Bedarf entsteht:
   (für gemischte Displays).
 
 ### Speicherfunktion mit Token (Share-Code)
-Generierten Code + Baukasten-Zustand unter einem einzigartigen Token
-speichern können. Token kopiert man sich raus; beim nächsten Mal Token
-eingeben → kompletter Bau-Zustand (Bedingungen, Aktionen, LCD-Baukasten,
-LCD-Format, Theme-Auswahl…) wird wiederhergestellt.
+**Erledigt in v1.4.0** — Variante 2 (selbstenthaltender Base64-Token,
+offline-tauglich, Schema-versioniert).
 
-**Drei mögliche Implementierungswege**, jeweils mit Trade-off:
-
-1. **Local-only mit Token-Index** — kürzester Weg, kein Backend.
-   Token ist ein zufälliger Slug (z. B. `crimson-falcon-42`); State-JSON
-   liegt im `localStorage` unter `se_pb_save_<token>`. Nachteil: nur
-   im selben Browser wieder einlesbar. Kann mit Vorlagen-Funktion
-   kombiniert werden (Vorlage = lokal, Token = "Share-Slug").
-
-2. **URL-encoded Token (selbstenthaltend)** — State-JSON wird mit
-   `pako`/`lz-string` komprimiert + base64-codiert; Token IST der
-   komprimierte State. Funktioniert überall ohne Backend. Token wird
-   aber je nach State-Größe lang (vermutlich 200–2000 Zeichen).
-   Variante: Token ist eine fertige URL `…/index.html#state=<...>`,
-   die man teilen kann.
-
-3. **Server-Backend** — kurzer Token (z. B. 6 Chars), State-JSON liegt
-   auf einem Server (z. B. Cloudflare KV, Supabase, oder ein eigenes
-   PHP-Script auf IONOS). Token-Lookup gibt State zurück. Echtes
-   Sharing zwischen Geräten und Browsern. Bedingt aber Backend-
-   Aufwand und bricht „komplett offline".
-
-**Vorschlag:** Option 2 als Default (offline-tauglich), optional Option 3
-als opt-in für längerfristige Aufbewahrung. UI: „💾 Speichern → Token
-kopieren" / „📥 Token laden → einfügen". State-Format versionieren
-(`{version: 1, …}`) damit alte Token später migrierbar bleiben.
+Mögliche Erweiterungen:
+- **Kompression** (`pako`/`lz-string` inline) für kompaktere Token —
+  aktuell ~5–10 KB für mittelgroße Konfigurationen.
+- **URL-Hash-Variante** (`#state=<token>`) — Link öffnet das Tool
+  direkt mit dem geladenen State, ohne dass der User Token einfügen
+  muss.
+- **Server-Backend** für sehr kurze Token (6 Zeichen) und längerfristige
+  Aufbewahrung — würde aber „komplett offline" brechen.
 
 ### Touch-Support für Drag & Drop
 Aktuell nur Mouse-Events sowohl in der Block-Palette als auch beim

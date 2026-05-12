@@ -7,6 +7,27 @@ das Projekt folgt [Semantic Versioning](https://semver.org/lang/de/).
 
 ## [Unreleased]
 
+## [1.4.0] — 2026-05-12
+
+### Hinzugefügt (Share-Token)
+- **Neue Sektion „SHARE-TOKEN"** unter den Vorlagen — speichert/lädt
+  die komplette Konfiguration (Bedingungen, Aktionen, LCD-Baukasten,
+  Multi-LCD-Setup, alle Widget-Positionen + Farben) als kopierbarer
+  Base64-Token.
+- **„💾 Token erzeugen"**: serialisiert den State, codiert ihn als
+  UTF-8-Base64 und kopiert ihn automatisch in die Zwischenablage.
+  Token erscheint zusätzlich in der Textarea (mit Zeichen-Zähler) —
+  als Fallback falls die Zwischenablage gesperrt ist.
+- **„📥 Token laden"**: liest Token aus der Textarea, decodiert,
+  validiert (Schema-Version + Inhalt), zeigt Zusammenfassung
+  („3 Bedingungen, 12 LCD-Widgets, erzeugt 2026-05-12") und ersetzt
+  den aktuellen Stand nach Bestätigung.
+- **Offline-fähig**: Token ist selbstenthaltend (Base64-codiertes JSON,
+  kein Server, kein Account). Token kann per E-Mail / Chat / Datei
+  geteilt werden.
+- **Schema-Versioniert** (`v: 1`) — zukünftige State-Modell-Änderungen
+  bleiben rückwärtskompatibel; alte Token werden defensiv migriert.
+
 ## [1.3.4] — 2026-05-12
 
 ### Behoben (Korrektur zu v1.3.3 — Scope eingegrenzt)
