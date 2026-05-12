@@ -7,6 +7,22 @@ das Projekt folgt [Semantic Versioning](https://semver.org/lang/de/).
 
 ## [Unreleased]
 
+## [1.3.1] — 2026-05-12
+
+### Behoben (Multi-LCD Drag & Resize)
+- Widgets ließen sich im Multi-LCD-Modus nicht über LCD-Grenzen
+  hinaus platzieren oder verschieben — Boundary-Clamping nutzte
+  noch die Single-LCD-Auflösung (`res.w`/`res.h`) statt des
+  virtuellen Canvas (`cols × rows × LCD`).
+- Maus-zu-LCD-Pixel-Umrechnung war ebenfalls falsch: `scaleScreen`
+  rechnete `container.clientWidth / res.w` statt `… / virtualWidth`,
+  weshalb Widgets beim Resize riesig wurden und beim Loslassen auf
+  die Single-LCD-Größe „zurücksprangen".
+- Beide Stellen (Drag-Handler in `lcd-dnd.js` und das Live-Update
+  der Cell-Geometry) nutzen jetzt einen gemeinsamen Helper
+  `_lcdVirtualCanvas()`, der bei aktivem Multi-LCD die korrekten
+  Gesamt-Dimensionen liefert.
+
 ## [1.3.0] — 2026-05-12
 
 ### Hinzugefügt (Phase 5 — Multi-LCD-Anordnung)

@@ -16,6 +16,19 @@ const LCD_MIN_SIZE = 32;  // Minimale Widget-Größe (LCD-Pixel, an Snap-Vielfac
 
 let _lcdDragState = null;
 
+// Virtuelle Canvas-Größe (für Multi-LCD: cols × rows × LCD).
+// Single-LCD: identisch zur LCD-Auflösung.
+function _lcdVirtualCanvas() {
+  const lc = state.lcdComposer;
+  const resKey = lc.resolution || "square";
+  const res = LCD_RESOLUTIONS[resKey] || LCD_RESOLUTIONS.square;
+  const ml = lc.multiLcd;
+  const multi = ml && ml.enabled === true && (lc.displayMode || "external") === "external";
+  const cols = multi ? Math.max(1, parseInt(ml.cols, 10) || 1) : 1;
+  const rows = multi ? Math.max(1, parseInt(ml.rows, 10) || 1) : 1;
+  return { w: res.w * cols, h: res.h * rows };
+}
+
 function initLcdDragHandlers() {
   // Delegation am Document, weil die Cells per render() neu gemalt werden
   document.addEventListener("mousedown", _lcdMouseDown);
@@ -34,10 +47,10 @@ function _lcdMouseDown(e) {
 
   const container = cell.closest(".lcd-full-preview");
   if (!container) return;
-  const resKey = state.lcdComposer.resolution || "square";
-  const res = LCD_RESOLUTIONS[resKey] || LCD_RESOLUTIONS.square;
-  // INNER-Width (ohne Border), damit Browser-Pixel-Delta exakt zu LCD-Pixel-Delta passt
-  const scaleScreen = container.clientWidth / res.w;
+  // Virtuelles Canvas (für Multi-LCD ist das cols × rows × LCD-Größe).
+  // INNER-Width / virtual.w ergibt den exakten Pixel-zu-LCD-Faktor.
+  const virt = _lcdVirtualCanvas();
+  const scaleScreen = container.clientWidth / virt.w;
 
   _lcdDragState = {
     idx, widget, isResize, scaleScreen,
@@ -47,7 +60,7 @@ function _lcdMouseDown(e) {
     origY: parseFloat(widget.manualY) || 0,
     origW: parseFloat(widget.manualW) || 100,
     origH: parseFloat(widget.manualH) || 40,
-    res, container
+    virt, container
   };
 
   // Live-Maße-Badge erzeugen
@@ -97,13 +110,14 @@ function _lcdMouseMove(e) {
       newH = _snap(Math.max(LCD_MIN_SIZE, s.origH + dy));
       newW = _snap(Math.max(LCD_MIN_SIZE, newH * aspect));
     }
-    // Boundary: nicht über LCD-Rand hinaus (für beide Dimensionen)
-    if (s.origX + newW > s.res.w) {
-      newW = s.res.w - s.origX;
+    // Boundary: nicht über virtuellen Canvas hinaus (Multi-LCD: cols × rows × LCD).
+    // Innerhalb des Canvas dürfen Widgets LCD-Grenzen überspannen.
+    if (s.origX + newW > s.virt.w) {
+      newW = s.virt.w - s.origX;
       newH = _snap(newW / aspect);
     }
-    if (s.origY + newH > s.res.h) {
-      newH = s.res.h - s.origY;
+    if (s.origY + newH > s.virt.h) {
+      newH = s.virt.h - s.origY;
       newW = _snap(newH * aspect);
     }
     s.widget.manualW = newW;
@@ -111,9 +125,9 @@ function _lcdMouseMove(e) {
   } else {
     let newX = _snap(s.origX + dx);
     let newY = _snap(s.origY + dy);
-    // Boundary: Widget bleibt innerhalb LCD
-    newX = Math.max(0, Math.min(newX, s.res.w - s.origW));
-    newY = Math.max(0, Math.min(newY, s.res.h - s.origH));
+    // Boundary: Widget bleibt innerhalb des virtuellen Canvas
+    newX = Math.max(0, Math.min(newX, s.virt.w - s.origW));
+    newY = Math.max(0, Math.min(newY, s.virt.h - s.origH));
     s.widget.manualX = newX;
     s.widget.manualY = newY;
   }
@@ -145,9 +159,9 @@ function _lcdUpdateCellGeometry(idx) {
   if (!container) return;
   const cell = container.querySelector(`.lcd-cell-manual[data-widget-idx="${idx}"]`);
   if (!cell) return;
-  const resKey = state.lcdComposer.resolution || "square";
-  const res = LCD_RESOLUTIONS[resKey] || LCD_RESOLUTIONS.square;
-  const scale = container.clientWidth / res.w;
+  // Virtuelles Canvas (für Multi-LCD: cols × rows × LCD-Größe)
+  const virt = _lcdVirtualCanvas();
+  const scale = container.clientWidth / virt.w;
   cell.style.left   = Math.round((parseFloat(w.manualX) || 0) * scale) + "px";
   cell.style.top    = Math.round((parseFloat(w.manualY) || 0) * scale) + "px";
   cell.style.width  = Math.round((parseFloat(w.manualW) || 100) * scale) + "px";
