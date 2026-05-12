@@ -710,3 +710,12 @@ function getLcdWidgetAspect(type) {
 function findLcdWidget(type) {
   return LCD_WIDGETS[type];
 }
+
+// Aktuelle Theme-Accent-Farbe für Widget-Labels (R,G,B-String).
+// Damit folgen alle Überschriften automatisch dem gewählten LCD-Theme,
+// ohne dass jedes Widget ein eigenes "labelColor"-Feld braucht.
+function lcdLabelColor() {
+  const themeKey = (typeof state !== "undefined" && state.lcdComposer && state.lcdComposer.theme) || "default";
+  const t = LCD_THEMES[themeKey] || LCD_THEMES.default;
+  return t ? t.accent : "255,140,26";
+}

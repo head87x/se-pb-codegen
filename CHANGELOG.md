@@ -7,6 +7,20 @@ das Projekt folgt [Semantic Versioning](https://semver.org/lang/de/).
 
 ## [Unreleased]
 
+## [1.3.3] — 2026-05-12
+
+### Behoben (Label-Farbe folgt LCD-Theme)
+- Die Überschriften aller LCD-Widgets (Statusleiste, Wert-Anzeige,
+  Donut, Tachometer, Doppelbalken, Großes Zahlenfeld, Icon+Wert,
+  Aggregator, Punkt-Indikator, Statusliste, …) waren fest auf
+  `#d8e1ec` (Off-White) gesetzt und folgten dem LCD-Theme nicht.
+- Neuer Helper `lcdLabelColor()` in `widgets.js` liefert die Accent-Farbe
+  des aktuell gewählten LCD-Themes. Sowohl die SVG-Vorschau als auch
+  der C#-Generator nutzen jetzt diesen Helper an allen Label-Stellen.
+- **Resultat:** Beim Theme-Wechsel (Orange / Rot / Grün / Blau) sehen
+  die Labels sofort die neue Akzent-Farbe — sowohl im Live-Preview
+  als auch im generierten Code, der ins Spiel kommt.
+
 ## [1.3.2] — 2026-05-12
 
 ### Behoben (Manual-Rahmen eng am Widget — Teil 2)
