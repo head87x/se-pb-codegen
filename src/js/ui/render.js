@@ -44,7 +44,7 @@ function _argField(mutator, value, argType, hint) {
 function renderConditions() {
   const root = document.getElementById("conditions");
   if (state.conditions.length === 0) {
-    root.innerHTML = '<span class="empty-hint">Keine Bedingungen — Aktion läuft immer.</span>';
+    root.innerHTML = `<span class="empty-hint">${escapeHtml(t("cond.empty"))}</span>`;
     return;
   }
   root.innerHTML = state.conditions.map((c, i) => {
@@ -54,8 +54,8 @@ function renderConditions() {
     const logicSelect = i > 0 ? `
       <div class="logic-op">
         <select onchange="updateCond(${i}, 'logicOp', this.value)">
-          <option value="AND" ${c.logicOp === "AND" ? "selected" : ""}>UND</option>
-          <option value="OR" ${c.logicOp === "OR" ? "selected" : ""}>ODER</option>
+          <option value="AND" ${c.logicOp === "AND" ? "selected" : ""}>${escapeHtml(t("label.logic.and"))}</option>
+          <option value="OR" ${c.logicOp === "OR" ? "selected" : ""}>${escapeHtml(t("label.logic.or"))}</option>
         </select>
       </div>` : "";
     const rowClass = (needsArg && needsArg2) ? "row-3" : (needsArg ? "row-2" : "");
@@ -73,26 +73,26 @@ function renderConditions() {
       ${logicSelect}
       <div class="condition-block">
         <div class="cond-header">
-          <span>BEDINGUNG #${i + 1}</span>
-          <button class="small danger" onclick="removeCond(${i})">✕ Entfernen</button>
+          <span>${escapeHtml(t("cond.add").replace(/^\+\s*/, "").toUpperCase())} #${i + 1}</span>
+          <button class="small danger" onclick="removeCond(${i})">${escapeHtml(t("btn.remove"))}</button>
         </div>
         <div class="row row-2">
           <div>
-            <label>Block-Typ</label>
+            <label>${escapeHtml(t("label.blocktype"))}</label>
             <select onchange="updateCond(${i}, 'blockType', this.value)">${blockTypeOptions('conditions')}</select>
           </div>
           <div>
-            <label>${c.useGroup ? 'Gruppen-Name (im Spiel)' : 'Block-Name (im Spiel)'}</label>
-            <input value="${escapeAttr(c.blockName)}" oninput="updateCond(${i}, 'blockName', this.value)" placeholder="${c.useGroup ? 'exakter Name der Block-Gruppe' : 'exakter Name aus Terminal'}">
+            <label>${escapeHtml(t(c.useGroup ? "group.name" : "block.name"))}</label>
+            <input value="${escapeAttr(c.blockName)}" oninput="updateCond(${i}, 'blockName', this.value)" placeholder="${escapeAttr(t(c.useGroup ? "group.name_ph" : "block.name_ph"))}">
           </div>
         </div>
         <label class="group-toggle">
           <input type="checkbox" ${c.useGroup ? "checked" : ""} onchange="updateCond(${i}, 'useGroup', this.checked)">
-          Auf Block-Gruppe anwenden (Bedingung erfüllt, sobald irgendein Block der Gruppe sie erfüllt)
+          ${escapeHtml(t("group.cond"))}
         </label>
         <div class="row ${rowClass}">
           <div>
-            <label>Prüfung ${tooltipBadge(c.blockType, c.condId, 'conditions')}</label>
+            <label>${escapeHtml(t("label.check"))} ${tooltipBadge(c.blockType, c.condId, 'conditions')}</label>
             <select onchange="updateCond(${i}, 'condId', this.value)">${condOptions(c.blockType)}</select>
           </div>
           ${argHtml}${arg2Html}
@@ -116,7 +116,7 @@ function renderActions(which) {
   const list = which === "then" ? state.actionsThen : state.actionsElse;
   const root = document.getElementById(`actions-${which}`);
   if (list.length === 0) {
-    root.innerHTML = `<span class="empty-hint">${which === "then" ? "Noch keine Aktionen." : "Keine SONST-Aktionen."}</span>`;
+    root.innerHTML = `<span class="empty-hint">${escapeHtml(t(which === "then" ? "act.empty" : "else.empty"))}</span>`;
     return;
   }
   root.innerHTML = list.map((a, i) => {
@@ -137,26 +137,26 @@ function renderActions(which) {
     return `
       <div class="action-block ${which === "else" ? "else-block" : ""}">
         <div class="act-header">
-          <span>AKTION #${i + 1}</span>
-          <button class="small danger" onclick="removeAct('${which}', ${i})">✕ Entfernen</button>
+          <span>${escapeHtml(t("label.action").toUpperCase())} #${i + 1}</span>
+          <button class="small danger" onclick="removeAct('${which}', ${i})">${escapeHtml(t("btn.remove"))}</button>
         </div>
         <div class="row row-2">
           <div>
-            <label>Block-Typ</label>
+            <label>${escapeHtml(t("label.blocktype"))}</label>
             <select onchange="updateAct('${which}', ${i}, 'blockType', this.value)">${blockTypeOptions('actions')}</select>
           </div>
           <div>
-            <label>${a.useGroup ? 'Gruppen-Name' : 'Block-Name'}</label>
-            <input value="${escapeAttr(a.blockName)}" oninput="updateAct('${which}', ${i}, 'blockName', this.value)" placeholder="${a.useGroup ? 'exakter Name der Block-Gruppe' : 'exakter Name aus Terminal'}">
+            <label>${escapeHtml(t(a.useGroup ? "group.name" : "block.name"))}</label>
+            <input value="${escapeAttr(a.blockName)}" oninput="updateAct('${which}', ${i}, 'blockName', this.value)" placeholder="${escapeAttr(t(a.useGroup ? "group.name_ph" : "block.name_ph"))}">
           </div>
         </div>
         <label class="group-toggle">
           <input type="checkbox" ${a.useGroup ? "checked" : ""} onchange="updateAct('${which}', ${i}, 'useGroup', this.checked)">
-          Auf Block-Gruppe anwenden (Aktion läuft für alle Blöcke der Gruppe)
+          ${escapeHtml(t("group.act"))}
         </label>
         <div class="row ${rowClass}">
           <div>
-            <label>Aktion ${tooltipBadge(a.blockType, a.actId, 'actions')}</label>
+            <label>${escapeHtml(t("label.action"))} ${tooltipBadge(a.blockType, a.actId, 'actions')}</label>
             <select onchange="updateAct('${which}', ${i}, 'actId', this.value)">${actOptions(a.blockType)}</select>
           </div>
           ${argHtml}${arg2Html}

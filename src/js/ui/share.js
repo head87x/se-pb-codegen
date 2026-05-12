@@ -54,11 +54,11 @@ function exportShareToken() {
   // Auto-Copy in die Zwischenablage (falls verfügbar)
   if (navigator.clipboard && navigator.clipboard.writeText) {
     navigator.clipboard.writeText(token).then(
-      () => showToast(`Token erzeugt (${token.length} Zeichen) — kopiert`),
-      () => showToast(`Token erzeugt (${token.length} Zeichen) — manuell kopieren`)
+      () => showToast(t("share.toast_created", token.length)),
+      () => showToast(t("share.toast_created_manual", token.length))
     );
   } else {
-    showToast(`Token erzeugt (${token.length} Zeichen) — Strg+C zum Kopieren`);
+    showToast(t("share.toast_created_manual", token.length));
   }
 }
 
@@ -68,7 +68,7 @@ async function importShareToken() {
   if (!ta) return;
   const raw = (ta.value || "").trim();
   if (!raw) {
-    showToast("Bitte erst Token einfügen");
+    showToast(t("share.toast_no_input"));
     return;
   }
 
@@ -76,24 +76,24 @@ async function importShareToken() {
   try {
     payload = JSON.parse(_shareDecodeB64(raw));
   } catch (e) {
-    showToast("Token ungültig (nicht lesbar)");
+    showToast(t("share.toast_bad_format"));
     return;
   }
   if (!payload || typeof payload !== "object" || !payload.state) {
-    showToast("Token ungültig (Inhalt unvollständig)");
+    showToast(t("share.toast_bad_data"));
     return;
   }
   if (payload.v > SHARE_TOKEN_VERSION) {
-    showToast(`Token aus neuerer Tool-Version (v${payload.v}) — bitte Tool aktualisieren`);
+    showToast(t("share.toast_new_version", payload.v));
     return;
   }
 
   const widgetCount = (payload.state.lcdComposer && payload.state.lcdComposer.widgets || []).length;
   const condCount = (payload.state.conditions || []).length;
-  const summary = `${condCount} Bedingung(en), ${widgetCount} LCD-Widget(s)`;
+  const summary = t("share.summary", condCount, widgetCount);
   const ok = await showConfirm(
-    `Aktuellen Stand mit Token-Inhalt ersetzen?\n\nToken enthält: ${summary}\nErzeugt: ${payload.ts || "—"}`,
-    { confirmLabel: "Ersetzen" }
+    t("share.confirm_replace", summary, payload.ts || "—"),
+    { confirmLabel: t("share.replace_btn") }
   );
   if (!ok) return;
 
@@ -103,7 +103,7 @@ async function importShareToken() {
   ta.value = "";
   _shareUpdateInfo();
   render();
-  showToast("Token geladen — Konfiguration wiederhergestellt");
+  showToast(t("share.toast_loaded"));
 }
 
 // Wenn der Token aus einer älteren Tool-Version stammt, könnten Felder
@@ -147,5 +147,5 @@ function _shareUpdateInfo() {
   const info = document.getElementById("share-token-info");
   if (!ta || !info) return;
   const len = (ta.value || "").length;
-  info.textContent = len ? `Token-Länge: ${len} Zeichen` : "";
+  info.textContent = len ? t("share.token_len", len) : "";
 }

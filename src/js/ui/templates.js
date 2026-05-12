@@ -17,12 +17,12 @@ function renderTemplates() {
 }
 
 async function saveTemplate() {
-  const name = await showPrompt("Name der Vorlage:", "", { placeholder: "z.B. Reaktor-Überwachung" });
+  const name = await showPrompt(t("templates.prompt_name"), "", { placeholder: t("templates.prompt_ph") });
   if (!name) return;
   templates.push({ name, state: JSON.parse(JSON.stringify(state)) });
   localStorage.setItem("se_pb_templates", JSON.stringify(templates));
   render();
-  showToast(`Vorlage "${name}" gespeichert`);
+  showToast(t("toast.template_saved", name));
 }
 
 function loadTemplate(i) {
@@ -69,18 +69,18 @@ function loadTemplate(i) {
   document.getElementById("lcd-composer-resolution").value = state.lcdComposer.resolution;
   document.getElementById("lcd-composer-config").style.display = state.lcdComposer.enabled ? "block" : "none";
   render();
-  showToast(`"${templates[i].name}" geladen`);
+  showToast(t("toast.template_loaded", templates[i].name));
 }
 
 async function deleteTemplate(i) {
-  if (!await showConfirm(`Vorlage "${templates[i].name}" löschen?`, { confirmLabel: "Löschen" })) return;
+  if (!await showConfirm(t("templates.delete_q", templates[i].name), { confirmLabel: t("templates.delete_btn") })) return;
   templates.splice(i, 1);
   localStorage.setItem("se_pb_templates", JSON.stringify(templates));
   render();
 }
 
 async function newProject() {
-  if (!await showConfirm("Aktuelles Projekt verwerfen und neu starten?", { confirmLabel: "Verwerfen" })) return;
+  if (!await showConfirm(t("templates.new_q"), { confirmLabel: t("templates.new_btn") })) return;
   state = {
     conditions: [], actionsThen: [], actionsElse: [],
     execMode: "argument", lcdEnable: false, lcdName: "",

@@ -11,10 +11,14 @@
   <h1>// SE.PB <span class="accent">CODE</span> GENERATOR</h1>
   <div class="header-meta">
     <label class="theme-picker">
-      <span class="theme-picker-label">THEME</span>
+      <span class="theme-picker-label" data-i18n="header.lang">SPRACHE</span>
+      <select id="lang-select" onchange="setLang(this.value)"></select>
+    </label>
+    <label class="theme-picker">
+      <span class="theme-picker-label" data-i18n="header.theme">THEME</span>
       <select id="tool-theme-select" onchange="setToolTheme(this.value)"></select>
     </label>
-    <span class="tag">v1.5.0 :: SPACE ENGINEERS PROGRAMMABLE BLOCK</span>
+    <span class="tag">v1.6.0 :: <span data-i18n="header.subtitle">SPACE ENGINEERS PROGRAMMABLE BLOCK</span></span>
   </div>
 </header>
 
@@ -23,14 +27,14 @@
   <!-- LEFT: BLOCK PALETTE (Phase 3) -->
   <aside class="panel palette-panel">
     <div class="panel-header">
-      <span>▶ BLÖCKE</span>
-      <span class="ascii-corner">[ DRAG ]</span>
+      <span data-i18n="palette.title">▶ BLÖCKE</span>
+      <span class="ascii-corner" data-i18n="palette.tag">[ DRAG ]</span>
     </div>
     <div class="panel-body">
       <input type="text" class="palette-search" id="palette-search"
-             placeholder="Suche…" oninput="filterPalette(this.value)">
+             data-i18n-placeholder="palette.search" placeholder="Suche…" oninput="filterPalette(this.value)">
       <div id="palette-list"></div>
-      <div class="help-text" style="margin-top:8px;">
+      <div class="help-text" style="margin-top:8px;" data-i18n="palette.help">
         Block ins WENN/DANN/SONST ziehen, oder weiter "+ Bedingung/Aktion" verwenden.
       </div>
     </div>
@@ -39,23 +43,23 @@
   <!-- MIDDLE: BUILDER -->
   <div class="panel">
     <div class="panel-header">
-      <span>▶ BAUKASTEN</span>
-      <span class="ascii-corner">[ INPUT ]</span>
+      <span data-i18n="builder.title">▶ BAUKASTEN</span>
+      <span class="ascii-corner" data-i18n="builder.tag">[ INPUT ]</span>
     </div>
     <div class="panel-body">
 
       <!-- TEMPLATES -->
       <div class="section">
         <div class="section-title">
-          <span>::: VORLAGEN</span>
+          <span data-i18n="templates.title">::: VORLAGEN</span>
           <div class="btn-row">
-            <button class="small" onclick="saveTemplate()">+ Speichern</button>
-            <button class="small" onclick="newProject()">⟲ Neu</button>
+            <button class="small" onclick="saveTemplate()" data-i18n="templates.save">+ Speichern</button>
+            <button class="small" onclick="newProject()" data-i18n="templates.new">⟲ Neu</button>
           </div>
         </div>
         <div class="section-content">
           <div id="templates" class="templates-list">
-            <span class="empty-hint">Keine Vorlagen gespeichert.</span>
+            <span class="empty-hint" data-i18n="templates.empty">Keine Vorlagen gespeichert.</span>
           </div>
         </div>
       </div>
@@ -63,30 +67,30 @@
       <!-- SHARE-TOKEN (Phase: v1.4.0) -->
       <div class="section">
         <div class="section-title">
-          <span>::: SHARE-TOKEN</span>
+          <span data-i18n="share.title">::: SHARE-TOKEN</span>
           <div class="btn-row">
-            <button class="small primary" onclick="exportShareToken()">💾 Token erzeugen</button>
-            <button class="small" onclick="importShareToken()">📥 Token laden</button>
+            <button class="small primary" onclick="exportShareToken()" data-i18n="share.export">💾 Token erzeugen</button>
+            <button class="small" onclick="importShareToken()" data-i18n="share.import">📥 Token laden</button>
           </div>
         </div>
         <div class="section-content">
-          <div class="help-text" style="margin-bottom:6px;">Speichert / lädt deine komplette Konfiguration (Bedingungen, Aktionen, LCD-Baukasten) als kopierbaren Token. Token-Inhalt liegt direkt in der Zeichenkette — kein Server, kein Account.</div>
-          <textarea id="share-token-area" class="share-token-area" rows="4" spellcheck="false" oninput="_shareUpdateInfo()" placeholder="Hier Token einfügen und „Token laden" klicken — oder „Token erzeugen" für den aktuellen Stand."></textarea>
+          <div class="help-text" style="margin-bottom:6px;" data-i18n="share.help">Speichert / lädt deine komplette Konfiguration (Bedingungen, Aktionen, LCD-Baukasten) als kopierbaren Token. Token-Inhalt liegt direkt in der Zeichenkette — kein Server, kein Account.</div>
+          <textarea id="share-token-area" class="share-token-area" rows="4" spellcheck="false" oninput="_shareUpdateInfo()" data-i18n-placeholder="share.placeholder" placeholder="Hier Token einfügen und „Token laden" klicken — oder „Token erzeugen" für den aktuellen Stand."></textarea>
           <div id="share-token-info" class="help-text" style="margin-top:4px;"></div>
         </div>
       </div>
 
       <!-- EXECUTION MODE -->
       <div class="section">
-        <div class="section-title"><span>::: AUSFÜHRUNG</span></div>
+        <div class="section-title"><span data-i18n="exec.title">::: AUSFÜHRUNG</span></div>
         <div class="section-content">
-          <label>Modus</label>
+          <label data-i18n="exec.mode">Modus</label>
           <select id="exec-mode" onchange="onExecModeChange(this.value)">
-            <option value="argument">Manuell (per Argument / Button)</option>
-            <option value="continuous">Kontinuierlich (jeden Tick)</option>
-            <option value="timer1">Alle 1 Sekunde (Update1)</option>
-            <option value="timer10">Alle 10 Ticks (Update10)</option>
-            <option value="timer100">Alle 100 Ticks (Update100)</option>
+            <option value="argument"   data-i18n="exec.argument">Manuell (per Argument / Button)</option>
+            <option value="continuous" data-i18n="exec.continuous">Kontinuierlich (jeden Tick)</option>
+            <option value="timer1"     data-i18n="exec.timer1">Alle 1 Sekunde (Update1)</option>
+            <option value="timer10"    data-i18n="exec.timer10">Alle 10 Ticks (Update10)</option>
+            <option value="timer100"   data-i18n="exec.timer100">Alle 100 Ticks (Update100)</option>
           </select>
           <div class="help-text" id="exec-help"></div>
         </div>
@@ -95,85 +99,85 @@
       <!-- CONDITIONS -->
       <div class="section">
         <div class="section-title">
-          <span>::: WENN (Bedingungen)</span>
-          <button class="small" onclick="addCondition()">+ Bedingung</button>
+          <span data-i18n="cond.title">::: WENN (Bedingungen)</span>
+          <button class="small" onclick="addCondition()" data-i18n="cond.add">+ Bedingung</button>
         </div>
         <div class="section-content drop-target" id="conditions">
-          <span class="empty-hint">Keine Bedingungen — Aktion läuft immer.</span>
+          <span class="empty-hint" data-i18n="cond.empty">Keine Bedingungen — Aktion läuft immer.</span>
         </div>
       </div>
 
       <!-- ACTIONS -->
       <div class="section">
         <div class="section-title">
-          <span>::: DANN (Aktionen)</span>
-          <button class="small" onclick="addAction('then')">+ Aktion</button>
+          <span data-i18n="act.title">::: DANN (Aktionen)</span>
+          <button class="small" onclick="addAction('then')" data-i18n="act.add">+ Aktion</button>
         </div>
         <div class="section-content drop-target" id="actions-then">
-          <span class="empty-hint">Noch keine Aktionen.</span>
+          <span class="empty-hint" data-i18n="act.empty">Noch keine Aktionen.</span>
         </div>
       </div>
 
       <!-- ELSE -->
       <div class="section">
         <div class="section-title">
-          <span>::: SONST (optional)</span>
-          <button class="small" onclick="addAction('else')">+ Aktion</button>
+          <span data-i18n="else.title">::: SONST (optional)</span>
+          <button class="small" onclick="addAction('else')" data-i18n="act.add">+ Aktion</button>
         </div>
         <div class="section-content drop-target" id="actions-else">
-          <span class="empty-hint">Keine SONST-Aktionen.</span>
+          <span class="empty-hint" data-i18n="else.empty">Keine SONST-Aktionen.</span>
         </div>
       </div>
 
       <!-- LCD OUTPUT (alt — einfache Status-Ausgabe, Text-Modus) -->
       <div class="section">
-        <div class="section-title"><span>::: LCD STATUS-AUSGABE (Text)</span></div>
+        <div class="section-title"><span data-i18n="lcdtext.title">::: LCD STATUS-AUSGABE (Text)</span></div>
         <div class="section-content">
           <div class="toggle-row">
-            <label><input type="checkbox" id="lcd-enable" onchange="onLcdEnableChange(this.checked)"> Aktivieren</label>
+            <label><input type="checkbox" id="lcd-enable" onchange="onLcdEnableChange(this.checked)"> <span data-i18n="lcdtext.enable">Aktivieren</span></label>
           </div>
           <div id="lcd-config" style="display:none; margin-top:10px;">
-            <label>LCD Block-Name</label>
-            <input id="lcd-name" placeholder="z.B. LCD Status" oninput="onLcdNameInput(this.value)">
-            <div class="help-text">Einfache Text-Ausgabe: schreibt Status, Bedingungen und Aktionen aufs LCD.</div>
+            <label data-i18n="lcdtext.name">LCD Block-Name</label>
+            <input id="lcd-name" data-i18n-placeholder="lcdtext.placeholder" placeholder="z.B. LCD Status" oninput="onLcdNameInput(this.value)">
+            <div class="help-text" data-i18n="lcdtext.help">Einfache Text-Ausgabe: schreibt Status, Bedingungen und Aktionen aufs LCD.</div>
           </div>
         </div>
       </div>
 
       <!-- LCD BAUKASTEN (Phase 4a — Sprite-API, grafische Widgets) -->
       <div class="section">
-        <div class="section-title"><span>::: LCD BAUKASTEN (Grafik)</span></div>
+        <div class="section-title"><span data-i18n="lcd.title">::: LCD BAUKASTEN (Grafik)</span></div>
         <div class="section-content">
           <div class="toggle-row">
-            <label><input type="checkbox" id="lcd-composer-enable" onchange="onLcdComposerEnable(this.checked)"> Aktivieren</label>
+            <label><input type="checkbox" id="lcd-composer-enable" onchange="onLcdComposerEnable(this.checked)"> <span data-i18n="lcd.enable">Aktivieren</span></label>
           </div>
           <div id="lcd-composer-config" style="display:none; margin-top:10px;">
             <div class="row row-2">
               <div>
-                <label>Display-Quelle</label>
+                <label data-i18n="lcd.source">Display-Quelle</label>
                 <select id="lcd-composer-mode" onchange="onLcdComposerModeChange(this.value)">
-                  <option value="external">Eigenständiges LCD (Block-Name)</option>
-                  <option value="pb">Programmable Block (dieser PB)</option>
-                  <option value="cockpit">Cockpit / Sitz / Remote</option>
+                  <option value="external" data-i18n="lcd.source.external">Eigenständiges LCD (Block-Name)</option>
+                  <option value="pb"       data-i18n="lcd.source.pb">Programmable Block (dieser PB)</option>
+                  <option value="cockpit"  data-i18n="lcd.source.cockpit">Cockpit / Sitz / Remote</option>
                 </select>
               </div>
               <div id="lcd-composer-name-wrap">
-                <label>LCD / Cockpit Block-Name</label>
-                <input id="lcd-composer-name" placeholder="z.B. LCD Cockpit" oninput="onLcdComposerNameInput(this.value)">
+                <label data-i18n="lcd.name">LCD / Cockpit Block-Name</label>
+                <input id="lcd-composer-name" data-i18n-placeholder="lcd.name_ph" placeholder="z.B. LCD Cockpit" oninput="onLcdComposerNameInput(this.value)">
               </div>
             </div>
             <div id="lcd-composer-surface-wrap" style="display:none; margin-top:6px;">
-              <label>Surface-Index (0 = Hauptdisplay)</label>
+              <label data-i18n="lcd.surface">Surface-Index (0 = Hauptdisplay)</label>
               <input id="lcd-composer-surface" type="number" min="0" max="15" step="1" value="0" oninput="onLcdComposerSurfaceInput(this.value)">
-              <div class="help-text">PB hat meist nur Index 0. Cockpits: 0–7 je nach Modell.</div>
+              <div class="help-text" data-i18n="lcd.surface_help">PB hat meist nur Index 0. Cockpits: 0–7 je nach Modell.</div>
             </div>
             <div class="row row-2" style="margin-top:8px;">
               <div>
-                <label>LCD-Format (nur für Vorschau)</label>
+                <label data-i18n="lcd.format">LCD-Format (nur für Vorschau)</label>
                 <select id="lcd-composer-resolution" onchange="onLcdComposerResolutionChange(this.value)"></select>
               </div>
               <div>
-                <label>Schnellstart</label>
+                <label data-i18n="lcd.preset">Schnellstart</label>
                 <select id="lcd-composer-preset" onchange="onLcdPresetSelect(this.value)"></select>
               </div>
             </div>
@@ -181,29 +185,29 @@
             <!-- Multi-LCD (Phase 5) — nur bei "external"-Modus -->
             <div id="lcd-multi-wrap" style="margin-top:10px; padding:8px; border:1px dashed var(--border); border-radius:3px;">
               <div class="toggle-row">
-                <label><input type="checkbox" id="lcd-multi-enable" onchange="onLcdMultiToggle(this.checked)"> Multi-LCD-Anordnung (mehrere benachbarte LCDs als ein virtuelles Display)</label>
+                <label><input type="checkbox" id="lcd-multi-enable" onchange="onLcdMultiToggle(this.checked)"> <span data-i18n="lcd.multi.toggle">Multi-LCD-Anordnung (mehrere benachbarte LCDs als ein virtuelles Display)</span></label>
               </div>
               <div id="lcd-multi-config" style="display:none; margin-top:8px;">
                 <div class="row row-3">
                   <div>
-                    <label>Spalten</label>
+                    <label data-i18n="lcd.multi.cols">Spalten</label>
                     <input id="lcd-multi-cols" type="number" min="1" max="6" step="1" value="2" oninput="onLcdMultiField('cols', this.value)">
                   </div>
                   <div>
-                    <label>Reihen</label>
+                    <label data-i18n="lcd.multi.rows">Reihen</label>
                     <input id="lcd-multi-rows" type="number" min="1" max="6" step="1" value="1" oninput="onLcdMultiField('rows', this.value)">
                   </div>
                   <div>
-                    <label>Namensmuster</label>
+                    <label data-i18n="lcd.multi.pattern">Namensmuster</label>
                     <input id="lcd-multi-pattern" type="text" value="LCD {col}{row}" oninput="onLcdMultiField('namePattern', this.value)">
                   </div>
                 </div>
-                <div class="help-text" style="margin-top:4px;">Platzhalter: <code>{col}</code> = A, B, C, … · <code>{row}</code> = 1, 2, 3, … · <code>{c}</code>/<code>{r}</code> = numerisch (1, 2, 3, …)</div>
+                <div class="help-text" style="margin-top:4px;" data-i18n="lcd.multi.help">Platzhalter: {col} = A, B, C, … · {row} = 1, 2, 3, … · {c}/{r} = numerisch (1, 2, 3, …)</div>
                 <div id="lcd-multi-names-preview" class="help-text" style="margin-top:4px;"></div>
               </div>
             </div>
 
-            <div class="help-text" style="margin-top:6px;">Widgets per Maus in der Vorschau positionieren und skalieren. Der generierte C#-Code nutzt zur Laufzeit das echte LCD-Format aus dem Spiel.</div>
+            <div class="help-text" style="margin-top:6px;" data-i18n="lcd.help">Widgets per Maus in der Vorschau positionieren und skalieren. Der generierte C#-Code nutzt zur Laufzeit das echte LCD-Format aus dem Spiel.</div>
             <div id="lcd-composer-list" style="margin-top:12px;"></div>
           </div>
         </div>
@@ -215,10 +219,10 @@
   <!-- RIGHT: CODE OUTPUT -->
   <div class="panel code-panel">
     <div class="panel-header">
-      <span>▶ GENERIERTER CODE</span>
+      <span data-i18n="code.title">▶ GENERIERTER CODE</span>
       <div class="btn-row">
-        <button class="small" onclick="copyCode()">⧉ Kopieren</button>
-        <button class="small" onclick="downloadCode()">⤓ Download</button>
+        <button class="small" onclick="copyCode()" data-i18n="code.copy">⧉ Kopieren</button>
+        <button class="small" onclick="downloadCode()" data-i18n="code.download">⤓ Download</button>
       </div>
     </div>
     <div class="panel-body">
@@ -228,8 +232,8 @@
 
 </div>
 
-<footer>
-  ⌬ Generiert C# Code für den Programmable Block <span class="accent">::</span> Code prüfen, kopieren, in PB einfügen, "Check Code" → "Remember & Exit"
+<footer data-i18n="footer">
+  ⌬ Generiert C# Code für den Programmable Block :: Code prüfen, kopieren, in PB einfügen, "Check Code" → "Remember & Exit"
 </footer>
 
 <div class="toast" id="toast"></div>
@@ -253,6 +257,7 @@
 <script src="src/js/generator/codegen.js"></script>
 <script src="src/js/ui/icons.js"></script>
 <script src="src/js/ui/themes.js"></script>
+<script src="src/js/ui/i18n.js"></script>
 <script src="src/js/ui/modal.js"></script>
 <script src="src/js/ui/tooltips.js"></script>
 <script src="src/js/ui/dnd.js"></script>
@@ -264,6 +269,8 @@
 <script>
   initToolTheme();
   document.getElementById("tool-theme-select").innerHTML = toolThemeOptions();
+  document.getElementById("lang-select").innerHTML = langOptions();
+  initI18n();
   initPalette();
   initLcdComposerSelects();
   initLcdDragHandlers();

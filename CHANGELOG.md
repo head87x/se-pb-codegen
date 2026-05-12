@@ -7,6 +7,36 @@ das Projekt folgt [Semantic Versioning](https://semver.org/lang/de/).
 
 ## [Unreleased]
 
+## [1.6.0] — 2026-05-12
+
+### Hinzugefügt (Mehrsprachigkeit Phase 1 — DE/EN-Umschaltung)
+- **Sprach-Picker im Header** rechts neben dem Theme-Picker.
+  Zwei Sprachen verfügbar: **DE — Deutsch** (Standard) und
+  **EN — English**. Auswahl persistiert im LocalStorage
+  (`se_pb_lang`), gilt sofort ohne Reload.
+- **Neuer i18n-Layer** (`src/js/ui/i18n.js`):
+  - `t("key", ...args)` für dynamische Strings mit Argument-
+    Platzhaltern (`{0}`, `{1}`, …).
+  - `data-i18n="key"`-Attribut für statische HTML-Texte.
+  - `data-i18n-placeholder="key"` für Input-Placeholder.
+  - Beim Sprachwechsel werden alle DOM-Elemente mit
+    `data-i18n*` automatisch aktualisiert + `render()` läuft
+    für die dynamisch erzeugten Inhalte.
+- **Übersetzt sind**: alle Sektion-Titel, Buttons, Hilfe-Texte,
+  Empty-Hints, Toasts, Modal-Standard-Buttons, Bedingungs-/
+  Aktions-/Else-UI, LCD-Composer-Felder, Multi-LCD-Konfiguration,
+  Share-Token-Bedienflächen, Footer.
+
+### Noch nicht übersetzt (Phase 2 — kommt später)
+- **Block-Katalog-Labels** (52 Blöcke wie „Tür (Door)" /
+  „Akku (Battery)") bleiben aktuell auf Deutsch — das wäre eine
+  separate große Umstellung, weil die deutschen Namen aktuell
+  als Schlüssel im `BLOCKS`-Objekt dienen.
+- **Tooltip-Texte** in `DESCRIPTIONS` (hunderte Erklärungen pro
+  Condition/Action) bleiben auf Deutsch.
+- **Generierter C#-Code-Kommentare** im Output (z. B.
+  `// Block-Referenzen holen`) bleiben auf Deutsch.
+
 ## [1.5.0] — 2026-05-12
 
 ### Hinzugefügt (Block-Gruppen)

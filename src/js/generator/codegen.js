@@ -306,7 +306,9 @@ function _injectInventoryHelpers(code) {
 // ============================================================
 
 function copyCode() {
-  navigator.clipboard.writeText(window._rawCode || "").then(() => showToast("Code in Zwischenablage kopiert"));
+  navigator.clipboard.writeText(window._rawCode || "").then(() => {
+    showToast(typeof t === "function" ? t("toast.copied") : "Code in Zwischenablage kopiert");
+  });
 }
 
 function downloadCode() {

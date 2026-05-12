@@ -91,25 +91,23 @@ Optionale Extras, falls jemand will:
   pro Theme statt nur Text-Label.
 
 ### Mehrsprachigkeit (Deutsch / Englisch umschaltbar)
-Strings sind aktuell komplett deutsch und großteils im HTML hardcodiert.
-Ziel: Sprachumschalter in der Header-Leiste (DE / EN), Auswahl
-persistiert im LocalStorage.
+**Phase 1 erledigt in v1.6.0**: i18n-Layer mit `t("key")` und
+`data-i18n`-Attributen, DE/EN-Umschalter im Header, LocalStorage-
+Persistenz. Übersetzt sind alle Sektion-Titel, Buttons, Hilfe-Texte,
+Toasts, Modal-Buttons, Bedingungs-/Aktions-/Else-UI, LCD-Composer-
+Felder, Multi-LCD-Konfiguration, Share-Token, Footer.
 
-Implementierung:
-- i18n-Layer mit JSON-Stringtable je Sprache
-  (`src/i18n/de.json`, `src/i18n/en.json`).
-- Statische Texte über `data-i18n="key"`-Attribute am HTML, ein
-  kleiner Bootstrap-Renderer ersetzt sie beim Laden.
-- Dynamisch erzeugte Texte (Render-Funktionen, Generator-Kommentare)
-  über eine `t('key')`-Helper-Funktion.
-- Block-Katalog-Labels (`BLOCKS["Tür (Door)"].label`) und
-  Tooltip-Texte (`DESCRIPTIONS`) sprachabhängig — zweite
-  Translations-Datei für DE/EN parallel.
-- Optional: weitere Sprachen (RU, FR, ES) — Strings als Fallback
-  auf EN, dann DE.
-
-Generierter C#-Code bleibt in Englisch (Identifier) — nur die
-Kommentar-Strings darin werden lokalisiert.
+**Noch zu tun (Phase 2)**:
+- **Block-Katalog-Labels** (52 Blöcke + alle Conditions/Actions
+  pro Block). Aktuell sind die deutschen Namen wie `"Tür (Door)"`
+  direkt die Schlüssel in `BLOCKS{}`. Migration: jeder Eintrag
+  bekommt ein `i18nKey`-Feld; das Dropdown zeigt
+  `t("block." + i18nKey)` statt des Schlüssels.
+- **DESCRIPTIONS** (Tooltip-Texte): pro Eintrag zweispaltige
+  DE/EN-Variante, gesteuert über aktuelle Sprache.
+- **C#-Code-Kommentare** im Generator-Output: `// Block-Referenzen
+  holen` etc. ebenfalls durch `t()` lokalisierbar machen.
+- Optional weitere Sprachen (RU, FR, ES) mit DE als Fallback.
 
 ### Vorlagen-Export / -Import als JSON-Datei
 Aktuell liegen Vorlagen nur im LocalStorage des Browsers. Datei-

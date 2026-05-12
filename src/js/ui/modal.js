@@ -100,13 +100,17 @@ function _modalShow(opts) {
   });
 }
 
+function _i18n(key, fallback) {
+  return (typeof t === "function") ? t(key) : fallback;
+}
+
 function showConfirm(message, options) {
   options = options || {};
   return _modalShow({
-    title:        options.title        || "Bestätigung",
+    title:        options.title        || _i18n("modal.title.confirm", "Bestätigung"),
     message:      message,
-    cancelLabel:  options.cancelLabel  || "Abbrechen",
-    confirmLabel: options.confirmLabel || "Bestätigen",
+    cancelLabel:  options.cancelLabel  || _i18n("modal.cancel",        "Abbrechen"),
+    confirmLabel: options.confirmLabel || _i18n("modal.confirm",       "Bestätigen"),
     hasInput:     false
   });
 }
@@ -114,10 +118,10 @@ function showConfirm(message, options) {
 function showPrompt(message, defaultValue, options) {
   options = options || {};
   return _modalShow({
-    title:        options.title        || "Eingabe",
+    title:        options.title        || _i18n("modal.title.prompt", "Eingabe"),
     message:      message,
-    cancelLabel:  options.cancelLabel  || "Abbrechen",
-    confirmLabel: options.confirmLabel || "OK",
+    cancelLabel:  options.cancelLabel  || _i18n("modal.cancel",       "Abbrechen"),
+    confirmLabel: options.confirmLabel || _i18n("modal.ok",           "OK"),
     hasInput:     true,
     defaultValue: defaultValue || "",
     placeholder:  options.placeholder  || ""
@@ -127,9 +131,9 @@ function showPrompt(message, defaultValue, options) {
 function showAlert(message, options) {
   options = options || {};
   return _modalShow({
-    title:        options.title        || "Hinweis",
+    title:        options.title        || _i18n("modal.title.alert", "Hinweis"),
     message:      message,
-    confirmLabel: options.confirmLabel || "OK",
+    confirmLabel: options.confirmLabel || _i18n("modal.ok",          "OK"),
     hasInput:     false,
     hideCancel:   true
   });

@@ -244,7 +244,10 @@ async function onLcdPresetSelect(key) {
   if (!preset) return;
   const hasExisting = state.lcdComposer.widgets.length > 0;
   if (hasExisting) {
-    const ok = await showConfirm(`Preset "${preset.label}" laden? Die aktuellen ${state.lcdComposer.widgets.length} Widget(s) werden ersetzt.`, { confirmLabel: "Ersetzen" });
+    const ok = await showConfirm(
+      t("lcd.preset.confirm", preset.label, state.lcdComposer.widgets.length),
+      { confirmLabel: t("lcd.preset.replace") }
+    );
     if (!ok) {
       const sel = document.getElementById("lcd-composer-preset");
       if (sel) sel.value = "";
