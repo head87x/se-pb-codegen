@@ -171,6 +171,180 @@
   --syn-fn:   #00ff44;
 }
 
+[data-theme="hero"] {
+  /* Star-Citizen-/Destiny-Sci-Fi: eisblau auf dunkelmarineblau,
+     feine Linien, leichter Glassmorph-Touch */
+  --bg: #0a1420;
+  --panel: #14202e;
+  --panel-2: #1e2c3e;
+  --border: #3a5070;
+  --accent: #7fb8ff;
+  --accent-hover: #a0cfff;
+  --accent-2: #c8d8f0;
+  --good: #5fd4a0;
+  --warn: #ff7080;
+  --text: #e8f0fa;
+  --muted: #7e8fa6;
+  --code-bg: #060e18;
+
+  --accent-rgb: 127, 184, 255;
+  --accent-2-rgb: 200, 216, 240;
+  --bg-rgb: 10, 20, 32;
+  --shadow-rgb: 0, 0, 0;
+
+  --text-on-accent: #0a1420;
+  --lcd-frame-bg: #060e18;
+  --lcd-frame-border: #1e2c3e;
+  --lcd-frame-glow: 127, 184, 255;
+  --body-glow-1: 127, 184, 255;
+  --body-glow-2: 200, 216, 240;
+
+  --syn-kw:   #b090ff;
+  --syn-type: #7fb8ff;
+  --syn-str:  #ffc080;
+  --syn-com:  #6080a0;
+  --syn-num:  #80ddc0;
+  --syn-fn:   #e0e8f5;
+}
+
+[data-theme="hologram"] {
+  /* HUD-Holo-Display: kühles Türkis, leicht leuchtend, fast schwebend */
+  --bg: #051818;
+  --panel: #0a2a2e;
+  --panel-2: #103a3e;
+  --border: #1e6068;
+  --accent: #5fffe0;
+  --accent-hover: #80fff0;
+  --accent-2: #80fff0;
+  --good: #5fffa0;
+  --warn: #ffa050;
+  --text: #b8e8e0;
+  --muted: #4a8a82;
+  --code-bg: #021010;
+
+  --accent-rgb: 95, 255, 224;
+  --accent-2-rgb: 128, 255, 240;
+  --bg-rgb: 5, 24, 24;
+  --shadow-rgb: 0, 40, 50;
+
+  --text-on-accent: #051818;
+  --lcd-frame-bg: #021010;
+  --lcd-frame-border: #103a3e;
+  --lcd-frame-glow: 95, 255, 224;
+  --body-glow-1: 95, 255, 224;
+  --body-glow-2: 128, 255, 240;
+
+  --syn-kw:   #80fff0;
+  --syn-type: #c0fff5;
+  --syn-str:  #ffd090;
+  --syn-com:  #4a8a82;
+  --syn-num:  #a0ffe0;
+  --syn-fn:   #e0fff5;
+}
+
+[data-theme="industrial"] {
+  /* Space-Engineers-Werkstatt: gedämpftes Rost-Orange, Stahlgrau,
+     schwere Kanten, Warntreifen-Vibe */
+  --bg: #1a1a1c;
+  --panel: #232325;
+  --panel-2: #2c2c2e;
+  --border: #4a4a4c;
+  --accent: #e07020;
+  --accent-hover: #ff8830;
+  --accent-2: #b8a880;
+  --good: #80a060;
+  --warn: #c84040;
+  --text: #d0d0cc;
+  --muted: #80807c;
+  --code-bg: #131315;
+
+  --accent-rgb: 224, 112, 32;
+  --accent-2-rgb: 184, 168, 128;
+  --bg-rgb: 26, 26, 28;
+  --shadow-rgb: 0, 0, 0;
+
+  --text-on-accent: #1a1a1c;
+  --lcd-frame-bg: #131315;
+  --lcd-frame-border: #2c2c2e;
+  --lcd-frame-glow: 224, 112, 32;
+  --body-glow-1: 224, 112, 32;
+  --body-glow-2: 184, 168, 128;
+
+  --syn-kw:   #d090c0;
+  --syn-type: #80b0a0;
+  --syn-str:  #d8a070;
+  --syn-com:  #6a8a55;
+  --syn-num:  #b8c890;
+  --syn-fn:   #d0c890;
+}
+
+/* "Auto" folgt dem OS-Theme: hellt auf bei prefers-color-scheme:light,
+   dunkelt sonst. Realisiert via inheriting der light/dark-Variablen.
+   Wir spiegeln die Variablen-Sets im @media-Block. */
+@media (prefers-color-scheme: light) {
+  [data-theme="auto"] {
+    --bg: #f4f6fa;
+    --panel: #ffffff;
+    --panel-2: #eef2f7;
+    --border: #d0d8e2;
+    --accent: #1e6fdb;
+    --accent-hover: #2a82f0;
+    --accent-2: #3aa8e8;
+    --good: #2a9d4c;
+    --warn: #d83040;
+    --text: #1a2230;
+    --muted: #6a7686;
+    --code-bg: #f8fafc;
+
+    --accent-rgb: 30, 111, 219;
+    --accent-2-rgb: 58, 168, 232;
+    --bg-rgb: 244, 246, 250;
+    --shadow-rgb: 80, 100, 130;
+
+    --text-on-accent: #ffffff;
+    --lcd-frame-bg: #1a1f28;
+    --lcd-frame-border: #c0c8d2;
+    --lcd-frame-glow: 30, 111, 219;
+    --body-glow-1: 30, 111, 219;
+    --body-glow-2: 58, 168, 232;
+
+    --syn-kw:   #0000c0;
+    --syn-type: #267f99;
+    --syn-str:  #a31515;
+    --syn-com:  #008000;
+    --syn-num:  #098658;
+    --syn-fn:   #795e26;
+  }
+}
+@media (prefers-color-scheme: dark) {
+  [data-theme="auto"] {
+    --bg: #14161a;
+    --panel: #1c1f24;
+    --panel-2: #24282e;
+    --border: #353a42;
+    --accent: #8aa0b8;
+    --accent-hover: #a8bbd0;
+    --accent-2: #b8cbdb;
+    --good: #6fd49b;
+    --warn: #ff7080;
+    --text: #e2e8ee;
+    --muted: #7a8896;
+    --code-bg: #0e1014;
+
+    --accent-rgb: 138, 160, 184;
+    --accent-2-rgb: 184, 203, 219;
+    --bg-rgb: 20, 22, 26;
+    --shadow-rgb: 0, 0, 0;
+
+    --text-on-accent: #14161a;
+    --lcd-frame-bg: #0a0c10;
+    --lcd-frame-border: #24282e;
+    --lcd-frame-glow: 138, 160, 184;
+    --body-glow-1: 138, 160, 184;
+    --body-glow-2: 184, 203, 219;
+  }
+}
+
 * { box-sizing: border-box; margin: 0; padding: 0; }
 
 body {

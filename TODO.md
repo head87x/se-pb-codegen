@@ -46,25 +46,21 @@ sehr ambitioniert, vermutlich nur für selbstgenerierte Skripte
 realistisch (Header-Marker wie `// SE.PB-CODEGEN-VERSION: 1.0`
 + eingebettetes State-JSON in einem Kommentar).
 
-### Tool-Themes — weitere Looks
-**Erledigt in v1.1.0:** Theme-Picker im Header + Persistenz; 5 Themes
-verfügbar (Sci-Fi, Dark, Light, Cyberpunk, Matrix).
+### Tool-Themes — optionale Extras
+**Erledigt:** v1.1.0 brachte Theme-Picker + 5 Themes (Sci-Fi, Dark,
+Light, Cyberpunk, Matrix). v1.2.0 ergänzte Hero, Hologram, Industrial
+und Auto-OS-Folgen — alle 8 explizit angedachten Themes sind drin.
 
-Noch offene Looks für ein zweites Theme-Set:
-- **Hero** — Sci-Fi-Sauber (Star-Citizen-/Destiny-Stil): Weißblau,
-  feine Linien, Glassmorphism.
-- **Hologram** — kühles Türkis, leicht transparent, blass-leuchtend
-  („HUD-Holo-Display").
-- **Industrial** — gedämpftes Orange/Stahlgrau, schwere Kanten,
-  Warntreifen — passend zu Space Engineers' Industrie-Ästhetik.
-
-Außerdem: „Auto"-Option, die `prefers-color-scheme` folgt
-(Light bei Tag, Dark bei Nacht).
-
-Matrix-Theme könnte einen CRT-Scanline-Overlay-Effekt bekommen
-(`background-image` mit feinen horizontalen Linien) — bewusst
-weggelassen, weil's auf großen Monitoren stört. Falls gewünscht
-optional zuschaltbar.
+Optionale Extras, falls jemand will:
+- **Matrix-CRT-Scanline-Overlay** — feine horizontale Linien als
+  `background-image`, könnte als Toggle „Effekte" zugeschaltet werden.
+- **Cyberpunk-Glow** — sanfter Neon-Glow um Akzent-Elemente
+  (text-shadow + box-shadow).
+- **Theme-Editor** — User könnte eigene Themes definieren und im
+  LocalStorage als Custom-Theme speichern (mit Color-Picker pro
+  Variable).
+- **Theme-Preview-Thumbnails** im Dropdown — kleine Farbsplitter
+  pro Theme statt nur Text-Label.
 
 ### Mehrsprachigkeit (Deutsch / Englisch umschaltbar)
 Strings sind aktuell komplett deutsch und großteils im HTML hardcodiert.

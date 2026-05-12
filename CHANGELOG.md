@@ -7,6 +7,21 @@ das Projekt folgt [Semantic Versioning](https://semver.org/lang/de/).
 
 ## [Unreleased]
 
+## [1.2.0] — 2026-05-12
+
+### Hinzugefügt (3 weitere Themes + Auto-OS)
+- **Hero** — Sci-Fi-Sauber im Star-Citizen-/Destiny-Stil:
+  Eisblau auf Dunkelmarineblau, feine Linien, leichter Glassmorph-Touch.
+- **Hologram** — kühles Türkis, leicht leuchtend, „HUD-Holo-Display"-Vibe.
+- **Industrial** — Space-Engineers-Werkstatt: gedämpftes Rost-Orange auf
+  Stahlgrau, schwere Kanten.
+- **Auto (folgt OS)** — wechselt automatisch zwischen Light und Dark
+  je nach `prefers-color-scheme` des Betriebssystems. Reagiert live
+  auf System-Theme-Wechsel.
+
+Damit sind jetzt 9 Tool-Themes verfügbar (Standard, Dark, Light,
+Cyberpunk, Matrix, Hero, Hologram, Industrial, Auto).
+
 ## [1.1.0] — 2026-05-12
 
 ### Hinzugefügt (Tool-Themes)

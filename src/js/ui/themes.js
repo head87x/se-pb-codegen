@@ -10,11 +10,15 @@
 // in localStorage merken.
 
 const TOOL_THEMES = [
-  { value: "",          label: "Sci-Fi (Standard)" },
-  { value: "dark",      label: "Dark (neutral)" },
-  { value: "light",     label: "Light" },
-  { value: "cyberpunk", label: "Cyberpunk" },
-  { value: "matrix",    label: "Matrix" }
+  { value: "",           label: "Sci-Fi (Standard)" },
+  { value: "dark",       label: "Dark (neutral)" },
+  { value: "light",      label: "Light" },
+  { value: "cyberpunk",  label: "Cyberpunk" },
+  { value: "matrix",     label: "Matrix" },
+  { value: "hero",       label: "Hero (Sci-Fi-Sauber)" },
+  { value: "hologram",   label: "Hologram (Türkis)" },
+  { value: "industrial", label: "Industrial (Werkstatt)" },
+  { value: "auto",       label: "Auto (folgt OS)" }
 ];
 
 const TOOL_THEME_KEY = "se_pb_tool_theme";
