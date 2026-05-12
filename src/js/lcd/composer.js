@@ -149,7 +149,8 @@ function generateLcdComposerCode(ensureBlock) {
   }
 
   let out = "";
-  out += "\n    // ---------- LCD-Baukasten ----------\n";
+  const _t = (typeof t === "function") ? t : ((k) => k);
+  out += `\n    // ${_t("gen.cmt.lcd_composer")}\n`;
 
   if (multi) {
     // Multi-LCD: pro physischem LCD ein eigener DrawFrame-Block,

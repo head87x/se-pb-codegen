@@ -133,7 +133,31 @@ const I18N = {
     "btn.remove":            "✕ Entfernen",
     "toast.template_saved":  "Vorlage „{0}\" gespeichert",
     "toast.template_loaded": "„{0}\" geladen",
-    "toast.copied":          "Code in Zwischenablage kopiert"
+    "toast.copied":          "Code in Zwischenablage kopiert",
+    // Optgroup-Tier-Labels
+    "tier.standard":         "Standard",
+    "tier.advanced":         "Erweitert",
+    // C#-Kommentare im generierten Code
+    "gen.header":            "SPACE ENGINEERS - PROGRAMMABLE BLOCK SCRIPT",
+    "gen.header.subtitle":   "Generiert mit SE.PB Code Generator",
+    "gen.cmt.manual":        "Manuelle Ausführung — kein UpdateFrequency nötig",
+    "gen.cmt.tick_slow":     "~1.6s, am sparsamsten",
+    "gen.cmt.fetch":         "---------- Block-Referenzen holen ----------",
+    "gen.cmt.no_blocks":     "(Keine Blöcke definiert)",
+    "gen.cmt.lcd_status":    "---------- LCD Status ----------",
+    "gen.cmt.check":         "---------- Bedingungen prüfen ----------",
+    "gen.cmt.run":           "---------- Aktionen ausführen ----------",
+    "gen.cmt.no_then":       "(Keine THEN-Aktionen definiert)",
+    "gen.cmt.no_act":        "(Aktion ohne Block-Name übersprungen)",
+    "gen.cmt.lcd_out":       "---------- LCD ausgeben ----------",
+    "gen.cmt.lcd_composer":  "---------- LCD-Baukasten ----------",
+    "gen.err.block":         "FEHLER: Block '{0}' nicht gefunden!",
+    "gen.err.group":         "FEHLER: Gruppe '{0}' nicht gefunden!",
+    "gen.lcd.status_head":   "=== STATUS ===",
+    "gen.lcd.tick":          "Tick: ",
+    "gen.lcd.cond_yes":      "ERFÜLLT",
+    "gen.lcd.cond_no":       "nicht erfüllt",
+    "gen.lcd.cond_line":     "Bedingung: "
   },
 
   en: {
@@ -236,7 +260,29 @@ const I18N = {
     "btn.remove":            "✕ Remove",
     "toast.template_saved":  "Template \"{0}\" saved",
     "toast.template_loaded": "\"{0}\" loaded",
-    "toast.copied":          "Code copied to clipboard"
+    "toast.copied":          "Code copied to clipboard",
+    "tier.standard":         "Standard",
+    "tier.advanced":         "Advanced",
+    "gen.header":            "SPACE ENGINEERS - PROGRAMMABLE BLOCK SCRIPT",
+    "gen.header.subtitle":   "Generated with SE.PB Code Generator",
+    "gen.cmt.manual":        "Manual execution — no UpdateFrequency needed",
+    "gen.cmt.tick_slow":     "~1.6s, lowest CPU cost",
+    "gen.cmt.fetch":         "---------- Block references ----------",
+    "gen.cmt.no_blocks":     "(no blocks defined)",
+    "gen.cmt.lcd_status":    "---------- LCD status ----------",
+    "gen.cmt.check":         "---------- Evaluate conditions ----------",
+    "gen.cmt.run":           "---------- Run actions ----------",
+    "gen.cmt.no_then":       "(no THEN actions defined)",
+    "gen.cmt.no_act":        "(skipped: action without block name)",
+    "gen.cmt.lcd_out":       "---------- Write LCD ----------",
+    "gen.cmt.lcd_composer":  "---------- LCD Composer ----------",
+    "gen.err.block":         "ERROR: Block '{0}' not found!",
+    "gen.err.group":         "ERROR: Group '{0}' not found!",
+    "gen.lcd.status_head":   "=== STATUS ===",
+    "gen.lcd.tick":          "Tick: ",
+    "gen.lcd.cond_yes":      "MET",
+    "gen.lcd.cond_no":       "not met",
+    "gen.lcd.cond_line":     "Condition: "
   }
 };
 
@@ -254,6 +300,7 @@ function setLang(lang) {
   _applyI18nDom();
   const sel = document.getElementById("lang-select");
   if (sel) sel.value = lang;
+  if (typeof renderPalette === "function") renderPalette();
   if (typeof render === "function") render();
 }
 

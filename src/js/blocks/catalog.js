@@ -1075,20 +1075,27 @@ function blockTypeOptions(filterKind) {
     ...CATEGORIES.filter(c => byCat[c]),
     ...Object.keys(byCat).filter(c => !CATEGORIES.includes(c)).sort()
   ];
+  // Anzeige-Namen über i18n-Helper (Fallback = Original-Schlüssel auf Deutsch).
+  const _label = (typeof blockTypeLabel === "function") ? blockTypeLabel : (k) => k;
+  const _cat   = (typeof categoryLabel  === "function") ? categoryLabel  : (c) => c;
   return orderedCats.map(cat => {
-    const opts = byCat[cat].map(k => `<option value="${k}">${k}</option>`).join("");
-    return `<optgroup label="${cat}">${opts}</optgroup>`;
+    const opts = byCat[cat].map(k => `<option value="${k}">${_label(k)}</option>`).join("");
+    return `<optgroup label="${_cat(cat)}">${opts}</optgroup>`;
   }).join("");
 }
 
 function _tierGrouped(items) {
   const std = items.filter(x => (x.tier || "standard") === "standard");
   const adv = items.filter(x => x.tier === "advanced");
-  const renderItem = x => `<option value="${x.id}">${x.label}</option>`;
+  const _label = (typeof localizedItemLabel === "function") ? localizedItemLabel : (x) => x.label;
+  const renderItem = x => `<option value="${x.id}">${_label(x)}</option>`;
   if (adv.length === 0) return std.map(renderItem).join("");
   if (std.length === 0) return adv.map(renderItem).join("");
-  return `<optgroup label="Standard">${std.map(renderItem).join("")}</optgroup>` +
-         `<optgroup label="Erweitert">${adv.map(renderItem).join("")}</optgroup>`;
+  // optgroup-Labels über i18n
+  const stdLabel = (typeof t === "function") ? t("tier.standard") : "Standard";
+  const advLabel = (typeof t === "function") ? t("tier.advanced") : "Erweitert";
+  return `<optgroup label="${stdLabel}">${std.map(renderItem).join("")}</optgroup>` +
+         `<optgroup label="${advLabel}">${adv.map(renderItem).join("")}</optgroup>`;
 }
 
 function condOptions(blockType) {

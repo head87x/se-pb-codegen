@@ -539,16 +539,20 @@ function renderPalette() {
   ];
 
   root.innerHTML = orderedCats.map(cat => {
-    const cards = byCat[cat].map(blockType => `
-      <div class="palette-card" data-block-type="${escapeAttr(blockType)}" data-block-name="${escapeAttr(blockType.toLowerCase())}">
+    const cards = byCat[cat].map(blockType => {
+      const displayName = (typeof blockTypeLabel === "function") ? blockTypeLabel(blockType) : blockType;
+      const searchName  = (displayName + " " + blockType).toLowerCase();
+      return `
+      <div class="palette-card" data-block-type="${escapeAttr(blockType)}" data-block-name="${escapeAttr(searchName)}">
         <span class="icon">${getCategoryIcon(cat)}</span>
-        <span class="name">${escapeHtml(blockType)}</span>
-      </div>
-    `).join("");
+        <span class="name">${escapeHtml(displayName)}</span>
+      </div>`;
+    }).join("");
+    const catDisplay = (typeof categoryLabel === "function") ? categoryLabel(cat) : cat;
     return `
       <div class="palette-category" data-category="${escapeAttr(cat)}">
         <div class="palette-cat-header" onclick="togglePaletteCategory(this)">
-          <span>${escapeHtml(cat)} <span style="color:var(--muted)">(${byCat[cat].length})</span></span>
+          <span>${escapeHtml(catDisplay)} <span style="color:var(--muted)">(${byCat[cat].length})</span></span>
           <span class="toggle-arrow">▼</span>
         </div>
         <div class="palette-cat-body">${cards}</div>

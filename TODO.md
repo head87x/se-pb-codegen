@@ -97,16 +97,20 @@ Persistenz. Übersetzt sind alle Sektion-Titel, Buttons, Hilfe-Texte,
 Toasts, Modal-Buttons, Bedingungs-/Aktions-/Else-UI, LCD-Composer-
 Felder, Multi-LCD-Konfiguration, Share-Token, Footer.
 
-**Noch zu tun (Phase 2)**:
-- **Block-Katalog-Labels** (52 Blöcke + alle Conditions/Actions
-  pro Block). Aktuell sind die deutschen Namen wie `"Tür (Door)"`
-  direkt die Schlüssel in `BLOCKS{}`. Migration: jeder Eintrag
-  bekommt ein `i18nKey`-Feld; das Dropdown zeigt
-  `t("block." + i18nKey)` statt des Schlüssels.
-- **DESCRIPTIONS** (Tooltip-Texte): pro Eintrag zweispaltige
-  DE/EN-Variante, gesteuert über aktuelle Sprache.
-- **C#-Code-Kommentare** im Generator-Output: `// Block-Referenzen
-  holen` etc. ebenfalls durch `t()` lokalisierbar machen.
+**Phase 2.1 erledigt in v1.7.0**:
+- 52 Block-Typ-Namen englisch (Tür → Door, Akku → Battery, …).
+- Alle Kategorien englisch (Bewegung → Movement, …).
+- C#-Code-Kommentare im Output komplett auf EN umschaltbar.
+- Standard/Erweitert-Optgroup-Labels sprachabhängig.
+
+**Phase 2.2 (noch zu tun)**:
+- **Condition/Action-Labels** pro Block (~490 Stück). Infrastruktur
+  bereits da: `localizedItemLabel(item)` liest `item.labelEn` wenn
+  EN aktiv. Jeder Eintrag in `BLOCKS[*].conditions[]` und
+  `BLOCKS[*].actions[]` muss nur ein `labelEn: "..."` ergänzt
+  bekommen — Fallback bleibt das deutsche `label`.
+- **DESCRIPTIONS** (Tooltip-Texte, ~300 Stück) — DE/EN-Variante
+  pro Eintrag, gesteuert über aktuelle Sprache.
 - Optional weitere Sprachen (RU, FR, ES) mit DE als Fallback.
 
 ### Vorlagen-Export / -Import als JSON-Datei

@@ -83,11 +83,15 @@ function generateCode() {
     if (c.used) composerCode = c.code;
   }
 
+  // Helper für lokalisierte Generator-Strings (Fallback = Key, sollte
+  // nie auftreten weil i18n.js immer geladen ist).
+  const _t = (typeof t === "function") ? t : ((k) => k);
+
   // === Build code ===
   let code = "";
   code += "// =====================================================\n";
-  code += "// SPACE ENGINEERS - PROGRAMMABLE BLOCK SCRIPT\n";
-  code += "// Generiert mit SE.PB Code Generator\n";
+  code += "// " + _t("gen.header") + "\n";
+  code += "// " + _t("gen.header.subtitle") + "\n";
   code += "// =====================================================\n";
   code += "\n";
 
@@ -96,10 +100,10 @@ function generateCode() {
   code += "{\n";
   switch (state.execMode) {
     case "continuous": code += "    Runtime.UpdateFrequency = UpdateFrequency.Update1;\n"; break;
-    case "timer1":     code += "    Runtime.UpdateFrequency = UpdateFrequency.Update100; // ~1.6s, am sparsamsten\n"; break;
+    case "timer1":     code += `    Runtime.UpdateFrequency = UpdateFrequency.Update100; // ${_t("gen.cmt.tick_slow")}\n`; break;
     case "timer10":    code += "    Runtime.UpdateFrequency = UpdateFrequency.Update10;\n"; break;
     case "timer100":   code += "    Runtime.UpdateFrequency = UpdateFrequency.Update100;\n"; break;
-    default:           code += "    // Manuelle Ausführung — kein UpdateFrequency nötig\n"; break;
+    default:           code += `    // ${_t("gen.cmt.manual")}\n`; break;
   }
   code += "}\n\n";
 
@@ -108,20 +112,20 @@ function generateCode() {
   // --- Main ---
   code += "public void Main(string argument, UpdateType updateSource)\n";
   code += "{\n";
-  code += "    // ---------- Block-Referenzen holen ----------\n";
+  code += `    // ${_t("gen.cmt.fetch")}\n`;
 
   if (blockMap.size === 0) {
-    code += "    // (Keine Blöcke definiert)\n";
+    code += `    // ${_t("gen.cmt.no_blocks")}\n`;
   } else {
     for (const e of blockMap.values()) {
       if (e.isGroup) {
         code += `    List<${e.interface}> ${e.varName} = new List<${e.interface}>();\n`;
         code += `    var ${e.varName}_grp = GridTerminalSystem.GetBlockGroupWithName("${escapeCs(e.blockName)}");\n`;
-        code += `    if (${e.varName}_grp == null) { Echo("FEHLER: Gruppe '${escapeCs(e.blockName)}' nicht gefunden!"); return; }\n`;
+        code += `    if (${e.varName}_grp == null) { Echo("${escapeCs(_t("gen.err.group", e.blockName))}"); return; }\n`;
         code += `    ${e.varName}_grp.GetBlocksOfType(${e.varName});\n`;
       } else {
         code += `    ${e.interface} ${e.varName} = GridTerminalSystem.GetBlockWithName("${escapeCs(e.blockName)}") as ${e.interface};\n`;
-        code += `    if (${e.varName} == null) { Echo("FEHLER: Block '${escapeCs(e.blockName)}' nicht gefunden!"); return; }\n`;
+        code += `    if (${e.varName} == null) { Echo("${escapeCs(_t("gen.err.block", e.blockName))}"); return; }\n`;
       }
     }
   }
@@ -130,16 +134,16 @@ function generateCode() {
   // LCD setup
   if (state.lcdEnable && state.lcdName) {
     const lcdVar = "lcd_status";
-    code += `    // ---------- LCD Status ----------\n`;
+    code += `    // ${_t("gen.cmt.lcd_status")}\n`;
     code += `    IMyTextSurface ${lcdVar} = GridTerminalSystem.GetBlockWithName("${escapeCs(state.lcdName)}") as IMyTextSurface;\n`;
     code += `    System.Text.StringBuilder sb = new System.Text.StringBuilder();\n`;
-    code += `    sb.AppendLine("=== STATUS ===");\n`;
-    code += `    sb.AppendLine("Tick: " + DateTime.Now.ToString("HH:mm:ss"));\n`;
+    code += `    sb.AppendLine("${_t("gen.lcd.status_head")}");\n`;
+    code += `    sb.AppendLine("${_t("gen.lcd.tick")}" + DateTime.Now.ToString("HH:mm:ss"));\n`;
     code += "\n";
   }
 
   // --- Build condition expression ---
-  code += "    // ---------- Bedingungen prüfen ----------\n";
+  code += `    // ${_t("gen.cmt.check")}\n`;
   let condExprStr = "true";
   if (state.conditions.length > 0) {
     const parts = [];
@@ -159,18 +163,18 @@ function generateCode() {
 
   // LCD log conditions
   if (state.lcdEnable && state.lcdName) {
-    code += `    sb.AppendLine("Bedingung: " + (conditionMet ? "ERFÜLLT" : "nicht erfüllt"));\n\n`;
+    code += `    sb.AppendLine("${_t("gen.lcd.cond_line")}" + (conditionMet ? "${_t("gen.lcd.cond_yes")}" : "${_t("gen.lcd.cond_no")}"));\n\n`;
   }
 
   // --- Branches ---
-  code += "    // ---------- Aktionen ausführen ----------\n";
+  code += `    // ${_t("gen.cmt.run")}\n`;
   code += "    if (conditionMet)\n";
   code += "    {\n";
   // Helfer: emittiert eine Aktion — bei Gruppe als foreach über alle Blöcke.
   const emitAction = (a, prefix) => {
     const blockEntry = ensureBlock(a.blockType, a.blockName, a.useGroup);
     if (!blockEntry) {
-      code += `        // (Aktion ohne Block-Name übersprungen)\n`;
+      code += `        // ${_t("gen.cmt.no_act")}\n`;
       return;
     }
     if (blockEntry.isGroup) {
@@ -187,7 +191,7 @@ function generateCode() {
   };
 
   if (state.actionsThen.length === 0) {
-    code += "        // (Keine THEN-Aktionen definiert)\n";
+    code += `        // ${_t("gen.cmt.no_then")}\n`;
   } else {
     state.actionsThen.forEach(a => emitAction(a, "DO"));
   }
@@ -202,7 +206,7 @@ function generateCode() {
 
   // LCD output (alte einfache Status-Ausgabe)
   if (state.lcdEnable && state.lcdName) {
-    code += `    // ---------- LCD ausgeben ----------\n`;
+    code += `    // ${_t("gen.cmt.lcd_out")}\n`;
     code += `    if (lcd_status != null)\n`;
     code += `    {\n`;
     code += `        lcd_status.ContentType = ContentType.TEXT_AND_IMAGE;\n`;

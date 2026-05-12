@@ -7,6 +7,36 @@ das Projekt folgt [Semantic Versioning](https://semver.org/lang/de/).
 
 ## [Unreleased]
 
+## [1.7.0] — 2026-05-12
+
+### Hinzugefügt (Mehrsprachigkeit Phase 2.1 — Block-Namen + Code-Kommentare)
+- **Alle 52 Block-Typ-Namen** sind jetzt englisch verfügbar
+  (Tür → Door, Akku → Battery, Triebwerk → Thruster, …). Neue
+  Datei `src/js/blocks/i18n_en.js` mit `BLOCKS_EN`-Map; Schlüssel
+  in `BLOCKS{}` bleiben deutsch (sprachunabhängig für Vorlagen/Token).
+- **Kategorien-Übersetzungen** (Bewegung → Movement, Energie → Energy,
+  Förderung → Inventory & Transport, …) für Palette + Block-Dropdowns.
+- **„Standard" / „Erweitert"** Optgroup-Labels in den
+  Conditions/Actions-Dropdowns folgen jetzt der Sprache.
+- **Generierte C#-Code-Kommentare** komplett übersetzt:
+  Header, Block-Referenzen-Block, Conditions/Actions-Banner,
+  Fehlermeldungen (`Echo("ERROR: Block 'X' not found!")`),
+  LCD-Status-Header, LCD-Composer-Marker.
+- **Palette** wird beim Sprachwechsel automatisch neu gerendert
+  (vorher nur 1× beim Init).
+
+### Geändert
+- `blockTypeOptions()`, `_tierGrouped()` und `renderPalette()`
+  nutzen jetzt die Helper `blockTypeLabel()` / `categoryLabel()` /
+  `localizedItemLabel()` mit DE-Fallback.
+
+### Noch nicht übersetzt (Phase 2.2 — kommt später)
+- **Condition/Action-Labels** pro Block (~490 Stück, z. B.
+  „Ist offen", „Öffnen", „Eingeschaltet"). Infrastruktur via
+  `labelEn`-Feld bereits angelegt — Felder müssen nur noch
+  pro Eintrag ergänzt werden.
+- **Tooltip-Texte** (DESCRIPTIONS, ~300 Stück).
+
 ## [1.6.0] — 2026-05-12
 
 ### Hinzugefügt (Mehrsprachigkeit Phase 1 — DE/EN-Umschaltung)
