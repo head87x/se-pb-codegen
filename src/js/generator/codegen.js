@@ -51,25 +51,28 @@ function actCode(a, varName) {
 // ============================================================
 
 function generateCode() {
-  // Collect unique blocks needed (for fetching once at start of Main)
+  // Collect unique blocks needed (for fetching once at start of Main).
+  // Einzelblock und Gruppe für denselben Namen bekommen separate Einträge
+  // (sind unterschiedliche C#-Typen — Block vs. List<Block>).
   const blockMap = new Map();
-  const ensureBlock = (blockType, blockName) => {
+  const ensureBlock = (blockType, blockName, useGroup) => {
     if (!blockName || !blockName.trim()) return null;
-    const key = blockName + "::" + blockType;
+    const key = blockName + "::" + blockType + "::" + (useGroup ? "g" : "s");
     if (blockMap.has(key)) return blockMap.get(key);
     const def = BLOCKS[blockType];
     const entry = {
       varName: safeVar(blockName, "_" + blockMap.size),
       blockType, blockName,
-      interface: def.interface
+      interface: def.interface,
+      isGroup: !!useGroup
     };
     blockMap.set(key, entry);
     return entry;
   };
 
-  state.conditions.forEach(c => ensureBlock(c.blockType, c.blockName));
-  state.actionsThen.forEach(a => ensureBlock(a.blockType, a.blockName));
-  state.actionsElse.forEach(a => ensureBlock(a.blockType, a.blockName));
+  state.conditions.forEach(c => ensureBlock(c.blockType, c.blockName, c.useGroup));
+  state.actionsThen.forEach(a => ensureBlock(a.blockType, a.blockName, a.useGroup));
+  state.actionsElse.forEach(a => ensureBlock(a.blockType, a.blockName, a.useGroup));
 
   // LCD-Composer-Code vorab aufbauen, damit alle Source-Blocks
   // in der blockMap landen, BEVOR die Block-Refs gerendert werden.
@@ -111,8 +114,15 @@ function generateCode() {
     code += "    // (Keine Blöcke definiert)\n";
   } else {
     for (const e of blockMap.values()) {
-      code += `    ${e.interface} ${e.varName} = GridTerminalSystem.GetBlockWithName("${escapeCs(e.blockName)}") as ${e.interface};\n`;
-      code += `    if (${e.varName} == null) { Echo("FEHLER: Block '${escapeCs(e.blockName)}' nicht gefunden!"); return; }\n`;
+      if (e.isGroup) {
+        code += `    List<${e.interface}> ${e.varName} = new List<${e.interface}>();\n`;
+        code += `    var ${e.varName}_grp = GridTerminalSystem.GetBlockGroupWithName("${escapeCs(e.blockName)}");\n`;
+        code += `    if (${e.varName}_grp == null) { Echo("FEHLER: Gruppe '${escapeCs(e.blockName)}' nicht gefunden!"); return; }\n`;
+        code += `    ${e.varName}_grp.GetBlocksOfType(${e.varName});\n`;
+      } else {
+        code += `    ${e.interface} ${e.varName} = GridTerminalSystem.GetBlockWithName("${escapeCs(e.blockName)}") as ${e.interface};\n`;
+        code += `    if (${e.varName} == null) { Echo("FEHLER: Block '${escapeCs(e.blockName)}' nicht gefunden!"); return; }\n`;
+      }
     }
   }
   code += "\n";
@@ -134,9 +144,12 @@ function generateCode() {
   if (state.conditions.length > 0) {
     const parts = [];
     state.conditions.forEach((c, i) => {
-      const blockEntry = ensureBlock(c.blockType, c.blockName);
+      const blockEntry = ensureBlock(c.blockType, c.blockName, c.useGroup);
       if (!blockEntry) return;
-      const e = condExpr(c, blockEntry.varName);
+      // Gruppen-Bedingung: erfüllt, wenn irgendein Block der Gruppe sie erfüllt (LINQ Any)
+      const e = blockEntry.isGroup
+        ? `${blockEntry.varName}.Any(_b => ${condExpr(c, "_b")})`
+        : condExpr(c, blockEntry.varName);
       const op = i === 0 ? "" : (c.logicOp === "OR" ? " || " : " && ");
       parts.push(op + "(" + e + ")");
     });
@@ -153,42 +166,36 @@ function generateCode() {
   code += "    // ---------- Aktionen ausführen ----------\n";
   code += "    if (conditionMet)\n";
   code += "    {\n";
+  // Helfer: emittiert eine Aktion — bei Gruppe als foreach über alle Blöcke.
+  const emitAction = (a, prefix) => {
+    const blockEntry = ensureBlock(a.blockType, a.blockName, a.useGroup);
+    if (!blockEntry) {
+      code += `        // (Aktion ohne Block-Name übersprungen)\n`;
+      return;
+    }
+    if (blockEntry.isGroup) {
+      const inner = actCode(a, "_b");
+      code += `        foreach (var _b in ${blockEntry.varName}) { ${inner} }\n`;
+    } else {
+      code += `        ${actCode(a, blockEntry.varName)}\n`;
+    }
+    if (state.lcdEnable && state.lcdName) {
+      const act = findAct(a.blockType, a.actId);
+      const desc = act ? `${a.blockName} → ${act.label}` : a.blockName;
+      code += `        sb.AppendLine("${prefix}: ${escapeCs(desc)}");\n`;
+    }
+  };
+
   if (state.actionsThen.length === 0) {
     code += "        // (Keine THEN-Aktionen definiert)\n";
   } else {
-    state.actionsThen.forEach(a => {
-      const blockEntry = ensureBlock(a.blockType, a.blockName);
-      if (!blockEntry) {
-        code += `        // (Aktion ohne Block-Name übersprungen)\n`;
-        return;
-      }
-      const c = actCode(a, blockEntry.varName);
-      code += `        ${c}\n`;
-      if (state.lcdEnable && state.lcdName) {
-        const act = findAct(a.blockType, a.actId);
-        const desc = act ? `${a.blockName} → ${act.label}` : a.blockName;
-        code += `        sb.AppendLine("DO: ${escapeCs(desc)}");\n`;
-      }
-    });
+    state.actionsThen.forEach(a => emitAction(a, "DO"));
   }
   code += "    }\n";
   if (state.actionsElse.length > 0) {
     code += "    else\n";
     code += "    {\n";
-    state.actionsElse.forEach(a => {
-      const blockEntry = ensureBlock(a.blockType, a.blockName);
-      if (!blockEntry) {
-        code += `        // (Aktion ohne Block-Name übersprungen)\n`;
-        return;
-      }
-      const c = actCode(a, blockEntry.varName);
-      code += `        ${c}\n`;
-      if (state.lcdEnable && state.lcdName) {
-        const act = findAct(a.blockType, a.actId);
-        const desc = act ? `${a.blockName} → ${act.label}` : a.blockName;
-        code += `        sb.AppendLine("ELSE: ${escapeCs(desc)}");\n`;
-      }
-    });
+    state.actionsElse.forEach(a => emitAction(a, "ELSE"));
     code += "    }\n";
   }
   code += "\n";

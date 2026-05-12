@@ -6,12 +6,19 @@ festgelegt — wird gepickt, wenn es passt oder Bedarf da ist.
 ## Größere Features
 
 ### Block-Gruppen
-Aktuell wird pro Block ein `GetBlockWithName`-Lookup gemacht.
-Mit `GridTerminalSystem.GetBlockGroupWithName` + `GetBlocksOfType<T>`
-könnte ein Block-Eintrag auch eine ganze Gruppe ansprechen
-(z. B. „alle Frontlichter" einschalten statt jedes Licht einzeln zu
-listen). Wahrscheinlich neuer Toggle „Einzel-Block / Gruppe" pro
-Eintrag in Conditions/Actions.
+**Erledigt in v1.5.0**: Toggle „Auf Block-Gruppe anwenden" pro
+Bedingung/Aktion. Aktionen → `foreach` über Gruppe; Bedingungen →
+`.Any()`-Semantik (erfüllt sobald irgendein Block in der Gruppe sie
+erfüllt).
+
+Mögliche Erweiterungen:
+- **ALL-Semantik** für Bedingungen — Bedingung erfüllt nur wenn
+  alle Blöcke sie erfüllen (Toggle „any/all" pro Gruppen-Bedingung).
+- **Aggregator-Semantik** — „Durchschnitt aller Akkus < 20 %"
+  oder „Summe aller Reaktor-Outputs > 5 MW". Wäre eine dritte
+  Option neben any/all.
+- **Anzahl-Bedingung** — „Mindestens 3 Sensoren aktiv" als
+  `.Count(...) >= N`.
 
 ### Mehrere unabhängige WENN/DANN-Pakete pro Skript
 Aktuell gibt es genau ein WENN/DANN/SONST pro generiertem Skript.

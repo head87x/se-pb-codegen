@@ -30,7 +30,8 @@ function addConditionOfType(blockType) {
     condId: def.conditions[0].id,
     arg: "",
     arg2: "",
-    logicOp: "AND"
+    logicOp: "AND",
+    useGroup: false
   });
   render();
 }
@@ -58,6 +59,12 @@ function updateCond(i, field, val) {
     render();
     return;
   }
+  if (field === "useGroup") {
+    // Strukturwechsel: Label "Block-Name" ↔ "Gruppen-Name" + Generator
+    state.conditions[i].useGroup = !!val;
+    render();
+    return;
+  }
   // blockName, arg, arg2, logicOp: reine Werteänderung, kein Re-Render
   generateCode();
 }
@@ -80,7 +87,8 @@ function addActionOfType(which, blockType) {
     blockName: "",
     actId: def.actions[0].id,
     arg: "",
-    arg2: ""
+    arg2: "",
+    useGroup: false
   });
   render();
 }
@@ -105,6 +113,11 @@ function updateAct(which, i, field, val) {
   if (field === "actId") {
     list[i].arg = "";
     list[i].arg2 = "";
+    render();
+    return;
+  }
+  if (field === "useGroup") {
+    list[i].useGroup = !!val;
     render();
     return;
   }

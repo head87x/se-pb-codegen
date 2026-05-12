@@ -7,6 +7,32 @@ das Projekt folgt [Semantic Versioning](https://semver.org/lang/de/).
 
 ## [Unreleased]
 
+## [1.5.0] — 2026-05-12
+
+### Hinzugefügt (Block-Gruppen)
+- **Toggle „Auf Block-Gruppe anwenden"** pro Bedingung und pro Aktion.
+  Klick → der Name-Eintrag wird zum **Gruppen-Namen** (statt einzelnem
+  Block-Namen), Label und Placeholder passen sich an.
+- **Generator** unterscheidet jetzt Einzelblock- und Gruppen-Pfad:
+  - **Einzelblock** (Default): `GridTerminalSystem.GetBlockWithName(...)`
+  - **Gruppe**: `GridTerminalSystem.GetBlockGroupWithName(...)` +
+    `GetBlocksOfType<T>(list)` → typisierte `List<IMy...>`
+- **Aktionen auf Gruppe**: emittieren `foreach (var _b in <list>) { ... }`
+  und wenden die Aktion auf jeden Block der Gruppe an
+  (z. B. „alle Frontlichter einschalten").
+- **Bedingungen auf Gruppe**: emittieren `<list>.Any(_b => ...)` —
+  Bedingung ist erfüllt, sobald **irgendein Block** der Gruppe sie
+  erfüllt (z. B. „irgendein Sensor erkennt was").
+- **Defensive Migration**: existierende Vorlagen + Token ohne
+  `useGroup`-Feld werden weiter als Einzelblock behandelt — keine
+  Bruch alter Daten.
+
+### Geändert
+- `ensureBlock(blockType, blockName, useGroup)` ist jetzt
+  Gruppen-fähig. Einzelblock und Gruppe für denselben Namen bekommen
+  separate Einträge im `blockMap` (sind unterschiedliche C#-Typen:
+  `IMyXxx` vs. `List<IMyXxx>`).
+
 ## [1.4.1] — 2026-05-12
 
 ### Geändert (Themed Modal-Dialoge)

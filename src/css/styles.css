@@ -506,6 +506,32 @@ input, select, textarea {
   transition: border-color 0.15s;
 }
 
+.group-toggle {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 6px 0 4px;
+  padding: 4px 8px;
+  background: rgba(var(--shadow-rgb), 0.12);
+  border-left: 2px solid var(--accent-2);
+  font-size: 11px;
+  font-family: 'Consolas', monospace;
+  color: var(--muted);
+  cursor: pointer;
+  user-select: none;
+  border-radius: 2px;
+}
+.group-toggle input[type="checkbox"] {
+  width: auto;
+  margin: 0;
+  accent-color: var(--accent);
+  cursor: pointer;
+}
+.group-toggle:has(input:checked) {
+  color: var(--accent-2);
+  background: rgba(var(--accent-2-rgb), 0.10);
+}
+
 .share-token-area {
   font-size: 11px;
   line-height: 1.35;

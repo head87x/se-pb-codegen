@@ -82,10 +82,14 @@ function renderConditions() {
             <select onchange="updateCond(${i}, 'blockType', this.value)">${blockTypeOptions('conditions')}</select>
           </div>
           <div>
-            <label>Block-Name (im Spiel)</label>
-            <input value="${escapeAttr(c.blockName)}" oninput="updateCond(${i}, 'blockName', this.value)" placeholder="exakter Name aus Terminal">
+            <label>${c.useGroup ? 'Gruppen-Name (im Spiel)' : 'Block-Name (im Spiel)'}</label>
+            <input value="${escapeAttr(c.blockName)}" oninput="updateCond(${i}, 'blockName', this.value)" placeholder="${c.useGroup ? 'exakter Name der Block-Gruppe' : 'exakter Name aus Terminal'}">
           </div>
         </div>
+        <label class="group-toggle">
+          <input type="checkbox" ${c.useGroup ? "checked" : ""} onchange="updateCond(${i}, 'useGroup', this.checked)">
+          Auf Block-Gruppe anwenden (Bedingung erfüllt, sobald irgendein Block der Gruppe sie erfüllt)
+        </label>
         <div class="row ${rowClass}">
           <div>
             <label>Prüfung ${tooltipBadge(c.blockType, c.condId, 'conditions')}</label>
@@ -142,10 +146,14 @@ function renderActions(which) {
             <select onchange="updateAct('${which}', ${i}, 'blockType', this.value)">${blockTypeOptions('actions')}</select>
           </div>
           <div>
-            <label>Block-Name</label>
-            <input value="${escapeAttr(a.blockName)}" oninput="updateAct('${which}', ${i}, 'blockName', this.value)" placeholder="exakter Name aus Terminal">
+            <label>${a.useGroup ? 'Gruppen-Name' : 'Block-Name'}</label>
+            <input value="${escapeAttr(a.blockName)}" oninput="updateAct('${which}', ${i}, 'blockName', this.value)" placeholder="${a.useGroup ? 'exakter Name der Block-Gruppe' : 'exakter Name aus Terminal'}">
           </div>
         </div>
+        <label class="group-toggle">
+          <input type="checkbox" ${a.useGroup ? "checked" : ""} onchange="updateAct('${which}', ${i}, 'useGroup', this.checked)">
+          Auf Block-Gruppe anwenden (Aktion läuft für alle Blöcke der Gruppe)
+        </label>
         <div class="row ${rowClass}">
           <div>
             <label>Aktion ${tooltipBadge(a.blockType, a.actId, 'actions')}</label>
