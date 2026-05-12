@@ -661,20 +661,22 @@ const LCD_RESOLUTION_ORDER = ["square", "wide", "tall", "big_3x3"];
 // mit Letterboxing um den Inhalt herum. Aspect-Lock beim Resize hält
 // dieses Verhältnis dann konstant.
 //
-// viewBox-Aspekte (W:H) als Referenz:
+// viewBox-Aspekte (W:H) als Referenz — eng gewählt, damit der Manual-
+// Rahmen den sichtbaren Inhalt umschließt (kein Leerraum innen):
 //   header / statusbar / statusbar_seg / value: 200×40 → 5:1
-//   dot / clock:                                200×32 → 6.25:1
 //   warning:                                    200×36 → 5.56:1
 //   aggregator / iconvalue:                     200×38 → 5.26:1
 //   alarm:                                      200×50 → 4:1
 //   bar_double:                                 200×55 → 3.636:1
 //   section:                                    200×28 → 7.143:1
 //   divider:                                    200×18 → 11.11:1
-//   bigvalue:                                   200×70 → 2.857:1
+//   bigvalue:                                   140×64  → 2.1875:1   (war 2.86 — enger)
+//   clock:                                      100×26  → 3.846:1    (war 6.25 — enger)
+//   dot:                                        100×24  → 4.167:1    (war 6.25 — enger)
 //   checklist:                                  200×130 → 1.538:1
 //   donut:                                      100×100 → 1:1
-//   gauge:                                      100×80 → 1.25:1
-//   statusbar_v:                                50×120 → 0.4167:1
+//   gauge:                                      100×80  → 1.25:1
+//   statusbar_v:                                50×120  → 0.4167:1
 const LCD_MANUAL_DEFAULTS = {
   header:        { w: 240, h: 48 },    // 5:1 ✓
   statusbar:     { w: 240, h: 48 },    // 5:1 ✓
@@ -682,17 +684,17 @@ const LCD_MANUAL_DEFAULTS = {
   statusbar_seg: { w: 240, h: 48 },    // 5:1 ✓
   bar_double:    { w: 240, h: 66 },    // 3.636:1 ✓
   value:         { w: 240, h: 48 },    // 5:1 ✓
-  bigvalue:      { w: 280, h: 98 },    // 2.857:1 ✓
+  bigvalue:      { w: 280, h: 128 },   // 2.1875:1 ✓ (= 140/64)
   iconvalue:     { w: 200, h: 38 },    // 5.263:1 ✓
   donut:         { w: 128, h: 128 },   // 1:1 ✓
   gauge:         { w: 160, h: 128 },   // 1.25:1 ✓
-  dot:           { w: 200, h: 32 },    // 6.25:1 ✓
+  dot:           { w: 200, h: 48 },    // 4.167:1 ✓ (= 100/24)
   checklist:     { w: 200, h: 130 },   // 1.538:1 ✓
   warning:       { w: 200, h: 36 },    // 5.556:1 ✓
   alarm:         { w: 200, h: 50 },    // 4:1 ✓
   section:       { w: 200, h: 28 },    // 7.143:1 ✓
   divider:       { w: 200, h: 18 },    // 11.11:1 ✓
-  clock:         { w: 200, h: 32 },    // 6.25:1 ✓
+  clock:         { w: 200, h: 52 },    // 3.846:1 ✓ (= 100/26)
   spacer:        { w: 240, h: 16 },
   aggregator:    { w: 200, h: 38 }     // 5.263:1 ✓
 };

@@ -135,14 +135,15 @@ const LCD_PREVIEWS = {
     const label = _escapeSvgText(w.label || "Status");
     // Demo: zeige mid-color (zwischen low und high)
     const color = _parseColor(w.colorMid, "rgb(255,140,26)");
-    return `<svg viewBox="0 0 200 32" xmlns="http://www.w3.org/2000/svg">
-      <rect width="200" height="32" fill="#07090c"/>
-      <circle cx="16" cy="16" r="7" fill="${color}"/>
-      <circle cx="16" cy="16" r="7" fill="none" stroke="${color}" stroke-width="1" opacity="0.4">
-        <animate attributeName="r" from="7" to="13" dur="1.5s" repeatCount="indefinite"/>
+    // Enge viewBox: Kreis links + Label rechts, kein leerer Platz rechts
+    return `<svg viewBox="0 0 100 24" xmlns="http://www.w3.org/2000/svg">
+      <rect width="100" height="24" fill="#07090c"/>
+      <circle cx="11" cy="12" r="6" fill="${color}"/>
+      <circle cx="11" cy="12" r="6" fill="none" stroke="${color}" stroke-width="1" opacity="0.4">
+        <animate attributeName="r" from="6" to="11" dur="1.5s" repeatCount="indefinite"/>
         <animate attributeName="opacity" from="0.7" to="0" dur="1.5s" repeatCount="indefinite"/>
       </circle>
-      <text x="32" y="21" font-family="Consolas,monospace" font-size="13" fill="#d8e1ec">${label}</text>
+      <text x="22" y="16" font-family="Consolas,monospace" font-size="11" fill="#d8e1ec">${label}</text>
     </svg>`;
   },
 
@@ -244,16 +245,22 @@ LCD_PREVIEWS.spacer = (w) => {
 
 LCD_PREVIEWS.clock = (w) => {
   const color = _parseColor(w.color, "rgb(78,197,255)");
-  const size = Math.max(10, Math.min(22, (parseFloat(w.size) || 1.2) * 12));
-  const text = w.format === "HH:mm" ? "14:23"
-             : w.format === "yyyy-MM-dd" ? "2026-05-11"
-             : w.format === "dd.MM.yyyy HH:mm" ? "11.05.2026 14:23"
-             : "14:23:45";
-  const x = w.align === "left" ? 8 : (w.align === "right" ? 192 : 100);
+  // Demo-Text + Font-Größe ans Format anpassen, damit alle Formate
+  // in die enge viewBox passen.
+  let text, size;
+  switch (w.format) {
+    case "HH:mm":            text = "14:23";              size = 14; break;
+    case "yyyy-MM-dd":       text = "2026-05-11";         size = 11; break;
+    case "dd.MM.yyyy HH:mm": text = "11.05.2026 14:23";   size = 7.5; break;
+    default:                 text = "14:23:45";           size = 13;
+  }
+  size = (parseFloat(w.size) || 1.2) * size / 1.2;
+  // Enge viewBox 100×26 — Text füllt die Breite optisch
+  const x = w.align === "left" ? 4 : (w.align === "right" ? 96 : 50);
   const anchor = w.align === "left" ? "start" : (w.align === "right" ? "end" : "middle");
-  return `<svg viewBox="0 0 200 32" xmlns="http://www.w3.org/2000/svg">
-    <rect width="200" height="32" fill="#07090c"/>
-    <text x="${x}" y="22" font-family="Consolas,monospace" font-size="${size}" font-weight="bold" fill="${color}" text-anchor="${anchor}">${text}</text>
+  return `<svg viewBox="0 0 100 26" xmlns="http://www.w3.org/2000/svg">
+    <rect width="100" height="26" fill="#07090c"/>
+    <text x="${x}" y="19" font-family="Consolas,monospace" font-size="${size}" font-weight="bold" fill="${color}" text-anchor="${anchor}">${text}</text>
   </svg>`;
 };
 
@@ -263,11 +270,12 @@ LCD_PREVIEWS.bigvalue = (w) => {
   const source = findLcdSource(w.source);
   const unit = source ? source.unit : "";
   const demoVal = w.format === "0" ? "42" : (w.format === "0.00" ? "42.50" : "42.5");
-  return `<svg viewBox="0 0 200 70" xmlns="http://www.w3.org/2000/svg">
-    <rect width="200" height="70" fill="#07090c"/>
-    <text x="100" y="18" font-family="Consolas,monospace" font-size="11" fill="#d8e1ec" text-anchor="middle" letter-spacing="2">${label}</text>
-    <text x="100" y="55" font-family="Consolas,monospace" font-size="36" font-weight="bold" fill="${color}" text-anchor="middle">${demoVal}</text>
-    <text x="192" y="65" font-family="Consolas,monospace" font-size="10" fill="${color}" text-anchor="end">${unit}</text>
+  // Enge viewBox 140×64: Label oben, große Zahl mittig — kein leerer Rand
+  return `<svg viewBox="0 0 140 64" xmlns="http://www.w3.org/2000/svg">
+    <rect width="140" height="64" fill="#07090c"/>
+    <text x="70" y="14" font-family="Consolas,monospace" font-size="10" fill="#d8e1ec" text-anchor="middle" letter-spacing="1.5">${label}</text>
+    <text x="70" y="50" font-family="Consolas,monospace" font-size="32" font-weight="bold" fill="${color}" text-anchor="middle">${demoVal}</text>
+    <text x="134" y="60" font-family="Consolas,monospace" font-size="9" fill="${color}" text-anchor="end">${unit}</text>
   </svg>`;
 };
 

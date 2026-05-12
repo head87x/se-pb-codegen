@@ -7,6 +7,29 @@ das Projekt folgt [Semantic Versioning](https://semver.org/lang/de/).
 
 ## [Unreleased]
 
+## [1.3.2] — 2026-05-12
+
+### Behoben (Manual-Rahmen eng am Widget — Teil 2)
+- Bei **Uhr**, **Punkt-Indikator** und **Großes Zahlenfeld** war der
+  sichtbare Inhalt deutlich kleiner als die SVG-viewBox — die viewBox
+  hatte 60 % Leerraum, weshalb die gestrichelte Linie ums Widget viel
+  zu groß wirkte und der Skalierung Platz vortäuschte, der gar nicht
+  genutzt wurde.
+- viewBox + Default-Größen jetzt eng am tatsächlichen Inhalt:
+  - **Uhr** (clock): viewBox 200×32 → **100×26** (3.846:1, war 6.25:1).
+    Font-Größe passt sich am Format an (kurze Formate größer, lange
+    kleiner), damit alle vier Format-Varianten in die schmale viewBox
+    passen.
+  - **Punkt-Indikator** (dot): viewBox 200×32 → **100×24** (4.167:1).
+    Kreis kompakter, Label direkt daneben.
+  - **Großes Zahlenfeld** (bigvalue): viewBox 200×70 → **140×64**
+    (2.188:1, war 2.857:1). Label oben, große Zahl mittig, Einheit
+    unten rechts — kein leerer Rand mehr.
+- Andere Widgets wurden geprüft: Statusleisten, Donut, Tachometer,
+  Wert-Anzeige, Icon-Wert, Aggregator, Alarm, Warning, Section,
+  Divider, Checklist und Bar-Double sind schon eng — entweder durch
+  vollflächige Balken oder Inhalt an beiden Rändern verankert.
+
 ## [1.3.1] — 2026-05-12
 
 ### Behoben (Multi-LCD Drag & Resize)
