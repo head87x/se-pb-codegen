@@ -101,6 +101,7 @@ function generateCode() {
   let composerFields = "";
   let composerEnsure = "";
   let composerMain   = "";
+  let composerPrecompute = "";
   let composerUsesCoroutines = false;
   if (typeof generateLcdComposerCode === "function") {
     const c = generateLcdComposerCode(ensureBlock);
@@ -108,6 +109,7 @@ function generateCode() {
       composerFields = c.fields || "";
       composerEnsure = c.ensure || "";
       composerMain   = c.code   || "";
+      composerPrecompute = c.precompute || "";
       composerUsesCoroutines = !!c.useCoroutines;
     }
   }
@@ -315,6 +317,15 @@ function generateCode() {
     code += `// ${_t("gen.cmt.coroutine")}\n`;
     code += `IEnumerator<bool> DrawAllLcds()\n`;
     code += `{\n`;
+    // Phase 1: Aggregator-Werte über mehrere Ticks berechnen (gechunkt)
+    if (composerPrecompute) {
+      code += `    // ${_t("gen.cmt.coroutine_phase1")}\n`;
+      code += composerPrecompute;
+    }
+    // Phase 2: LCDs zeichnen (yield nach jedem LCD)
+    if (composerPrecompute) {
+      code += `    // ${_t("gen.cmt.coroutine_phase2")}\n`;
+    }
     code += composerMain;
     code += `}\n`;
   }

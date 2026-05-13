@@ -7,6 +7,42 @@ das Projekt folgt [Semantic Versioning](https://semver.org/lang/de/).
 
 ## [Unreleased]
 
+## [2.3.0] — 2026-05-14
+
+### Hinzugefügt (Coroutines erweitert — Aggregator-Chunking + Statistik)
+- **Aggregator-Computation wird im Coroutine-Modus jetzt gechunkt**:
+  50 Blöcke pro Tick statt alle auf einmal. Vermeidet
+  „Script too complex"-Risiko bei sehr großen Block-Listen
+  (≥500 Akkus, Tanks, Reaktoren …).
+- **DrawAllLcds()** läuft jetzt in zwei Phasen:
+  - **Phase 1**: gechunkte Aggregator-Berechnung. Ergebnis und
+    Count werden als Class-Felder gespeichert
+    (`_agg<N>_result`, `_agg<N>_count`).
+  - **Phase 2**: LCD-Drawing pro Tick — liest die gecachten
+    Aggregator-Werte (kein foreach mehr im Render-Pfad).
+- **Bonus-Optimierung:** im Multi-LCD-Modus lief die Aggregator-
+  Schleife bisher **pro LCD neu** (also N-mal pro Tick bei N LCDs).
+  Jetzt nur **einmal pro Refresh-Runde**.
+- **Coroutine-Statistik im UI**: sobald der Toggle aktiv ist und
+  ein LCD-Composer konfiguriert ist, erscheint direkt unter dem
+  Toggle eine farbige Info-Zeile:
+
+  > 🔢 *Coroutine-Statistik: ~5 Ticks pro Refresh-Runde (4 LCD(s) + 1 Aggregator(en))*
+
+  Schätzung pro Refresh: 1 Tick pro LCD + 1 Tick pro
+  Aggregator-Widget (bei ≤50 Blöcken pro Widget). Bei mehr
+  Blöcken verteilen sich die Ticks zusätzlich.
+
+### Geändert
+- `generateLcdComposerCode()` returnt jetzt zusätzlich `precompute`
+  (gechunkter Aggregator-Code für Phase 1 von `DrawAllLcds`).
+- `ctx` im Composer hat `precompute` + `useCoroutines`.
+- `_aggregatorDrawCode()` als Helper für die Sprite-Render-Zeilen
+  (wird in beiden Modi genutzt — mit lokalen Variablen oder
+  Class-Feldern).
+- Im Coroutine-Off-Modus bleibt das alte Inline-foreach erhalten
+  (keine Verhaltensänderung für bestehende Skripte).
+
 ## [2.2.0] — 2026-05-14
 
 ### Hinzugefügt (Coroutines für LCD-Updates)

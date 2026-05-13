@@ -111,18 +111,20 @@ Felder, Multi-LCD-Konfiguration, Share-Token, Footer.
   (kopiere `BLOCKS_EN` + `LCD_*_EN` etc. und übersetze).
 
 ### Coroutines
-**Erledigt in v2.2.0**: Toggle „🔄 Coroutines verwenden" verteilt
-LCD-Drawing über mehrere Ticks via `IEnumerator<bool> DrawAllLcds()`
-mit `MoveNext` + `UpdateFrequency.Once`. Conditions/Actions bleiben
-atomar.
+**Erledigt in v2.2.0 + v2.3.0**:
+- v2.2.0: Toggle „🔄 Coroutines verwenden" — LCD-Drawing über
+  mehrere Ticks via `IEnumerator<bool> DrawAllLcds()` mit `MoveNext`
+  + `UpdateFrequency.Once`. Conditions/Actions bleiben atomar.
+- v2.3.0: Aggregator-Berechnung gechunkt (50 Blöcke/Tick), Ergebnisse
+  in Class-Feldern. Coroutine-Statistik im UI mit Tick-Schätzung.
 
-Mögliche Erweiterungen für später:
-- **Aggregator-Computation als Coroutine** — pro Tick N Blöcke
-  summieren statt alle auf einmal. Sinnvoll erst bei >500 Blöcken.
+Mögliche Erweiterungen:
 - **Conditions/Actions als Coroutine** — würde Reaktivität opfern,
   daher unwahrscheinlich.
-- **Coroutine-Statistik** im UI — Anzeige „braucht ~X Ticks pro
-  vollständiger LCD-Refresh-Runde" beim Build-Zeitpunkt.
+- **Konfigurierbare Chunk-Größe** — aktuell hardcoded 50. UI-Slider
+  „Blöcke pro Tick: 10–500" als Advanced-Option.
+- **Echtzeit-Statistik** im UI mit echten Tick-Counts vom letzten Lauf
+  (würde Round-Trip vom Spiel zurück erfordern — eher unrealistisch).
 
 ### Block-List-Refresh-Intervall (zurückgestellt aus v2.1.0)
 SE-Wiki: „Updates to block lists every 100+ ticks". Aktuell

@@ -160,7 +160,7 @@ function generateLcdComposerCode(ensureBlock) {
   }
 
   const _t = (typeof t === "function") ? t : ((k) => k);
-  const ctx = { fields: [], ensure: [] };
+  const ctx = { fields: [], ensure: [], precompute: [], useCoroutines: useCoroutines };
 
   let mainCode = "";
   mainCode += `\n    // ${_t("gen.cmt.lcd_composer")}\n`;
@@ -212,6 +212,7 @@ function generateLcdComposerCode(ensureBlock) {
       code: mainCode,
       fields: ctx.fields.map(s => s + "\n").join(""),
       ensure: ctx.ensure.map(s => s + "\n").join(""),
+      precompute: ctx.precompute.map(s => s + "\n").join(""),
       useCoroutines: useCoroutines
     };
   }
@@ -263,18 +264,39 @@ function generateLcdComposerCode(ensureBlock) {
     code: mainCode,
     fields: ctx.fields.map(s => s + "\n").join(""),
     ensure: ctx.ensure.map(s => s + "\n").join(""),
+    precompute: ctx.precompute.map(s => s + "\n").join(""),
     useCoroutines: useCoroutines
   };
 }
 
+// Helper für die Render-Sprites eines Aggregator-Widgets — nutzt die
+// übergebenen Variablen-Namen (lokal im Non-Coroutine-Mode, Class-Felder
+// im Coroutine-Mode).
+function _aggregatorDrawCode(w, resVar, cntVar, symbol, unit, _t) {
+  let out = "";
+  out += `                sp = MySprite.CreateText(${_csString(symbol)}, "White", ${_csColor(w.color)}, 1.1f, TextAlignment.LEFT);\n`;
+  out += `                sp.Position = new Vector2(rect.Position.X + colOffsetX, yPos + 4f);\n`;
+  out += `                frame.Add(sp);\n`;
+  out += `                sp = MySprite.CreateText(${_csString(w.label || "")}, "White", ${_csColor(lcdLabelColor())}, 0.7f, TextAlignment.LEFT);\n`;
+  out += `                sp.Position = new Vector2(rect.Position.X + colOffsetX + 18f, yPos + 4f);\n`;
+  out += `                frame.Add(sp);\n`;
+  out += `                sp = MySprite.CreateText(${resVar}.ToString("0") + ${_csString(unit)}, "White", ${_csColor(w.color)}, 1.1f, TextAlignment.RIGHT);\n`;
+  out += `                sp.Position = new Vector2(rect.Position.X + colOffsetX + widthInner, yPos + 12f);\n`;
+  out += `                frame.Add(sp);\n`;
+  out += `                sp = MySprite.CreateText("(" + ${cntVar} + ${_csString(" " + _t("gen.cmt.agg_count_word"))} + ")", "White", new Color(107,122,141), 0.55f, TextAlignment.LEFT);\n`;
+  out += `                sp.Position = new Vector2(rect.Position.X + colOffsetX + 18f, yPos + 20f);\n`;
+  out += `                frame.Add(sp);\n`;
+  return out;
+}
+
 // Pro Widget-Typ den C#-Code-Block erzeugen.
 // idx = widget-Index im Composer-Array (für unique Field-Namen wie _agg0_list).
-// ctx = { fields:[], ensure:[] } für Class-Felder + EnsureBlocks-Code,
-//       die in codegen.js außerhalb des Main-Bodys eingesetzt werden.
+// ctx = { fields:[], ensure:[], precompute:[], useCoroutines } für Class-Felder,
+//       EnsureBlocks-Code und chunked precompute-Code für Coroutine-Modus.
 function _emitWidget(w, idx, ensureBlock, ctx) {
   let out = "";
   // Fallback falls ctx fehlt (alte Aufrufpfade)
-  if (!ctx) ctx = { fields: [], ensure: [] };
+  if (!ctx) ctx = { fields: [], ensure: [], precompute: [], useCoroutines: false };
 
   if (w.type === "header") {
     const alignCs = w.align === "left" ? "TextAlignment.LEFT"
@@ -609,8 +631,11 @@ function _emitWidget(w, idx, ensureBlock, ctx) {
 
   } else if (w.type === "aggregator") {
     // Multi-Block-Aggregation via GetBlocksOfType<...>.
-    // Liste wird als Class-Feld gecacht und in EnsureBlocks() refreshed —
-    // KEIN `new List<>()` und KEIN GetBlocksOfType im Render-Pfad.
+    // Liste wird als Class-Feld gecacht und in EnsureBlocks() refreshed.
+    //
+    // Im Coroutines-Modus: Berechnung wird in Phase 1 von DrawAllLcds()
+    // gechunked verteilt (50 Blöcke pro Tick), Ergebnis in Class-Feldern.
+    // Render-Code liest die Felder. Sonst: Inline-foreach im Render-Pfad.
     const agg = w.aggregateType || "battery_charge";
     let iface, expr, unit;
     switch (agg) {
@@ -626,9 +651,9 @@ function _emitWidget(w, idx, ensureBlock, ctx) {
     }
     const mode = w.mode || "avg";
     const listVar = `_agg${idx}_list`;
-    const valVar  = `_agg${idx}_val`;
-    const cntVar  = `_agg${idx}_cnt`;
-    const resVar  = `_agg${idx}_res`;
+    const resVar  = `_agg${idx}_result`;
+    const cntVar  = `_agg${idx}_count`;
+    const useCoro = !!ctx.useCoroutines;
 
     // Class-Feld + EnsureBlocks-Update (einmalig pro Aggregator-Widget registrieren)
     if (!ctx._aggSeen) ctx._aggSeen = new Set();
@@ -638,39 +663,71 @@ function _emitWidget(w, idx, ensureBlock, ctx) {
       ctx.ensure.push(`    if (${listVar} == null) ${listVar} = new List<${iface}>();`);
       ctx.ensure.push(`    ${listVar}.Clear();`);
       ctx.ensure.push(`    GridTerminalSystem.GetBlocksOfType(${listVar});`);
+
+      if (useCoro) {
+        // Class-Felder für gechunkte Berechnung + Ergebnis-Cache
+        ctx.fields.push(`float ${resVar}; int ${cntVar};`);
+        ctx.fields.push(`float _agg${idx}_partial; int _agg${idx}_partialCnt; int _agg${idx}_i;`);
+        if (mode === "min") ctx.fields.push(`float _agg${idx}_min = float.MaxValue;`);
+        if (mode === "max") ctx.fields.push(`float _agg${idx}_max = float.MinValue;`);
+
+        // Precompute: chunked Schleife (50 pro Tick) — wird in DrawAllLcds Phase 1 emittiert
+        ctx.precompute.push(`    // Aggregator #${idx + 1}: ${agg} (${mode}) — 50 Blöcke pro Tick`);
+        ctx.precompute.push(`    while (_agg${idx}_i < ${listVar}.Count) {`);
+        ctx.precompute.push(`        int _end = Math.Min(_agg${idx}_i + 50, ${listVar}.Count);`);
+        ctx.precompute.push(`        for (; _agg${idx}_i < _end; _agg${idx}_i++) {`);
+        ctx.precompute.push(`            var b = ${listVar}[_agg${idx}_i];`);
+        ctx.precompute.push(`            float v = ${expr};`);
+        if (mode === "sum" || mode === "avg") ctx.precompute.push(`            _agg${idx}_partial += v;`);
+        if (mode === "min") ctx.precompute.push(`            if (v < _agg${idx}_min) _agg${idx}_min = v;`);
+        if (mode === "max") ctx.precompute.push(`            if (v > _agg${idx}_max) _agg${idx}_max = v;`);
+        ctx.precompute.push(`            _agg${idx}_partialCnt++;`);
+        ctx.precompute.push(`        }`);
+        ctx.precompute.push(`        yield return true;`);
+        ctx.precompute.push(`    }`);
+        // Ergebnis ableiten + State für nächste Runde resetten
+        if (mode === "avg")      ctx.precompute.push(`    ${resVar} = _agg${idx}_partialCnt > 0 ? _agg${idx}_partial / _agg${idx}_partialCnt : 0f;`);
+        else if (mode === "sum") ctx.precompute.push(`    ${resVar} = _agg${idx}_partial;`);
+        else if (mode === "min") ctx.precompute.push(`    ${resVar} = _agg${idx}_partialCnt > 0 ? _agg${idx}_min : 0f;`);
+        else if (mode === "max") ctx.precompute.push(`    ${resVar} = _agg${idx}_partialCnt > 0 ? _agg${idx}_max : 0f;`);
+        ctx.precompute.push(`    ${cntVar} = _agg${idx}_partialCnt;`);
+        ctx.precompute.push(`    _agg${idx}_i = 0; _agg${idx}_partial = 0f; _agg${idx}_partialCnt = 0;`);
+        if (mode === "min") ctx.precompute.push(`    _agg${idx}_min = float.MaxValue;`);
+        if (mode === "max") ctx.precompute.push(`    _agg${idx}_max = float.MinValue;`);
+        ctx.precompute.push(``);
+      }
     }
 
-    // Render-Code (nur Lesen aus Cache, keine Allokationen mehr)
-    out += `                float ${valVar} = 0f; int ${cntVar} = 0;\n`;
-    if (mode === "min") out += `                float ${valVar}_min = float.MaxValue;\n`;
-    if (mode === "max") out += `                float ${valVar}_max = float.MinValue;\n`;
-    out += `                foreach (var b in ${listVar})\n`;
-    out += `                {\n`;
-    out += `                    float v = ${expr};\n`;
-    if (mode === "sum" || mode === "avg") out += `                    ${valVar} += v;\n`;
-    if (mode === "min") out += `                    if (v < ${valVar}_min) ${valVar}_min = v;\n`;
-    if (mode === "max") out += `                    if (v > ${valVar}_max) ${valVar}_max = v;\n`;
-    out += `                    ${cntVar}++;\n`;
-    out += `                }\n`;
-    if (mode === "avg") out += `                float ${resVar} = ${cntVar} > 0 ? ${valVar} / ${cntVar} : 0f;\n`;
-    else if (mode === "min") out += `                float ${resVar} = ${cntVar} > 0 ? ${valVar}_min : 0f;\n`;
-    else if (mode === "max") out += `                float ${resVar} = ${cntVar} > 0 ? ${valVar}_max : 0f;\n`;
-    else out += `                float ${resVar} = ${valVar};\n`;
-
-    const symbol = mode === "sum" ? "Σ" : (mode === "min" ? "↓" : (mode === "max" ? "↑" : "Ø"));
     const _t = (typeof t === "function") ? t : ((k) => k);
-    out += `                sp = MySprite.CreateText(${_csString(symbol)}, "White", ${_csColor(w.color)}, 1.1f, TextAlignment.LEFT);\n`;
-    out += `                sp.Position = new Vector2(rect.Position.X + colOffsetX, yPos + 4f);\n`;
-    out += `                frame.Add(sp);\n`;
-    out += `                sp = MySprite.CreateText(${_csString(w.label || "")}, "White", ${_csColor(lcdLabelColor())}, 0.7f, TextAlignment.LEFT);\n`;
-    out += `                sp.Position = new Vector2(rect.Position.X + colOffsetX + 18f, yPos + 4f);\n`;
-    out += `                frame.Add(sp);\n`;
-    out += `                sp = MySprite.CreateText(${resVar}.ToString("0") + ${_csString(unit)}, "White", ${_csColor(w.color)}, 1.1f, TextAlignment.RIGHT);\n`;
-    out += `                sp.Position = new Vector2(rect.Position.X + colOffsetX + widthInner, yPos + 12f);\n`;
-    out += `                frame.Add(sp);\n`;
-    out += `                sp = MySprite.CreateText("(" + ${cntVar} + ${_csString(" " + _t("gen.cmt.agg_count_word"))} + ")", "White", new Color(107,122,141), 0.55f, TextAlignment.LEFT);\n`;
-    out += `                sp.Position = new Vector2(rect.Position.X + colOffsetX + 18f, yPos + 20f);\n`;
-    out += `                frame.Add(sp);\n`;
+    const symbol = mode === "sum" ? "Σ" : (mode === "min" ? "↓" : (mode === "max" ? "↑" : "Ø"));
+
+    // Render-Code: bei Coroutines aus Class-Feldern, sonst inline-foreach
+    if (!useCoro) {
+      // Inline-Berechnung (klassisch — wie vor v2.3.0 ohne Coroutines)
+      const valVar  = `_agg${idx}_val`;
+      const cntLocal = `_agg${idx}_cnt`;
+      const resLocal = `_agg${idx}_res`;
+      out += `                float ${valVar} = 0f; int ${cntLocal} = 0;\n`;
+      if (mode === "min") out += `                float ${valVar}_min = float.MaxValue;\n`;
+      if (mode === "max") out += `                float ${valVar}_max = float.MinValue;\n`;
+      out += `                foreach (var b in ${listVar})\n`;
+      out += `                {\n`;
+      out += `                    float v = ${expr};\n`;
+      if (mode === "sum" || mode === "avg") out += `                    ${valVar} += v;\n`;
+      if (mode === "min") out += `                    if (v < ${valVar}_min) ${valVar}_min = v;\n`;
+      if (mode === "max") out += `                    if (v > ${valVar}_max) ${valVar}_max = v;\n`;
+      out += `                    ${cntLocal}++;\n`;
+      out += `                }\n`;
+      if (mode === "avg") out += `                float ${resLocal} = ${cntLocal} > 0 ? ${valVar} / ${cntLocal} : 0f;\n`;
+      else if (mode === "min") out += `                float ${resLocal} = ${cntLocal} > 0 ? ${valVar}_min : 0f;\n`;
+      else if (mode === "max") out += `                float ${resLocal} = ${cntLocal} > 0 ? ${valVar}_max : 0f;\n`;
+      else out += `                float ${resLocal} = ${valVar};\n`;
+      // Drawing nutzt die lokalen Variablen
+      out += _aggregatorDrawCode(w, resLocal, cntLocal, symbol, unit, _t);
+    } else {
+      // Coroutine-Modus: Werte stehen bereits in den Class-Feldern
+      out += _aggregatorDrawCode(w, resVar, cntVar, symbol, unit, _t);
+    }
 
   } else if (w.type === "gauge") {
     const entry = _ensureSourceBlock(ensureBlock, w.source, w.sourceBlock);

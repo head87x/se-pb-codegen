@@ -202,7 +202,37 @@ function render() {
   renderTemplates();
   renderExecHelp();
   renderLcdComposer();
+  renderCoroutineStats();
   generateCode();
+}
+
+// Coroutine-Statistik anzeigen, wenn der Toggle aktiv ist und der
+// Composer tatsächlich Drawing-Code emittiert (sonst irrelevant).
+// Schätzt grob: 1 Tick pro LCD + 1 Tick pro Aggregator-Widget
+// (bei ≤50 Blöcken pro Aggregator). Bei vielen Blöcken kommt mehr dazu.
+function renderCoroutineStats() {
+  const el = document.getElementById("exec-coroutines-stats");
+  if (!el) return;
+  const active = !!state.useCoroutines;
+  const lc = state.lcdComposer;
+  const composerActive = lc && lc.enabled && lc.widgets && lc.widgets.length > 0;
+  if (!active || !composerActive) {
+    el.style.display = "none";
+    el.textContent = "";
+    return;
+  }
+  // LCD count
+  const ml = lc.multiLcd || { enabled: false, rows: 1, cols: 1 };
+  const multi = ml.enabled === true && (lc.displayMode || "external") === "external";
+  const cols = multi ? Math.max(1, parseInt(ml.cols, 10) || 1) : 1;
+  const rows = multi ? Math.max(1, parseInt(ml.rows, 10) || 1) : 1;
+  const lcdCount = multi ? cols * rows : 1;
+  // Aggregator widgets (visible only)
+  const aggCount = lc.widgets.filter(w => w.type === "aggregator" && !w.hidden).length;
+  // Estimate: 1 tick per LCD yield + 1 tick per aggregator-chunk-cycle (≤50 blocks)
+  const ticks = lcdCount + aggCount;
+  el.style.display = "";
+  el.textContent = t("exec.coroutines.stats", ticks, lcdCount, aggCount);
 }
 
 // ============================================================

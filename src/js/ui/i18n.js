@@ -198,6 +198,10 @@ const I18N = {
     "exec.coroutines.help":       "Verteilt LCD-Updates über mehrere Ticks. Empfohlen ab Multi-LCD 3×3 oder vielen Aggregator-Widgets — vermeidet „Script too complex\"-Fehler. Trade-off: LCDs aktualisieren nicht alle gleichzeitig, sondern ein Display pro Tick.",
     "gen.cmt.coroutine":          "---------- Coroutine: LCD-Updates über mehrere Ticks ----------",
     "gen.cmt.coroutine_main":     "LCD-Drawing pro Tick einen Schritt weiter — UpdateFrequency.Once kettet die Ticks",
+    "gen.cmt.coroutine_phase1":   "Phase 1: Aggregator-Berechnung über mehrere Ticks (50 Blöcke/Tick)",
+    "gen.cmt.coroutine_phase2":   "Phase 2: LCDs zeichnen (1 LCD pro Tick)",
+    "exec.coroutines.stats":      "🔢 Coroutine-Statistik: ~{0} Ticks pro Refresh-Runde ({1} LCD(s) + {2} Aggregator(en))",
+    "exec.coroutines.stats.short":"~{0} Ticks pro Refresh",
     // Code-Output Klartext-Button
     "code.plain":                 "📄 Klartext",
     "code.plain.title":           "Code als Klartext",
@@ -365,6 +369,10 @@ const I18N = {
     "exec.coroutines.help":       "Spreads LCD updates across multiple ticks. Recommended for multi-LCD 3×3 or many aggregator widgets — avoids \"Script too complex\" errors. Trade-off: LCDs no longer refresh simultaneously, one display per tick.",
     "gen.cmt.coroutine":          "---------- Coroutine: spreads LCD updates across ticks ----------",
     "gen.cmt.coroutine_main":     "Advances LCD drawing one step per tick — UpdateFrequency.Once chains subsequent ticks",
+    "gen.cmt.coroutine_phase1":   "Phase 1: aggregator computation across ticks (50 blocks/tick)",
+    "gen.cmt.coroutine_phase2":   "Phase 2: draw LCDs (1 LCD per tick)",
+    "exec.coroutines.stats":      "🔢 Coroutine stats: ~{0} ticks per refresh cycle ({1} LCD(s) + {2} aggregator(s))",
+    "exec.coroutines.stats.short":"~{0} ticks per refresh",
     "code.plain":                 "📄 Plain text",
     "code.plain.title":           "Code as plain text",
     "code.plain.hint":            "Ctrl+A selects all, Ctrl+C copies."
