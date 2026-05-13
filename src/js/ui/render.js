@@ -67,16 +67,51 @@ function _validateBlockName(name) {
 
 
 // Liefert HTML für ein Block-Name-Input mit optionalem Warnindikator.
+// Der oninput-Handler ruft zusätzlich `_refreshBlockNameValidation(this)`
+// auf, sodass der Badge-Status live mit jeder Tastenanschlag aktualisiert
+// wird — ohne `render()` (sonst würde der Eingabe-Fokus verloren gehen).
 function _blockNameInputHtml(value, onInputCall, placeholder) {
   const v = _validateBlockName(value);
   const cls = v.level === "error" ? "input-warn-error"
             : v.level === "warning" ? "input-warn-warning" : "";
   const badge = (v.level === "ok") ? "" :
     `<span class="input-warn-badge ${v.level}" title="${escapeAttr(t(v.msgKey))}">⚠</span>`;
+  // Inline-Skript bleibt einfache String-Interpolation — wir hängen
+  // den Live-Validation-Call ans Ende des bestehenden Handlers.
+  const combinedHandler = `${onInputCall}; _refreshBlockNameValidation(this)`;
   return `<div class="input-with-warn ${cls}">
-    <input value="${escapeAttr(value || "")}" oninput="${onInputCall}" placeholder="${escapeAttr(placeholder || "")}">
+    <input value="${escapeAttr(value || "")}" oninput="${combinedHandler}" placeholder="${escapeAttr(placeholder || "")}">
     ${badge}
   </div>`;
+}
+
+// Aktualisiert Wrap-Border und Badge live (ohne Re-Render). Wird vom
+// oninput-Handler nach jeder Tasteneingabe gerufen — so reagiert die
+// Warnung sofort, statt erst beim nächsten render().
+function _refreshBlockNameValidation(inputEl) {
+  if (!inputEl) return;
+  const wrap = inputEl.parentElement;
+  if (!wrap || !wrap.classList.contains("input-with-warn")) return;
+  const v = _validateBlockName(inputEl.value);
+
+  // Border-Klasse am Wrap aktualisieren
+  wrap.classList.remove("input-warn-error", "input-warn-warning");
+  if (v.level === "error")   wrap.classList.add("input-warn-error");
+  if (v.level === "warning") wrap.classList.add("input-warn-warning");
+
+  // Badge erzeugen / aktualisieren / entfernen
+  let badge = wrap.querySelector(".input-warn-badge");
+  if (v.level === "ok") {
+    if (badge) badge.remove();
+    return;
+  }
+  if (!badge) {
+    badge = document.createElement("span");
+    badge.textContent = "⚠";
+    wrap.appendChild(badge);
+  }
+  badge.className = "input-warn-badge " + v.level;
+  badge.title = t(v.msgKey);
 }
 
 function renderConditions() {

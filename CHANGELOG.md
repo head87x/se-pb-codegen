@@ -7,6 +7,21 @@ das Projekt folgt [Semantic Versioning](https://semver.org/lang/de/).
 
 ## [Unreleased]
 
+## [2.6.1] — 2026-05-14
+
+### Behoben (Live-Validierung beim Tippen)
+- Die Block-Namen-Warnindikatoren (eingeführt in v2.6.0) reagierten
+  vorher erst beim nächsten vollen `render()` — also wenn der User
+  z. B. den Block-Typ oder die Bedingung wechselte. Beim reinen
+  Tippen blieb die Warnung stehen.
+- Neu: `_refreshBlockNameValidation(this)` läuft direkt im
+  `oninput`-Handler. Border-Klasse + Badge werden live (ohne
+  Re-Render) am DOM aktualisiert — Fokus im Input bleibt erhalten.
+- Damit reagiert das Tool sofort beim ersten Tastendruck:
+  Leerzeichen rein → Warnung erscheint;
+  Leerzeichen weg → Warnung verschwindet;
+  Feld leer → roter Border.
+
 ## [2.6.0] — 2026-05-14
 
 ### Hinzugefügt (Block-Namen-Validierung)
