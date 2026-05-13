@@ -127,6 +127,11 @@ function updateAct(which, i, field, val) {
 
 // ---------- Statische UI-Inputs (Header-Bereich) ----------
 
+function onUseCoroutinesChange(checked) {
+  state.useCoroutines = !!checked;
+  generateCode();
+}
+
 function onExecModeChange(val) {
   state.execMode = val;
   renderExecHelp();

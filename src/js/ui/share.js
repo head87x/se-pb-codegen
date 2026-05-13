@@ -121,6 +121,7 @@ function _shareApplyDefensiveDefaults() {
   if (!state.lcdComposer.multiLcd) {
     state.lcdComposer.multiLcd = { enabled: false, rows: 1, cols: 2, namePattern: "LCD {col}{row}" };
   }
+  if (typeof state.useCoroutines !== "boolean") state.useCoroutines = false;
 }
 
 // Die statischen Form-Felder müssen die State-Werte zeigen
@@ -131,6 +132,7 @@ function _shareSyncUiFields() {
   const setDisplay = (id, on) => { const e = document.getElementById(id); if (e) e.style.display = on ? "block" : "none"; };
 
   set("exec-mode",                    state.execMode);
+  setChecked("exec-coroutines",       state.useCoroutines);
   setChecked("lcd-enable",            state.lcdEnable);
   set("lcd-name",                     state.lcdName || "");
   setDisplay("lcd-config",            !!state.lcdEnable);

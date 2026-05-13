@@ -38,6 +38,8 @@ function loadTemplate(i) {
   if (!state.lcdComposer.multiLcd) {
     state.lcdComposer.multiLcd = { enabled: false, rows: 1, cols: 2, namePattern: "LCD {col}{row}" };
   }
+  // v2.2.0: Coroutines-Toggle defensiv defaulten
+  if (typeof state.useCoroutines !== "boolean") state.useCoroutines = false;
 
   // Migration: alte Grid-Widgets in Manual-Modus konvertieren.
   // Setzt einen einfachen vertikalen Stack als initiale Position.
@@ -59,6 +61,8 @@ function loadTemplate(i) {
 
   // Re-apply UI fields
   document.getElementById("exec-mode").value = state.execMode;
+  const coroEl = document.getElementById("exec-coroutines");
+  if (coroEl) coroEl.checked = !!state.useCoroutines;
   document.getElementById("lcd-enable").checked = !!state.lcdEnable;
   document.getElementById("lcd-name").value = state.lcdName || "";
   document.getElementById("lcd-config").style.display = state.lcdEnable ? "block" : "none";
@@ -83,10 +87,12 @@ async function newProject() {
   if (!await showConfirm(t("templates.new_q"), { confirmLabel: t("templates.new_btn") })) return;
   state = {
     conditions: [], actionsThen: [], actionsElse: [],
-    execMode: "argument", lcdEnable: false, lcdName: "",
+    execMode: "argument", useCoroutines: false, lcdEnable: false, lcdName: "",
     lcdComposer: { enabled: false, displayMode: "external", lcdName: "", surfaceIndex: 0, resolution: "square", widgets: [] }
   };
   document.getElementById("exec-mode").value = "argument";
+  const coroEl2 = document.getElementById("exec-coroutines");
+  if (coroEl2) coroEl2.checked = false;
   document.getElementById("lcd-enable").checked = false;
   document.getElementById("lcd-name").value = "";
   document.getElementById("lcd-config").style.display = "none";

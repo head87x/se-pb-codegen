@@ -9,6 +9,7 @@ var state = {
   actionsThen: [],  // { blockType, blockName, actId, arg, arg2 }
   actionsElse: [],
   execMode: "argument",
+  useCoroutines: false,  // v2.2.0 — verteilt LCD-Drawing über mehrere Ticks
   lcdEnable: false,  // alte einfache Status-Ausgabe
   lcdName: "",       // LCD-Block-Name für die alte Status-Ausgabe
   lcdComposer: {     // Phase 4a — LCD-Baukasten (Sprite-API)

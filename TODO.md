@@ -110,17 +110,19 @@ Felder, Multi-LCD-Konfiguration, Share-Token, Footer.
   `src/js/ui/i18n.js` hinzufügen und entsprechende Maps anlegen
   (kopiere `BLOCKS_EN` + `LCD_*_EN` etc. und übersetze).
 
-### Coroutines (zurückgestellt aus v2.1.0)
-PB-Wiki empfiehlt Coroutines (IEnumerator + yield return) für
-Operationen die zu lange für einen einzelnen Tick dauern. Aktuell
-passt das nicht zum One-Shot-Charakter unserer Skripte. Sinnvoll
-wäre es bei:
-- Aggregator-Widgets mit sehr großen Block-Listen (>500 Blöcke)
-- Skripten mit vielen Sprite-Operationen auf vielen LCDs
-- Multi-LCD-Setups mit 6×6 Grid
+### Coroutines
+**Erledigt in v2.2.0**: Toggle „🔄 Coroutines verwenden" verteilt
+LCD-Drawing über mehrere Ticks via `IEnumerator<bool> DrawAllLcds()`
+mit `MoveNext` + `UpdateFrequency.Once`. Conditions/Actions bleiben
+atomar.
 
-Wäre ein eigenes „advanced mode"-Toggle pro Widget oder global.
-Großer Brocken, MAJOR-Release-Material.
+Mögliche Erweiterungen für später:
+- **Aggregator-Computation als Coroutine** — pro Tick N Blöcke
+  summieren statt alle auf einmal. Sinnvoll erst bei >500 Blöcken.
+- **Conditions/Actions als Coroutine** — würde Reaktivität opfern,
+  daher unwahrscheinlich.
+- **Coroutine-Statistik** im UI — Anzeige „braucht ~X Ticks pro
+  vollständiger LCD-Refresh-Runde" beim Build-Zeitpunkt.
 
 ### Block-List-Refresh-Intervall (zurückgestellt aus v2.1.0)
 SE-Wiki: „Updates to block lists every 100+ ticks". Aktuell

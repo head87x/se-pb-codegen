@@ -138,7 +138,11 @@ function _emitWidgetsBlock(widgets, ensureBlock, ctx) {
 // Hauptfunktion — liefert { used, fields, ensure, code } mit:
 //   fields : Class-Feld-Deklarationen (Surface-Cache, Aggregator-Listen)
 //   ensure : Body für die EnsureBlocks()-Methode (Validation + Refresh)
-//   code   : Inhalt für Main() (DrawFrame-Loops, nutzt gecachte Felder)
+//   code   : Inhalt für Main() ODER für IEnumerator-Body (DrawFrame-Loops)
+//
+// Wenn state.useCoroutines true ist, wird nach jedem LCD-DrawFrame ein
+// `yield return true;` eingefügt — der Aufrufer (codegen.js) packt das
+// Ergebnis dann in eine `IEnumerator<bool>`-Methode.
 function generateLcdComposerCode(ensureBlock) {
   const lc = state.lcdComposer;
   if (!lc || !lc.enabled || !lc.widgets || lc.widgets.length === 0) {
@@ -148,6 +152,8 @@ function generateLcdComposerCode(ensureBlock) {
   const mode = lc.displayMode || "external";
   const surfaceIdx = Math.max(0, Math.min(15, parseInt(lc.surfaceIndex, 10) || 0));
   const multi = _multiLcdLayout(lc);
+  const useCoroutines = !!state.useCoroutines;
+  const yieldStr = useCoroutines ? "        yield return true;\n" : "";
 
   if ((mode === "external" || mode === "cockpit") && !multi && !lc.lcdName) {
     return { used: false, code: "", fields: "", ensure: "" };
@@ -198,12 +204,15 @@ function generateLcdComposerCode(ensureBlock) {
     mainCode += `            MySprite sp;\n`;
     mainCode += _emitWidgetsBlock(lc.widgets, ensureBlock, ctx);
     mainCode += `        }\n`;
+    // Coroutine-Pause nach jedem LCD — nur wenn aktiv
+    mainCode += yieldStr;
     mainCode += `    }\n`;
     return {
       used: true,
       code: mainCode,
       fields: ctx.fields.map(s => s + "\n").join(""),
-      ensure: ctx.ensure.map(s => s + "\n").join("")
+      ensure: ctx.ensure.map(s => s + "\n").join(""),
+      useCoroutines: useCoroutines
     };
   }
 
@@ -239,6 +248,8 @@ function generateLcdComposerCode(ensureBlock) {
   mainCode += _emitWidgetsBlock(lc.widgets, ensureBlock, ctx);
   mainCode += `        }\n`;
   mainCode += `    }\n`;
+  // Coroutine-Pause am Ende (Single-LCD — yield-Point falls weiterer Code folgt)
+  if (useCoroutines) mainCode += `    yield return true;\n`;
   if (mode === "pb") {
     mainCode += `    else { Echo("${escapeCs(_t("gen.cmt.lcd_pb_404", surfaceIdx))}"); }\n`;
   } else if (mode === "cockpit") {
@@ -251,7 +262,8 @@ function generateLcdComposerCode(ensureBlock) {
     used: true,
     code: mainCode,
     fields: ctx.fields.map(s => s + "\n").join(""),
-    ensure: ctx.ensure.map(s => s + "\n").join("")
+    ensure: ctx.ensure.map(s => s + "\n").join(""),
+    useCoroutines: useCoroutines
   };
 }
 

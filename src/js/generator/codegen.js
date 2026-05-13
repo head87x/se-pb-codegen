@@ -101,17 +101,22 @@ function generateCode() {
   let composerFields = "";
   let composerEnsure = "";
   let composerMain   = "";
+  let composerUsesCoroutines = false;
   if (typeof generateLcdComposerCode === "function") {
     const c = generateLcdComposerCode(ensureBlock);
     if (c.used) {
       composerFields = c.fields || "";
       composerEnsure = c.ensure || "";
       composerMain   = c.code   || "";
+      composerUsesCoroutines = !!c.useCoroutines;
     }
   }
 
   const _t = (typeof t === "function") ? t : ((k) => k);
   const lcdStatusEnabled = state.lcdEnable && state.lcdName && state.lcdName.trim().length > 0;
+  // Coroutine-Modus greift nur wenn der Composer auch wirklich Drawing-Code
+  // emittiert. Sonst lohnt sich die State-Machine nicht.
+  const useCoroutines = composerUsesCoroutines && composerMain.length > 0;
 
   // === Build code ===
   let code = "";
@@ -140,6 +145,9 @@ function generateCode() {
     code += `readonly System.Text.StringBuilder _sb = new System.Text.StringBuilder();\n`;
   }
   if (composerFields) code += composerFields;
+  if (useCoroutines) {
+    code += `IEnumerator<bool> _drawCoroutine;\n`;
+  }
   code += "\n";
 
   // ---------- Constructor ----------
@@ -283,9 +291,33 @@ function generateCode() {
   }
 
   // LCD-Composer-Main (Sprite-API DrawFrame-Loops)
-  code += composerMain;
+  if (useCoroutines) {
+    // Coroutine-Variante: ruft die State-Machine einen Schritt weiter und
+    // setzt UpdateFrequency.Once, um nächsten Tick weiterzumachen.
+    code += "\n";
+    code += `    // ${_t("gen.cmt.coroutine_main")}\n`;
+    code += `    if (_drawCoroutine == null) _drawCoroutine = DrawAllLcds();\n`;
+    code += `    if (_drawCoroutine.MoveNext()) {\n`;
+    code += `        Runtime.UpdateFrequency |= UpdateFrequency.Once;\n`;
+    code += `    } else {\n`;
+    code += `        _drawCoroutine.Dispose();\n`;
+    code += `        _drawCoroutine = null;\n`;
+    code += `    }\n`;
+  } else {
+    code += composerMain;
+  }
 
   code += "}\n";
+
+  // ---------- Coroutine-Methode anhängen (nach Main, in der Klasse) ----------
+  if (useCoroutines) {
+    code += "\n";
+    code += `// ${_t("gen.cmt.coroutine")}\n`;
+    code += `IEnumerator<bool> DrawAllLcds()\n`;
+    code += `{\n`;
+    code += composerMain;
+    code += `}\n`;
+  }
 
   // ---------- Inventory-Helper injizieren ----------
   code = _injectInventoryHelpers(code, INVENTORY_HELPERS_MARKER);

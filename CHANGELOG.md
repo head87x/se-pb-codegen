@@ -7,6 +7,40 @@ das Projekt folgt [Semantic Versioning](https://semver.org/lang/de/).
 
 ## [Unreleased]
 
+## [2.2.0] — 2026-05-14
+
+### Hinzugefügt (Coroutines für LCD-Updates)
+- **Neuer Toggle „🔄 Coroutines verwenden"** in der AUSFÜHRUNG-
+  Sektion. Wenn aktiv, verteilt der Generator LCD-Drawing über
+  mehrere Ticks — vermeidet „Script too complex"-Fehler bei
+  Multi-LCD-3×3-Setups oder vielen Aggregator-Widgets.
+- **Generierter Code emittiert `IEnumerator<bool> DrawAllLcds()`**
+  als separate Methode mit `yield return true;` nach jedem LCD.
+  Main() ruft `_drawCoroutine.MoveNext()` und setzt
+  `Runtime.UpdateFrequency |= UpdateFrequency.Once;`, um im nächsten
+  Tick fortzusetzen.
+- **Conditions + Actions bleiben atomar pro Tick** — nur LCD-Drawing
+  ist über Ticks verteilt. So bleibt die Reaktivität bei Türen,
+  Schaltern etc. erhalten.
+- **Trade-off**: LCDs aktualisieren nicht alle gleichzeitig. Bei
+  Update10 + 4 LCDs braucht eine volle Refresh-Runde ~4 Ticks
+  (~67 ms) statt 1 Tick — meist nicht wahrnehmbar, aber dafür kein
+  Risiko mehr „Script too complex".
+- **Default: AUS**. Bei einfachen Setups (1 LCD, wenige Widgets)
+  bringt der Modus nichts. Toggle nur bei komplexen Setups
+  einschalten. Wird auch ignoriert, wenn gar kein LCD-Composer
+  aktiv ist.
+
+### Geändert
+- `generateLcdComposerCode()` returnt jetzt zusätzlich
+  `useCoroutines: bool` und emittiert `yield return true;` nach
+  jedem LCD-Block wenn aktiv.
+- `loadTemplate()` und `_shareApplyDefensiveDefaults()` migrieren
+  alte Vorlagen/Token defensiv (`useCoroutines` fehlt → false).
+
+### Quelle
+- https://spaceengineers.wiki.gg/wiki/Scripting/Coroutines_-_Run_operations_over_multiple_ticks
+
 ## [2.1.0] — 2026-05-13
 
 ### Geändert (Block-Caching nach PB-Wiki-Best-Practices)

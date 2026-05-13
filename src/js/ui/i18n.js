@@ -194,6 +194,10 @@ const I18N = {
     "exec.help.timer10":          "Aktion läuft alle 10 Ticks (~6×/Sek).",
     "exec.help.timer1":           "Aktion läuft ~1× pro Sekunde (Update100).",
     "exec.help.continuous":       "⚠ Aktion läuft jeden Game-Tick (~60×/Sek). Nur nutzen wenn wirklich nötig — kostet Performance.",
+    "exec.coroutines":            "🔄 Coroutines verwenden",
+    "exec.coroutines.help":       "Verteilt LCD-Updates über mehrere Ticks. Empfohlen ab Multi-LCD 3×3 oder vielen Aggregator-Widgets — vermeidet „Script too complex\"-Fehler. Trade-off: LCDs aktualisieren nicht alle gleichzeitig, sondern ein Display pro Tick.",
+    "gen.cmt.coroutine":          "---------- Coroutine: LCD-Updates über mehrere Ticks ----------",
+    "gen.cmt.coroutine_main":     "LCD-Drawing pro Tick einen Schritt weiter — UpdateFrequency.Once kettet die Ticks",
     // Code-Output Klartext-Button
     "code.plain":                 "📄 Klartext",
     "code.plain.title":           "Code als Klartext",
@@ -357,6 +361,10 @@ const I18N = {
     "exec.help.timer10":          "Action runs every 10 ticks (~6×/s).",
     "exec.help.timer1":           "Action runs ~1× per second (Update100).",
     "exec.help.continuous":       "⚠ Action runs every game tick (~60×/s). Only use when really needed — costs performance.",
+    "exec.coroutines":            "🔄 Use coroutines",
+    "exec.coroutines.help":       "Spreads LCD updates across multiple ticks. Recommended for multi-LCD 3×3 or many aggregator widgets — avoids \"Script too complex\" errors. Trade-off: LCDs no longer refresh simultaneously, one display per tick.",
+    "gen.cmt.coroutine":          "---------- Coroutine: spreads LCD updates across ticks ----------",
+    "gen.cmt.coroutine_main":     "Advances LCD drawing one step per tick — UpdateFrequency.Once chains subsequent ticks",
     "code.plain":                 "📄 Plain text",
     "code.plain.title":           "Code as plain text",
     "code.plain.hint":            "Ctrl+A selects all, Ctrl+C copies."
