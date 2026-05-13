@@ -97,21 +97,16 @@ Persistenz. Übersetzt sind alle Sektion-Titel, Buttons, Hilfe-Texte,
 Toasts, Modal-Buttons, Bedingungs-/Aktions-/Else-UI, LCD-Composer-
 Felder, Multi-LCD-Konfiguration, Share-Token, Footer.
 
-**Phase 2.1 erledigt in v1.7.0**:
-- 52 Block-Typ-Namen englisch (Tür → Door, Akku → Battery, …).
-- Alle Kategorien englisch (Bewegung → Movement, …).
-- C#-Code-Kommentare im Output komplett auf EN umschaltbar.
-- Standard/Erweitert-Optgroup-Labels sprachabhängig.
+**Erledigt**:
+- v1.6.0: i18n-Layer + statische UI-Strings (Sektion-Titel, Buttons, Toasts, …).
+- v1.7.0: 52 Block-Namen, 13 Kategorien, C#-Code-Kommentare, Optgroup-Labels.
+- v1.8.0: 514 Condition/Action-Labels + ~280 Tooltip-Texte komplett auf EN.
 
-**Phase 2.2 (noch zu tun)**:
-- **Condition/Action-Labels** pro Block (~490 Stück). Infrastruktur
-  bereits da: `localizedItemLabel(item)` liest `item.labelEn` wenn
-  EN aktiv. Jeder Eintrag in `BLOCKS[*].conditions[]` und
-  `BLOCKS[*].actions[]` muss nur ein `labelEn: "..."` ergänzt
-  bekommen — Fallback bleibt das deutsche `label`.
-- **DESCRIPTIONS** (Tooltip-Texte, ~300 Stück) — DE/EN-Variante
-  pro Eintrag, gesteuert über aktuelle Sprache.
-- Optional weitere Sprachen (RU, FR, ES) mit DE als Fallback.
+**Optional für später**:
+- Weitere Sprachen (RU, FR, ES, …) mit DE als Fallback. Infrastruktur
+  ist drin — nur eine weitere Sprache zur `I18N_LANGS`-Liste in
+  `src/js/ui/i18n.js` hinzufügen und entsprechende Maps anlegen
+  (kopiere `BLOCKS_EN` etc. und übersetze).
 
 ### Vorlagen-Export / -Import als JSON-Datei
 Aktuell liegen Vorlagen nur im LocalStorage des Browsers. Datei-

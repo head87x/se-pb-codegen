@@ -1084,10 +1084,12 @@ function blockTypeOptions(filterKind) {
   }).join("");
 }
 
-function _tierGrouped(items) {
+function _tierGrouped(items, blockType, kind) {
   const std = items.filter(x => (x.tier || "standard") === "standard");
   const adv = items.filter(x => x.tier === "advanced");
-  const _label = (typeof localizedItemLabel === "function") ? localizedItemLabel : (x) => x.label;
+  const _label = (typeof localizedItemLabel === "function")
+    ? (x) => localizedItemLabel(x, blockType, kind)
+    : (x) => x.label;
   const renderItem = x => `<option value="${x.id}">${_label(x)}</option>`;
   if (adv.length === 0) return std.map(renderItem).join("");
   if (std.length === 0) return adv.map(renderItem).join("");
@@ -1099,11 +1101,11 @@ function _tierGrouped(items) {
 }
 
 function condOptions(blockType) {
-  return _tierGrouped((BLOCKS[blockType] || {}).conditions || []);
+  return _tierGrouped((BLOCKS[blockType] || {}).conditions || [], blockType, "conditions");
 }
 
 function actOptions(blockType) {
-  return _tierGrouped((BLOCKS[blockType] || {}).actions || []);
+  return _tierGrouped((BLOCKS[blockType] || {}).actions || [], blockType, "actions");
 }
 
 function findCond(blockType, condId) {

@@ -95,12 +95,17 @@ function categoryLabel(cat) {
   return cat;
 }
 
-// Liefert das übersetzte Label für eine Condition/Action (falls Phase 2.2
-// die labelEn-Felder ergänzt). Fallback: Original-DE-Label.
-function localizedItemLabel(item) {
+// Liefert das übersetzte Label für eine Condition/Action.
+// Reihenfolge: ITEMS_EN[blockType][kind][id] → item.labelEn → item.label
+function localizedItemLabel(item, blockType, kind) {
   if (!item) return "";
-  if (typeof getLang === "function" && getLang() === "en" && item.labelEn) {
-    return item.labelEn;
+  if (typeof getLang === "function" && getLang() === "en") {
+    if (typeof ITEMS_EN !== "undefined" && blockType && kind &&
+        ITEMS_EN[blockType] && ITEMS_EN[blockType][kind] &&
+        ITEMS_EN[blockType][kind][item.id]) {
+      return ITEMS_EN[blockType][kind][item.id];
+    }
+    if (item.labelEn) return item.labelEn;
   }
   return item.label || "";
 }

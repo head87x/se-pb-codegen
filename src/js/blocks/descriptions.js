@@ -895,19 +895,32 @@ const _COMMON_DESCRIPTIONS = {
 };
 
 function getDescription(blockType, optionId, kind) {
-  const blk = DESCRIPTIONS[blockType];
-  // Block-spezifischer Text zuerst
-  if (blk) {
-    if (kind && blk[kind] && blk[kind][optionId]) return blk[kind][optionId];
-    if (!kind) {
-      const fallback = (blk.conditions && blk.conditions[optionId])
-                    || (blk.actions    && blk.actions[optionId]);
-      if (fallback) return fallback;
+  // Sprach-aware: erst aktive Sprache versuchen, dann DE-Fallback.
+  const isEn = (typeof getLang === "function" && getLang() === "en");
+  const primary  = isEn && typeof DESCRIPTIONS_EN !== "undefined" ? DESCRIPTIONS_EN : DESCRIPTIONS;
+  const primaryCommon = isEn && typeof _COMMON_DESCRIPTIONS_EN !== "undefined" ? _COMMON_DESCRIPTIONS_EN : _COMMON_DESCRIPTIONS;
+
+  function _lookup(map, common) {
+    const blk = map[blockType];
+    if (blk) {
+      if (kind && blk[kind] && blk[kind][optionId]) return blk[kind][optionId];
+      if (!kind) {
+        const fb = (blk.conditions && blk.conditions[optionId])
+                || (blk.actions    && blk.actions[optionId]);
+        if (fb) return fb;
+      }
     }
+    if (kind && common[kind] && common[kind][optionId]) return common[kind][optionId];
+    return null;
   }
-  // Fallback: globale Common-Texte
-  if (kind && _COMMON_DESCRIPTIONS[kind] && _COMMON_DESCRIPTIONS[kind][optionId]) {
-    return _COMMON_DESCRIPTIONS[kind][optionId];
+
+  // 1) Aktive Sprache
+  let txt = _lookup(primary, primaryCommon);
+  if (txt) return txt;
+  // 2) Fallback auf Deutsch, falls EN-Eintrag fehlt
+  if (isEn) {
+    txt = _lookup(DESCRIPTIONS, _COMMON_DESCRIPTIONS);
+    if (txt) return txt;
   }
   return null;
 }

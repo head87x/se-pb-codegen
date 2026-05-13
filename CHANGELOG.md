@@ -7,6 +7,32 @@ das Projekt folgt [Semantic Versioning](https://semver.org/lang/de/).
 
 ## [Unreleased]
 
+## [1.8.0] — 2026-05-12
+
+### Hinzugefügt (Mehrsprachigkeit Phase 2.2 — komplettes EN-Set)
+- **Alle 514 Condition-/Action-Labels** englisch verfügbar
+  (Sensor: „Etwas erkannt" → „Detected something"; Cockpit:
+  „Handbremse umschalten" → „Toggle handbrake"; etc.).
+  Neue Datei `src/js/blocks/i18n_en_items.js` mit der `ITEMS_EN`-Map.
+- **Alle ~280 Tooltip-Texte** in `DESCRIPTIONS` englisch verfügbar
+  plus 4 gemeinsame Inventar-Tooltips. Neue Datei
+  `src/js/blocks/i18n_en_descriptions.js` mit `DESCRIPTIONS_EN` und
+  `_COMMON_DESCRIPTIONS_EN`.
+- **Sprach-Fallback-Kette**: Aktive Sprache → DE-Original → Common-Map.
+  Falls eine EN-Übersetzung einmal fehlt, springt die UI elegant auf
+  den deutschen Text.
+
+### Geändert
+- `localizedItemLabel(item, blockType, kind)` ist jetzt 3-stellig
+  und liest aus `ITEMS_EN`. `condOptions()`/`actOptions()` reichen
+  `blockType` und `kind` durch.
+- `getDescription()` ist sprach-aware mit 2-stufigem Fallback.
+
+### Vollständigkeit-Audit
+- 248 Conditions + 266 Actions = **514 Item-Labels** alle EN.
+- **514** Tooltip-Lookups (gleiche Items) liefern alle einen
+  EN-Text (entweder block-spezifisch oder via Common-Fallback).
+
 ## [1.7.0] — 2026-05-12
 
 ### Hinzugefügt (Mehrsprachigkeit Phase 2.1 — Block-Namen + Code-Kommentare)
