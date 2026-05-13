@@ -129,6 +129,10 @@ function _shareApplyDefensiveDefaults() {
       if (typeof c.groupCount !== "number") c.groupCount = 1;
     }
   }
+  // v2.8.0: scriptInfo defaulten
+  if (!state.scriptInfo) {
+    state.scriptInfo = { enabled: false, name: "", author: "", version: "", description: "", tags: "" };
+  }
 }
 
 // Die statischen Form-Felder müssen die State-Werte zeigen
@@ -149,6 +153,16 @@ function _shareSyncUiFields() {
   set("lcd-composer-surface",         state.lcdComposer.surfaceIndex);
   set("lcd-composer-resolution",      state.lcdComposer.resolution);
   setDisplay("lcd-composer-config",   !!state.lcdComposer.enabled);
+
+  // v2.8.0 — Skript-Info
+  const info = state.scriptInfo || { enabled: false };
+  setChecked("info-enable",           info.enabled);
+  set("info-name",                    info.name || "");
+  set("info-author",                  info.author || "");
+  set("info-version",                 info.version || "");
+  set("info-tags",                    info.tags || "");
+  set("info-description",             info.description || "");
+  setDisplay("info-fields",           !!info.enabled);
 
   if (typeof _refreshBlockNameValidation === "function") {
     _refreshBlockNameValidation(document.getElementById("lcd-name"));

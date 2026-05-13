@@ -47,6 +47,10 @@ function loadTemplate(i) {
       if (typeof c.groupCount !== "number") c.groupCount = 1;
     }
   }
+  // v2.8.0: scriptInfo defaulten (alte Vorlagen haben das Feld nicht)
+  if (!state.scriptInfo) {
+    state.scriptInfo = { enabled: false, name: "", author: "", version: "", description: "", tags: "" };
+  }
 
   // Migration: alte Grid-Widgets in Manual-Modus konvertieren.
   // Setzt einen einfachen vertikalen Stack als initiale Position.
@@ -79,6 +83,18 @@ function loadTemplate(i) {
   document.getElementById("lcd-composer-surface").value = state.lcdComposer.surfaceIndex;
   document.getElementById("lcd-composer-resolution").value = state.lcdComposer.resolution;
   document.getElementById("lcd-composer-config").style.display = state.lcdComposer.enabled ? "block" : "none";
+  // v2.8.0 — Skript-Info-Felder
+  const _info = state.scriptInfo || { enabled: false };
+  const _setVal = (id, v) => { const e = document.getElementById(id); if (e) e.value = v || ""; };
+  const _setChk = (id, v) => { const e = document.getElementById(id); if (e) e.checked = !!v; };
+  _setChk("info-enable", _info.enabled);
+  _setVal("info-name",        _info.name);
+  _setVal("info-author",      _info.author);
+  _setVal("info-version",     _info.version);
+  _setVal("info-tags",        _info.tags);
+  _setVal("info-description", _info.description);
+  const _infoFields = document.getElementById("info-fields");
+  if (_infoFields) _infoFields.style.display = _info.enabled ? "block" : "none";
   render();
   if (typeof _refreshBlockNameValidation === "function") {
     _refreshBlockNameValidation(document.getElementById("lcd-name"));
@@ -99,7 +115,8 @@ async function newProject() {
   state = {
     conditions: [], actionsThen: [], actionsElse: [],
     execMode: "argument", useCoroutines: false, lcdEnable: false, lcdName: "",
-    lcdComposer: { enabled: false, displayMode: "external", lcdName: "", surfaceIndex: 0, resolution: "square", widgets: [] }
+    lcdComposer: { enabled: false, displayMode: "external", lcdName: "", surfaceIndex: 0, resolution: "square", widgets: [] },
+    scriptInfo: { enabled: false, name: "", author: "", version: "", description: "", tags: "" }
   };
   document.getElementById("exec-mode").value = "argument";
   const coroEl2 = document.getElementById("exec-coroutines");
@@ -113,6 +130,20 @@ async function newProject() {
   document.getElementById("lcd-composer-surface").value = 0;
   document.getElementById("lcd-composer-resolution").value = "square";
   document.getElementById("lcd-composer-config").style.display = "none";
+  // v2.8.0 — Skript-Info zurücksetzen
+  const _resetInfo = (id, isChk) => {
+    const e = document.getElementById(id);
+    if (!e) return;
+    if (isChk) e.checked = false; else e.value = "";
+  };
+  _resetInfo("info-enable", true);
+  _resetInfo("info-name", false);
+  _resetInfo("info-author", false);
+  _resetInfo("info-version", false);
+  _resetInfo("info-tags", false);
+  _resetInfo("info-description", false);
+  const _infoFieldsReset = document.getElementById("info-fields");
+  if (_infoFieldsReset) _infoFieldsReset.style.display = "none";
   render();
   if (typeof _refreshBlockNameValidation === "function") {
     _refreshBlockNameValidation(document.getElementById("lcd-name"));

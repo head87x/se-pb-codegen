@@ -18,7 +18,7 @@
       <span class="theme-picker-label" data-i18n="header.theme">THEME</span>
       <select id="tool-theme-select" onchange="setToolTheme(this.value)"></select>
     </label>
-    <span class="tag">v2.7.0 :: <span data-i18n="header.subtitle">SPACE ENGINEERS PROGRAMMABLE BLOCK</span></span>
+    <span class="tag">v<span id="version-tag">2.8.0</span> :: <span data-i18n="header.subtitle">SPACE ENGINEERS PROGRAMMABLE BLOCK</span></span>
   </div>
 </header>
 
@@ -77,6 +77,45 @@
           <div class="help-text" style="margin-bottom:6px;" data-i18n="share.help">Speichert / lädt deine komplette Konfiguration (Bedingungen, Aktionen, LCD-Baukasten) als kopierbaren Token. Token-Inhalt liegt direkt in der Zeichenkette — kein Server, kein Account.</div>
           <textarea id="share-token-area" class="share-token-area" rows="4" spellcheck="false" oninput="_shareUpdateInfo()" data-i18n-placeholder="share.placeholder" placeholder="Hier Token einfügen und „Token laden" klicken — oder „Token erzeugen" für den aktuellen Stand."></textarea>
           <div id="share-token-info" class="help-text" style="margin-top:4px;"></div>
+        </div>
+      </div>
+
+      <!-- SCRIPT INFO / WORKSHOP-METADATEN (v2.8.0) -->
+      <div class="section">
+        <div class="section-title"><span data-i18n="info.title">::: SKRIPT-INFO (Workshop)</span></div>
+        <div class="section-content">
+          <div class="help-text" data-i18n="info.help" style="margin-bottom:6px;">
+            Optional: trägt Workshop-Metadaten in den Header des generierten Codes ein. Der Attribution-Hinweis auf das Tool bleibt immer erhalten — diese Felder sind zusätzlich.
+          </div>
+          <div class="toggle-row">
+            <label><input type="checkbox" id="info-enable" onchange="onScriptInfoEnable(this.checked)"> <span data-i18n="info.enable">Metadaten in Header einfügen</span></label>
+          </div>
+          <div id="info-fields" style="display:none; margin-top:10px;">
+            <div class="row row-2">
+              <div>
+                <label data-i18n="info.name">Skript-Name</label>
+                <input id="info-name" data-i18n-placeholder="info.name_ph" placeholder="z.B. Auto-Defense System" oninput="onScriptInfoField('name', this.value)">
+              </div>
+              <div>
+                <label data-i18n="info.author">Autor (Spielername)</label>
+                <input id="info-author" data-i18n-placeholder="info.author_ph" placeholder="z.B. Steam-Name" oninput="onScriptInfoField('author', this.value)">
+              </div>
+            </div>
+            <div class="row row-2" style="margin-top:8px;">
+              <div>
+                <label data-i18n="info.version">Skript-Version</label>
+                <input id="info-version" data-i18n-placeholder="info.version_ph" placeholder="z.B. 1.0" oninput="onScriptInfoField('version', this.value)">
+              </div>
+              <div>
+                <label data-i18n="info.tags">Tags (komma-getrennt)</label>
+                <input id="info-tags" data-i18n-placeholder="info.tags_ph" placeholder="z.B. defense, automation, lcd" oninput="onScriptInfoField('tags', this.value)">
+              </div>
+            </div>
+            <div style="margin-top:8px;">
+              <label data-i18n="info.description">Kurzbeschreibung</label>
+              <textarea id="info-description" rows="3" data-i18n-placeholder="info.description_ph" placeholder="Was macht dieses Skript? Welche Blöcke werden gesteuert?" oninput="onScriptInfoField('description', this.value)"></textarea>
+            </div>
+          </div>
         </div>
       </div>
 

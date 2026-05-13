@@ -62,10 +62,20 @@ als Vereinheitlichung).
 ## Mittlere Features
 
 ### Steam-Workshop-Export
-`.cs`-Output ergänzen um Header-Kommentar mit Workshop-Metadaten
-(Skript-Name, Beschreibung, Tags, Version) — direkt copy-paste-fertig
-für `Scripts/Local/<Name>/Script.cs` + dazu `Description.xml` oder
-ähnliches Workshop-Format generieren.
+**Erledigt in v2.8.0**: Attribution-Header (immer, nicht
+deaktivierbar) + optionale UI-Sektion „Skript-Info (Workshop)"
+mit Toggle und Feldern für Name/Autor/Version/Tags/Beschreibung.
+Wird in den generierten `.cs`-Header als C#-Block-Kommentar
+eingefügt, mit Sanitization gegen `*/`-Injection.
+
+Mögliche Erweiterungen, falls Bedarf:
+- **Eigene Workshop-Beschreibung** als separater Download (z. B.
+  Markdown), den der User direkt in das Steam-Workshop-Beschreibungs-
+  Feld kopieren kann.
+- **Lizenz-Hinweis** im Header (Dropdown: keine / GPL v3 / MIT /
+  CC-BY-4.0 / Custom) — würde am Tool-Author-Wunsch hängen.
+- **Auto-Versionierung** aus letztem CHANGELOG-Eintrag des Tools
+  ableiten (nur, wenn das Tool selbst die Skript-Version inkrementiert).
 
 ### Import-Funktion
 Vorhandenes PB-Skript einlesen und in Bausteine zurückwandeln —

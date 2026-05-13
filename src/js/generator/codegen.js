@@ -122,10 +122,47 @@ function generateCode() {
 
   // === Build code ===
   let code = "";
-  code += "// =====================================================\n";
-  code += "// " + _t("gen.header") + "\n";
-  code += "// " + _t("gen.header.subtitle") + "\n";
-  code += "// =====================================================\n";
+
+  // ---------- Attribution-Header (immer, nicht deaktivierbar) ----------
+  // Schützt die Tool-Herkunft und nennt Repo + Ersteller. Wenn der User
+  // Workshop-Metadaten ausgefüllt hat, hängen wir die unter den
+  // Attribution-Block.
+  const _toolVersion = (typeof TOOL_VERSION === "string") ? TOOL_VERSION : "?";
+  const _today = (new Date()).toISOString().slice(0, 10);  // YYYY-MM-DD
+  // Verhindert, dass User-Eingaben den C#-Block-Kommentar vorzeitig
+  // schließen ("*/"). Wir ersetzen die Sequenz durch "* /".
+  const _safeCmt = (s) => String(s == null ? "" : s).replace(/\*\//g, "* /");
+  code += "/* =====================================================\n";
+  code += " * " + _t("gen.header") + "\n";
+  code += " * =====================================================\n";
+  code += " * " + _t("gen.hdr.attrib_tool")   + " SE.PB Code Generator v" + _toolVersion + "\n";
+  code += " * " + _t("gen.hdr.attrib_url")    + " https://github.com/head87x/se-pb-codegen\n";
+  code += " * " + _t("gen.hdr.attrib_author") + " head87x\n";
+  code += " * " + _t("gen.hdr.attrib_date")   + " " + _today + "\n";
+
+  const info = state.scriptInfo;
+  if (info && info.enabled) {
+    const anyField = !!(info.name || info.author || info.version || info.tags || info.description);
+    if (anyField) {
+      code += " *\n";
+      code += " * " + _t("gen.hdr.ws_section") + "\n";
+      if (info.name)        code += " * " + _t("gen.hdr.ws_name")    + _safeCmt(info.name) + "\n";
+      if (info.author)      code += " * " + _t("gen.hdr.ws_author")  + _safeCmt(info.author) + "\n";
+      if (info.version)     code += " * " + _t("gen.hdr.ws_version") + _safeCmt(info.version) + "\n";
+      if (info.tags)        code += " * " + _t("gen.hdr.ws_tags")    + _safeCmt(info.tags) + "\n";
+      if (info.description) {
+        const lines = _safeCmt(info.description).split(/\r?\n/);
+        const prefix = _t("gen.hdr.ws_description");
+        // erste Zeile mit Label, Folgezeilen eingerückt damit's lesbar bleibt
+        code += " * " + prefix + lines[0] + "\n";
+        const pad = " ".repeat(prefix.length);
+        for (let i = 1; i < lines.length; i++) {
+          code += " * " + pad + lines[i] + "\n";
+        }
+      }
+    }
+  }
+  code += " * ===================================================== */\n";
   code += "\n";
 
   // ---------- Class-Felder (Block-Cache) ----------

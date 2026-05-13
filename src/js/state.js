@@ -4,6 +4,10 @@
 // Globale Zustandsobjekte. Mit `var` deklariert, damit `state` in
 // loadTemplate() neu zugewiesen werden kann.
 
+// Single source of truth — wird im Header-Tag und im generierten
+// Code-Attribution-Header verwendet.
+const TOOL_VERSION = "2.8.0";
+
 var state = {
   conditions: [],   // { blockType, blockName, condId, arg, arg2, logicOp ('AND'|'OR') }
   actionsThen: [],  // { blockType, blockName, actId, arg, arg2 }
@@ -26,6 +30,17 @@ var state = {
       cols: 2,
       namePattern: "LCD {col}{row}"   // {col} = A,B,C,... ; {row} = 1,2,3,...
     }
+  },
+  // v2.8.0 — optionale Workshop-Metadaten. Wenn enabled, werden die
+  // Felder zusätzlich in den (immer vorhandenen) Attribution-Header
+  // des generierten Codes eingefügt.
+  scriptInfo: {
+    enabled: false,
+    name: "",          // Workshop-Titel
+    author: "",        // Spieler-Name (User trägt selbst ein)
+    version: "",       // Skript-Version (frei wählbar)
+    description: "",   // Kurzbeschreibung
+    tags: ""           // komma-getrennte Tags
   }
 };
 

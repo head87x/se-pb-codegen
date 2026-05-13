@@ -158,6 +158,21 @@ function onLcdEnableChange(checked) {
   generateCode();
 }
 
+// v2.8.0 — Workshop-Metadaten (Skript-Info)
+function onScriptInfoEnable(checked) {
+  if (!state.scriptInfo) state.scriptInfo = { enabled: false, name: "", author: "", version: "", description: "", tags: "" };
+  state.scriptInfo.enabled = !!checked;
+  const wrap = document.getElementById("info-fields");
+  if (wrap) wrap.style.display = checked ? "block" : "none";
+  generateCode();
+}
+
+function onScriptInfoField(field, val) {
+  if (!state.scriptInfo) state.scriptInfo = { enabled: false, name: "", author: "", version: "", description: "", tags: "" };
+  state.scriptInfo[field] = val;
+  generateCode();
+}
+
 function onLcdNameInput(val) {
   state.lcdName = val;
   const el = document.getElementById("lcd-name");

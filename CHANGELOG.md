@@ -7,6 +7,42 @@ das Projekt folgt [Semantic Versioning](https://semver.org/lang/de/).
 
 ## [Unreleased]
 
+## [2.8.0] — 2026-05-14
+
+### Hinzugefügt (Steam-Workshop-Export — Attribution + Metadaten)
+- **Attribution-Header** ganz oben in jedem generierten `.cs` —
+  C#-Block-Kommentar mit Tool-Name, Version, GitHub-URL, Tool-
+  Ersteller (head87x) und Generierungs-Datum (UTC).
+  Wird **immer** emittiert und kann nicht deaktiviert werden.
+- Neue UI-Sektion **„SKRIPT-INFO (Workshop)"** mit Toggle
+  „Metadaten in Header einfügen" — wenn an, erscheinen unter dem
+  Attribution-Block zusätzlich:
+  - Skript-Name
+  - Autor (Spielername)
+  - Version
+  - Tags (komma-getrennt)
+  - Kurzbeschreibung (mehrzeilig)
+- User-Eingaben werden gegen `*/`-Injection sanitiert, damit das
+  C#-Block-Kommentar nicht vorzeitig schließt.
+- Vorlagen und Share-Token aus älteren Versionen erhalten ein
+  defensives `scriptInfo`-Default — keine Migration nötig.
+
+### Geändert
+- `TOOL_VERSION`-Konstante in [src/js/state.js](src/js/state.js)
+  als Single Source of Truth — gespiegelt im Header-Tag (`v2.8.0`)
+  und im generierten Code-Header. Bei künftigen Releases nur noch
+  hier ändern.
+- Header-Format im generierten Code: Zeilen-Kommentare (`//`)
+  ersetzt durch Block-Kommentar (`/* … */`), damit Attribution +
+  Workshop-Metadaten als zusammenhängender Header sichtbar sind.
+
+### Hinweis (für Workshop-Upload)
+- Skripte werden in SE über den **In-Game-Script-Editor** auf den
+  Workshop hochgeladen, nicht über externe `Description.xml`-
+  Dateien. Die Metadaten im Header sind also der Workshop-relevante
+  „Visitenkarten"-Teil — Steam liest sie nicht direkt, aber jeder
+  der das Skript einsieht, sieht Autor + Beschreibung im Code.
+
 ## [2.7.0] — 2026-05-14
 
 ### Hinzugefügt (Block-Namen-Validierung Phase 2)
