@@ -8,15 +8,16 @@ Du klickst dir per Drag-and-Drop oder Dropdown zusammen, welcher Block-Typ
 und das Tool spuckt fertigen, kommentierten C#-Code aus, den du nur noch
 in den PB einfügen musst.
 
-**Live-Version:** [sepb.teamllw.de](https://sepb.teamllw.de)
-(Auto-Deploy aus dem `main`-Branch über GitHub Actions).
+**Live-Version:** [head87x.github.io/se-pb-codegen](https://head87x.github.io/se-pb-codegen/)
+(GitHub Pages — wird direkt aus dem `main`-Branch ausgeliefert).
 
 ---
 
 ## Quickstart
 
-1. [sepb.teamllw.de](https://sepb.teamllw.de) öffnen — **oder** das Repo
-   klonen und `index.html` per Doppelklick öffnen (läuft komplett offline).
+1. [Live-Version](https://head87x.github.io/se-pb-codegen/) im Browser öffnen
+   — **oder** das Repo klonen / als ZIP herunterladen und `index.html` per
+   Doppelklick öffnen (läuft komplett offline).
 2. Links Bedingungen + Aktionen zusammenstellen, optional einen
    LCD-Baukasten konfigurieren.
 3. Rechts den generierten Code mit **⧉ Kopieren** holen.
@@ -211,17 +212,7 @@ se-pb-codegen/
             └── composer.js           Sprite-API-C#-Generator
 ```
 
-Mehr Details in [`ARCHITECTURE.md`](./ARCHITECTURE.md), Hinweise für
-KI-Unterstützung in [`CLAUDE.md`](./CLAUDE.md).
-
----
-
-## Deployment
-
-`main`-Push triggert GitHub Actions → `lftp`-SFTP-Upload nach IONOS →
-[sepb.teamllw.de](https://sepb.teamllw.de). Workflow:
-[`.github/workflows/deploy.yml`](./.github/workflows/deploy.yml).
-Secrets: `IONOS_HOST`, `IONOS_USERNAME`, `IONOS_PASSWORD`, `IONOS_SERVER_DIR`.
+Mehr Details in [`ARCHITECTURE.md`](./ARCHITECTURE.md).
 
 ---
 
@@ -232,7 +223,24 @@ Geplante Features und Ideen für die Weiterentwicklung sind in
 
 ---
 
-## Lizenz / Nutzung
+## Lizenz
 
-Privat nutzbar, gerne erweitern. Space Engineers © Keen Software House.
-Dieses Tool ist inoffiziell und steht in keiner Verbindung zu Keen.
+Dieses Projekt steht unter der **GNU General Public License v3.0**.
+
+Du darfst es frei nutzen, verändern und weitergeben – unter der
+Bedingung, dass:
+
+- der Autor genannt wird
+- abgeleitete Werke ebenfalls unter der GPL v3 veröffentlicht werden
+- der Quellcode bei Weitergabe zugänglich bleibt
+
+Details siehe [`LICENSE`](./LICENSE).
+
+Copyright © 2026 head87x
+
+---
+
+## Disclaimer
+
+Space Engineers © Keen Software House. Dieses Tool ist inoffiziell
+und steht in keiner Verbindung zu Keen.

@@ -4,141 +4,165 @@
 
 ```
 se-pb-codegen/
-├── index.html          ← einzige Quelldatei: HTML + CSS + JS in einem
-├── README.md           ← User-Doku
-├── CLAUDE.md           ← Kontext für Claude Code
-├── ARCHITECTURE.md     ← dieses Dokument
-└── examples/
-    └── example_outputs.md  ← Beispiel-Outputs für drei Szenarien
+├── index.html                  ← HTML-Skelett + <link>/<script>-Tags
+├── README.md / CHANGELOG.md / TODO.md / LICENSE
+├── examples/
+│   └── example_outputs.md      ← Beispiel-Outputs
+└── src/
+    ├── css/styles.css
+    └── js/
+        ├── state.js
+        ├── blocks/
+        │   ├── catalog.js                BLOCKS-Katalog (52 Typen)
+        │   ├── descriptions.js           Tooltip-Texte (DE)
+        │   ├── i18n_en.js                BLOCKS_EN, CATEGORIES_EN
+        │   ├── i18n_en_items.js          Condition-/Action-Labels EN
+        │   ├── i18n_en_descriptions.js   Tooltip-Texte EN
+        │   └── item_subtypes.js          Ore/Ingot/Komponenten/Munition
+        ├── ui/
+        │   ├── render.js                 Master-render
+        │   ├── inputs.js                 Mutators + Fokus-Fix
+        │   ├── tooltips.js               (i)-Tooltip-Engine
+        │   ├── modal.js                  Themed Confirm/Prompt/Alert
+        │   ├── themes.js                 9 Tool-Themes + Picker
+        │   ├── i18n.js                   t()-Helper + DE/EN-Stringtable
+        │   ├── dnd.js                    Block-Palette-Drag-and-Drop
+        │   ├── lcd-dnd.js                LCD-Widget-Drag + Resize
+        │   ├── icons.js                  Kategorie-Icons (SVG)
+        │   ├── share.js                  Share-Token Export/Import
+        │   └── templates.js              LocalStorage-Vorlagen
+        ├── generator/
+        │   ├── codegen.js                state → C#-Skript
+        │   └── highlight.js              Syntax-Highlight im Output
+        └── lcd/
+            ├── widgets.js                LCD_WIDGETS + Themes + Presets
+            ├── preview-svg.js            SVG-Live-Vorschauen
+            └── composer.js               Sprite-API-C#-Generator
 ```
 
-## Drei-Schichten-Aufbau in `index.html`
+## Drei-Schichten-Aufbau
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
 │  1. DATENMODELL                                             │
-│     const BLOCKS = { ... }     ← Katalog                    │
-│     var state = { ... }        ← User-Eingaben              │
-│     var templates = [ ... ]    ← gespeicherte Vorlagen      │
+│     BLOCKS              ← Katalog der 52 Block-Typen        │
+│     LCD_WIDGETS         ← 19 LCD-Widget-Definitionen        │
+│     DESCRIPTIONS / *_EN ← Tooltip-Texte (DE/EN)             │
+│     state               ← User-Eingaben (conditions, …)     │
+│     templates           ← LocalStorage-Vorlagen             │
 ├─────────────────────────────────────────────────────────────┤
 │  2. UI-RENDERING                                            │
 │     render()                                                │
-│     ├─ renderConditions()                                   │
-│     ├─ renderActions('then'/'else')                         │
-│     ├─ renderTemplates()                                    │
-│     └─ generateCode()  ← triggered nach jedem Render        │
+│     ├─ renderConditions() / renderActions()                 │
+│     ├─ renderLcdComposer() / renderTemplates()              │
+│     └─ generateCode()  ← läuft nach jedem Render            │
 ├─────────────────────────────────────────────────────────────┤
 │  3. CODE-GENERATOR                                          │
 │     generateCode()                                          │
-│     ├─ ensureBlock() — Block-Dedup                          │
-│     ├─ condExpr()   — eine Bedingung → C#-Ausdruck          │
-│     ├─ actCode()    — eine Aktion   → C#-Statement          │
-│     └─ String-Assembly mit Highlight                        │
+│     ├─ ensureBlock(type, name, useGroup)                    │
+│     ├─ condExpr() — eine Bedingung → C#-Ausdruck            │
+│     ├─ actCode()  — eine Aktion   → C#-Statement            │
+│     ├─ generateLcdComposerCode() — Sprite-API + Multi-LCD   │
+│     └─ Output via highlightCs()                             │
 └─────────────────────────────────────────────────────────────┘
 ```
 
 ## Datenfluss
 
 ```
-User-Klick
+User-Interaktion (Klick/Tippen/Drag)
    ↓
-addCondition() / updateCond() / addAction() / ...
+addCondition() / updateCond() / setLcdWidget*() / …
    ↓
 state mutiert
    ↓
-render()
+render()  (oder nur generateCode() bei reinen Werteänderungen,
+          damit Inputs ihren Fokus behalten)
    ↓
-├─→ DOM aktualisiert (Bedingungs- und Aktions-UI)
-└─→ generateCode() → output-DIV mit hervorgehobenem C#-Code
+├─→ DOM aktualisiert
+└─→ generateCode() → Output-Pane mit hervorgehobenem C#
 ```
 
 ## Platzhalter-System
 
-Jede Bedingung und Aktion im Katalog kann zwei Platzhalter enthalten:
+Jede Bedingung/Aktion im Katalog kann zwei Platzhalter enthalten:
 
-- `{v}` — wird beim Generieren durch den C#-Variablennamen des Blocks ersetzt
-  (z.B. `sensor_1_0`).
-- `{arg}` — wird durch den vom User in das Argument-Feld eingetragenen Wert
-  ersetzt.
+- `{v}`    — wird durch den C#-Variablennamen des Blocks ersetzt
+              (z. B. `sensor_1_0`).
+- `{arg}`  — wird durch den vom User eingetragenen Wert ersetzt.
+- `{arg2}` — zweiter optionaler Argumentwert.
 
-**Wichtige Reihenfolge** in `condExpr()` und `actCode()`:
+**Reihenfolge wichtig** in `condExpr()` / `actCode()`:
 
 ```js
 let code = act.code;
-if (act.arg) code = code.replace(/\{arg\}/g, a.arg || "");
+if (act.arg2) code = code.replace(/\{arg2\}/g, _safeArg(a.arg2, ""));
+if (act.arg)  code = code.replace(/\{arg\}/g,  _safeArg(a.arg,  ""));
 code = code.replace(/\{v\}/g, varName);
 ```
 
-Erst `{arg}`, dann `{v}` — damit `{v}` auch im User-Argument funktioniert
-(wichtig für Custom-`rawCode`, wo der User z.B. `{v}.Enabled = !{v}.Enabled;`
-eingibt).
+Erst `{arg2}`/`{arg}`, dann `{v}` — damit `{v}` auch in User-Argumenten
+funktioniert (wichtig für Custom-`rawCode`).
 
 ## Variablen-Naming
 
 `safeVar(blockName, suffix)`:
-- Entfernt alle nicht-alphanumerischen Zeichen (Leerzeichen → `_`).
-- Stellt sicher, dass das erste Zeichen ein Buchstabe oder `_` ist.
-- Hängt einen Index-Suffix an, der pro Block im `blockMap` hochgezählt wird —
-  so kollidieren auch identische Block-Namen (innerhalb verschiedener Block-Typen)
-  nicht im generierten C#.
+- Ersetzt nicht-alphanumerische Zeichen durch `_`.
+- Erstes Zeichen muss Buchstabe oder `_` sein.
+- Hängt einen Index-Suffix an, damit gleichnamige Blöcke kollidieren.
 
-Beispiel:
-- `"Sensor 1"` (Sensor) → `sensor_1_0`
-- `"Sensor 1"` (Door)   → `sensor_1_1`
+## Block-Gruppen
 
-## State-Mutation-Pattern
+`ensureBlock(type, name, useGroup)` unterscheidet Single-Block und
+Gruppe per separater Map-Keys. Generator emittiert:
 
-Alle UI-Handler folgen demselben Muster:
+- **Single**: `IMyXxx var = GridTerminalSystem.GetBlockWithName(…)`
+- **Gruppe**: `List<IMyXxx> var = …; GetBlockGroupWithName(…).GetBlocksOfType(var);`
+- **Aktion auf Gruppe**: `foreach (var _b in list) { … }`
+- **Bedingung auf Gruppe**: `list.Any(_b => …)`
 
-```js
-function updateCond(i, field, val) {
-  state.conditions[i][field] = val;
-  if (field === "blockType") {  // Cascading reset
-    state.conditions[i].condId = BLOCKS[val].conditions[0]?.id || "";
-    state.conditions[i].arg = "";
-  }
-  render();
-}
-```
+## Multi-LCD (Phase 5)
 
-Wechselt der User den **Block-Typ**, wird die `condId` auf die erste verfügbare
-Bedingung dieses neuen Typs zurückgesetzt — sonst hätte man einen "verwaisten"
-Identifier aus dem alten Typ.
+Bei aktivem Multi-LCD bildet der Generator eine `for`-Schleife über
+alle physischen LCDs. Jede Widget-Emission rechnet `yPos = rect.Y +
+(myF - lcdOffY)` und `colOffsetX = mxF - lcdOffX`, sodass widget-
+positionen relativ zum virtuellen Canvas (cols × rows × LCD) bleiben
+und SE off-screen-Sprites automatisch clipt.
 
 ## Persistenz
 
-`localStorage`-Key: `se_pb_templates`
-Format: `Array<{ name: string, state: <state-snapshot> }>`
-
-Bei `loadTemplate()` wird der Snapshot deep-kopiert (`JSON.parse(JSON.stringify(...))`).
-Bei strukturellen State-Änderungen ist eine Migration sinnvoll — aktuell nicht
-implementiert, da v1.
+- **LocalStorage-Keys**:
+  - `se_pb_templates` — Vorlagen-Array
+  - `se_pb_lang` — aktive Sprache (de/en)
+  - `se_pb_tool_theme` — gewähltes Tool-Theme
+- **Share-Token**: Base64-codierte UTF-8-JSON mit Schema-Version.
+  Selbstenthaltend, kein Backend.
 
 ## Warum keine Frameworks?
 
-- **Offline-Anforderung**: Single-File, kein CDN.
-- **Komplexität**: ~600 Zeilen Logik, gut handhabbar in Vanilla.
-- **Reload-Geschwindigkeit**: keine Build-Step, sofort sichtbare Änderungen.
-- **Portabilität**: User kann `index.html` weitergeben, jeder Browser öffnet es.
+- **Offline-Anforderung**: läuft per Doppelklick auf `index.html`,
+  kein Build-Step.
+- **Komplexität**: Vanilla-JS gut handhabbar; alle Globals teilen
+  denselben Realm (Inline-Handler funktionieren cross-file).
+- **Portabilität**: User kann Repo klonen oder ZIP runterladen,
+  jeder Browser öffnet es lokal.
 
 ## Sicherheitsmodell
 
-- Keine `eval()` / `Function()`-Konstruktoren auf User-Eingaben.
-- Block-Namen werden in HTML mit `escapeHtml`/`escapeAttr` escaped, in
-  C#-Strings mit `escapeCs` (Anführungszeichen-Escaping).
-- `localStorage` ist lokal — kein Netzwerk-Verkehr.
+- Keine `eval()`/`Function()` auf User-Eingaben.
+- Block-Namen werden in HTML mit `escapeHtml`/`escapeAttr` escaped,
+  in C#-Strings mit `escapeCs`.
+- LocalStorage ist lokal — kein Netzwerk-Verkehr.
 
 ## Ausführungs-Modi und UpdateFrequency
 
-| Modus      | UpdateFrequency      | Wann                                          |
-|------------|----------------------|-----------------------------------------------|
-| argument   | (keine)              | Skript läuft nur, wenn manuell aufgerufen     |
-| continuous | `Update1`            | jeden Tick (~60 Hz)                           |
-| timer1     | `Update100`*         | ~1.6s — Hinweis: kein echtes 1-Sek-Update     |
-| timer10    | `Update10`           | jede 10 Ticks (~6 Hz)                         |
-| timer100   | `Update100`          | jede 100 Ticks (~0.6 Hz)                      |
+| Modus      | UpdateFrequency  | Wann                                          |
+|------------|------------------|-----------------------------------------------|
+| argument   | (keine)          | Skript läuft nur manuell aufgerufen           |
+| continuous | `Update1`        | jeden Tick (~60 Hz)                           |
+| timer1     | `Update100`*     | ~1.6s (SE bietet kein exaktes 1-Sek-Update)   |
+| timer10    | `Update10`       | jede 10 Ticks (~6 Hz)                         |
+| timer100   | `Update100`      | jede 100 Ticks (~0.6 Hz)                      |
 
-*Anmerkung*: SE bietet nur drei Update-Frequenzen (1/10/100). "1 Sekunde" gibt es
-nicht direkt — `Update100` ist mit ~1.6s die nächste sinnvolle Approximation.
-Für exakte Timing-Anforderungen müsste mit `Runtime.TimeSinceLastRun` in `Update1`
-manuell gezählt werden (TODO für v2).
+*Anmerkung*: SE hat nur drei Update-Frequenzen (1/10/100). Für exakte
+Timings müsste mit `Runtime.TimeSinceLastRun` in `Update1` gezählt werden.

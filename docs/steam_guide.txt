@@ -1,0 +1,192 @@
+[h1]SE.PB Code Generator — Visual Programmable Block Scripting[/h1]
+
+[i]Build C# scripts for the Space Engineers Programmable Block by clicking — no coding required.[/i]
+
+A free, offline-capable web tool that turns drag-and-drop logic into working PB scripts. Sensors, doors, batteries, thrusters, LCDs and 48 more block types — pick what to check and what to do, copy the generated code into your Programmable Block, done.
+
+[hr][/hr]
+
+[h2]Live Demo[/h2]
+
+[url=https://head87x.github.io/se-pb-codegen/]head87x.github.io/se-pb-codegen[/url]
+
+Or grab the [url=https://github.com/head87x/se-pb-codegen]GitHub repository[/url], download the ZIP and open [b]index.html[/b] locally. The tool runs entirely in your browser — no install, no account, no server.
+
+[hr][/hr]
+
+[h2]Quick Start (60 seconds)[/h2]
+
+[olist]
+[*]Open the [url=https://head87x.github.io/se-pb-codegen/]live version[/url] in your browser.
+[*]Left panel: drag a block from the [b]BLOCKS[/b] palette into the [b]IF / THEN / ELSE[/b] area, or click [b]+ Condition[/b] / [b]+ Action[/b].
+[*]Middle panel: pick what each block should check or do (e.g. Sensor → "Detected something" → Door → "Open").
+[*]Right panel: copy the generated C# code with [b]⧉ Copy[/b].
+[*]In Space Engineers: Programmable Block → [b]Edit[/b] → paste → [b]Check Code[/b] → [b]Remember & Exit[/b].
+[/olist]
+
+[hr][/hr]
+
+[h2]What it does[/h2]
+
+[list]
+[*][b]52 block types[/b] in 12 categories. All practical conditions and actions per block — not just the obvious ones.
+[*][b]Drag-and-drop block palette[/b] on the left. Search field, category folding.
+[*][b]Nested conditions[/b] with AND / OR, plus optional [b]ELSE[/b] branch.
+[*][b]Block groups[/b] — toggle per condition or action to apply it to a whole SE block group ("all front lights on", "any sensor triggered").
+[*][b]Inventory checks[/b] on 9 block types — "has > X iron ore", "has < Y uranium", etc., with a styled subtype dropdown for ores / ingots / components / ammo / tools.
+[*][b]5 execution modes[/b]: manual (argument / button), continuous, Update1 / Update10 / Update100.
+[*][b]Tooltips[/b] on every option — short explanation of what it does and what values are sensible.
+[*][b]Live code preview[/b]: the generated C# updates as you type, no fokus loss.
+[/list]
+
+[hr][/hr]
+
+[h2]LCD Builder (Sprite-API)[/h2]
+
+A full graphical LCD composer with [b]19 widget types[/b]:
+
+[list]
+[*]Headers, section banners, dividers, spacers, clocks
+[*]Status bars (horizontal / vertical / Sci-Fi segmented), double-bar
+[*]Values (small, big, icon+value, multi-block aggregator)
+[*]Donut indicator, half-ring tachometer, dot indicator
+[*]Status list (✓/✗) with up to 5 entries
+[*]Blinking warnings, alarm banners
+[/list]
+
+[h3]Visual editing[/h3]
+
+[list]
+[*][b]Live SVG preview[/b] of every widget — what you see is what the script renders in-game.
+[*][b]Drag-and-drop positioning[/b] directly on the preview. Corner-handle resize with aspect-lock — widgets keep their proportions.
+[*][b]Snap-to-grid[/b] (16 LCD pixels) for clean alignment.
+[*][b]Layer list[/b] beside the preview with per-widget visibility toggle.
+[*][b]4 LCD formats[/b]: 1:1, 2:1 wide, 1:2 tall, 3×3 big LCD.
+[*][b]5 ready-made presets[/b]: ship overview, 4-donut grid, energy panel, cockpit gauges, wide dashboard.
+[*][b]4 LCD themes[/b] (Orange / Red Alarm / Green Industrial / Blue Sci-Fi) — one click recolors all widgets.
+[/list]
+
+[h3]Multi-LCD layout (Phase 5)[/h3]
+
+Multiple adjacent LCDs can be treated as [b]one virtual display[/b]. Pick columns and rows (1–6 each), give a name pattern ([b]LCD {col}{row}[/b] → LCD A1, LCD B1, LCD A2, LCD B2), and place widgets anywhere on the combined canvas. The generator emits a [b]for-loop[/b] over all physical LCDs; each renders only its slice. Widgets that straddle two LCDs are drawn on both — SE clips off-screen sprites automatically.
+
+[hr][/hr]
+
+[h2]9 Tool Themes[/h2]
+
+The web UI itself follows your taste:
+
+[list]
+[*][b]Sci-Fi (default)[/b] — Orange / cyan on black
+[*][b]Dark[/b] — Neutral slate, less sci-fi
+[*][b]Light[/b] — Bright background, blue accent
+[*][b]Cyberpunk[/b] — Neon pink / cyan on dark violet
+[*][b]Matrix[/b] — Monochrome green on black
+[*][b]Hero[/b] — Ice-blue Star-Citizen vibe
+[*][b]Hologram[/b] — Glowing teal HUD
+[*][b]Industrial[/b] — Rust-orange on gunmetal
+[*][b]Auto[/b] — Follows your OS light/dark mode
+[/list]
+
+The picker sits next to the version tag in the header. Selection persists in LocalStorage.
+
+[hr][/hr]
+
+[h2]Bilingual: German & English[/h2]
+
+Switch between [b]DE — Deutsch[/b] and [b]EN — English[/b] with the language picker. All UI strings, block names, category names, condition / action labels, tooltips and generated C# comments are translated. Saved templates and share-tokens stay language-independent — share a configuration with a German-speaking friend, they see it in their language.
+
+[hr][/hr]
+
+[h2]Templates & Share-Tokens[/h2]
+
+[list]
+[*][b]Templates[/b]: save your current setup under a name into the browser's LocalStorage. Click a chip to load it back.
+[*][b]Share-Tokens[/b]: serialize your entire configuration (conditions, actions, LCD widgets, multi-LCD layout, themes) into a copy-paste Base64 token. No server, no account — the token itself contains the data. Share it via Discord, e-mail or a text file.
+[/list]
+
+[hr][/hr]
+
+[h2]Workflow example: "When my sensor sees something, open the hangar"[/h2]
+
+[olist]
+[*][b]Execution[/b] → [b]Every 10 ticks (Update10)[/b]
+[*][b]IF[/b] → + Condition
+[list]
+[*]Block type: [b]Sensor[/b]
+[*]Block name: [b]Front Sensor[/b] (exact terminal name in-game)
+[*]Check: [b]Detected something[/b]
+[/list]
+[*][b]THEN[/b] → + Action
+[list]
+[*]Block type: [b]Hangar Door[/b]
+[*]Block name: [b]Hangar A[/b]
+[*]Action: [b]Open[/b]
+[/list]
+[*][b]ELSE[/b] → + Action
+[list]
+[*]Block type: [b]Hangar Door[/b], Block name: [b]Hangar A[/b], Action: [b]Close[/b]
+[/list]
+[*]Right panel shows the C# code. Copy → paste into PB → done.
+[/olist]
+
+[hr][/hr]
+
+[h2]Block groups[/h2]
+
+Each condition and action has a toggle "[b]Apply to a block group[/b]". When enabled, the name field becomes a [b]group name[/b] (matching an SE block group in the terminal):
+
+[list]
+[*][b]Action on group[/b] runs for every block in the group ([i]foreach[/i] loop in the generated code). Example: "all front lights → on".
+[*][b]Condition on group[/b] is true as soon as [b]any[/b] block in the group meets it (LINQ [i].Any()[/i]). Example: "any reactor below 50% fuel".
+[/list]
+
+This skips the tedious "add 8 conditions / 8 actions" routine for fleet-wide patterns.
+
+[hr][/hr]
+
+[h2]Custom mode[/h2]
+
+If something isn't in the catalogue, pick block type [b]Custom (manual entry)[/b]. You get fields for:
+
+[list]
+[*][b]ApplyAction("...")[/b] — any in-game terminal action by name
+[*][b]SetValueBool / SetValueFloat[/b] — for properties not exposed directly
+[*][b]Raw C# code[/b] with [b]{v}[/b] as a placeholder for the block variable
+[/list]
+
+So custom needs like [code]{v}.Enabled = !{v}.Enabled;[/code] (toggle) or [code]((IMyAssembler){v}).Mode = MyAssemblerMode.Disassembly;[/code] (disassembly mode) are one input field away.
+
+[hr][/hr]
+
+[h2]Tips[/h2]
+
+[list]
+[*][b]Block names must match the terminal exactly[/b] (case, spaces, special characters). In-game: select the block, copy the name from the field at the top of the terminal.
+[*][b]C# evaluates && before ||[/b]. For complex bracketing, use Custom mode with a raw expression.
+[*][b]Empty IF[/b] means "always true" — actions run unconditionally, useful for constant outputs (status LCD, gauges).
+[*][b]Multi-LCD widgets can span borders[/b] — drag them across the dashed separator lines in the preview, the generator handles the offsets.
+[*][b]LCD format[/b] only affects the preview aspect. The generated code reads the [i]actual[/i] LCD format at runtime via [b]SurfaceSize[/b], so the same script works on Square, Wide, Tall and Big LCDs.
+[/list]
+
+[hr][/hr]
+
+[h2]No installation, no account, no telemetry[/h2]
+
+[list]
+[*]Pure HTML / CSS / vanilla JavaScript — no frameworks, no build step
+[*]Runs entirely in the browser, also offline (double-click on [b]index.html[/b] from the cloned repo)
+[*]LocalStorage holds your templates + theme + language preference; nothing leaves your machine
+[*]Source code is public and free under GPL v3
+[/list]
+
+[hr][/hr]
+
+[h2]License & Source[/h2]
+
+GitHub: [url=https://github.com/head87x/se-pb-codegen]github.com/head87x/se-pb-codegen[/url]
+License: [b]GNU General Public License v3.0[/b] — free to use, modify and redistribute as long as derivative works stay GPL v3 and the source remains available.
+
+Bug reports, pull requests and ideas welcome at the GitHub issue tracker.
+
+[i]Space Engineers © Keen Software House. This tool is unofficial and not affiliated with Keen.[/i]

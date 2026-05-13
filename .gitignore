@@ -14,3 +14,8 @@ package-lock.json
 
 # Lokale Test-Outputs
 *.cs.local
+
+# Lokale Entwicklungs-/KI-Kontext-Dateien
+# Bleiben lokal, werden nicht im Repo veröffentlicht.
+CLAUDE.md
+.claude/

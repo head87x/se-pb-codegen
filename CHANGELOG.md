@@ -7,6 +7,29 @@ das Projekt folgt [Semantic Versioning](https://semver.org/lang/de/).
 
 ## [Unreleased]
 
+## [2.0.0] — 2026-05-12
+
+### Hinzugefügt (Öffentliche Veröffentlichung)
+- **LICENSE**: GNU General Public License v3.0 (Volltext im Repo).
+- **Steam-Guide** (`docs/steam_guide.txt`) — englisch, mit Steam-
+  Forum-BBCode, sofort copy-paste-fertig für einen Steam-Workshop-
+  oder Forum-Post.
+- **GitHub-Pages-URL** als Live-Version-Link in der README.
+
+### Geändert
+- **README.md** komplett auf Veröffentlichung getrimmt: GPL-Lizenz-
+  Block mit Copyright, Disclaimer für Keen, alle internen
+  Server-/Deployment-Details entfernt.
+- **ARCHITECTURE.md** aktualisiert: aktueller Modul-Baum, neue
+  Erklärungen zu Block-Gruppen, Multi-LCD und Persistenz.
+- **Deploy-Workflow** anonymisiert: keine Hostnamen, generische
+  Secret-Namen (`DEPLOY_*` statt provider-spezifischer Namen),
+  GH-Pages als Alternative empfohlen.
+
+### Entfernt
+- Alle KI-/Kontext-Doku aus dem Repo. Lokale Entwicklungs-Files
+  bleiben über `.gitignore` ausserhalb des öffentlichen Repos.
+
 ## [1.8.0] — 2026-05-12
 
 ### Hinzugefügt (Mehrsprachigkeit Phase 2.2 — komplettes EN-Set)

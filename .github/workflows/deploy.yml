@@ -1,5 +1,5 @@
 # ============================================================
-# Auto-Deploy zu IONOS (sepb.teamllw.de)
+# Optionaler SFTP-Deploy zu einem eigenen Webhost
 # ============================================================
 # Was passiert:
 #   - Jedes Mal wenn jemand zum Branch 'main' pusht, läuft
@@ -7,20 +7,24 @@
 #   - Sie checkt den aktuellen Code aus, kopiert nur die für
 #     den Browser nötigen Dateien in einen Ordner _deploy/
 #     und lädt diese per SFTP (Port 22, verschlüsselt über SSH)
-#     auf den IONOS-Webspace.
+#     auf einen Webserver.
 #
 # Voraussetzungen (im Repo unter Settings → Secrets → Actions):
-#   IONOS_HOST       — der SFTP-Server (z. B. access-XXX.webspace-data.io)
-#   IONOS_USERNAME   — dein SFTP-Benutzername
-#   IONOS_PASSWORD   — dein SFTP-Passwort
-#   IONOS_SERVER_DIR — Pfad auf dem Server, z. B. "/sepb/"
+#   DEPLOY_HOST       — der SFTP-Server
+#   DEPLOY_USERNAME   — dein SFTP-Benutzername
+#   DEPLOY_PASSWORD   — dein SFTP-Passwort
+#   DEPLOY_SERVER_DIR — Pfad auf dem Server, z. B. "/path/"
 #                       (Slash am Ende wird automatisch ergänzt)
 #
 # Manuelles Auslösen: im GitHub-Repo unter "Actions" →
-#   "Auto-Deploy zu IONOS" → "Run workflow".
+#   "Deploy" → "Run workflow".
+#
+# Hinweis: Wer kein eigenes Hosting nutzt, kann GitHub Pages
+# als Alternative im Repo unter Settings → Pages aktivieren.
+# Dann braucht's dieses Workflow nicht.
 # ============================================================
 
-name: Auto-Deploy zu IONOS
+name: Deploy
 
 on:
   push:
@@ -29,7 +33,7 @@ on:
 
 jobs:
   deploy:
-    name: Deploy zu sepb.teamllw.de
+    name: SFTP Mirror Upload
     runs-on: ubuntu-latest
 
     steps:
@@ -50,7 +54,7 @@ jobs:
         id: dir
         shell: bash
         run: |
-          DIR='${{ secrets.IONOS_SERVER_DIR }}'
+          DIR='${{ secrets.DEPLOY_SERVER_DIR }}'
           case "$DIR" in
             */) ;;
             *)  DIR="$DIR/" ;;
@@ -66,9 +70,9 @@ jobs:
 
       - name: Per SFTP hochladen (lftp mirror)
         env:
-          HOST: ${{ secrets.IONOS_HOST }}
-          USER: ${{ secrets.IONOS_USERNAME }}
-          PASS: ${{ secrets.IONOS_PASSWORD }}
+          HOST: ${{ secrets.DEPLOY_HOST }}
+          USER: ${{ secrets.DEPLOY_USERNAME }}
+          PASS: ${{ secrets.DEPLOY_PASSWORD }}
           DIR:  ${{ steps.dir.outputs.server_dir }}
         run: |
           lftp -c "
