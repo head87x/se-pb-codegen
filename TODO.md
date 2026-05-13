@@ -6,19 +6,18 @@ festgelegt — wird gepickt, wenn es passt oder Bedarf da ist.
 ## Größere Features
 
 ### Block-Gruppen
-**Erledigt in v1.5.0**: Toggle „Auf Block-Gruppe anwenden" pro
-Bedingung/Aktion. Aktionen → `foreach` über Gruppe; Bedingungen →
-`.Any()`-Semantik (erfüllt sobald irgendein Block in der Gruppe sie
-erfüllt).
+**Erledigt**:
+- v1.5.0: Toggle „Auf Block-Gruppe anwenden" pro Bedingung/Aktion.
+  Aktionen → `foreach`; Bedingungen → `.Any()`-Default.
+- v2.4.0: Gruppen-Semantik wählbar (Any/All/Count ≥ X) mit eigener
+  UI-Sektion bei aktivem Toggle.
 
 Mögliche Erweiterungen:
-- **ALL-Semantik** für Bedingungen — Bedingung erfüllt nur wenn
-  alle Blöcke sie erfüllen (Toggle „any/all" pro Gruppen-Bedingung).
-- **Aggregator-Semantik** — „Durchschnitt aller Akkus < 20 %"
-  oder „Summe aller Reaktor-Outputs > 5 MW". Wäre eine dritte
-  Option neben any/all.
-- **Anzahl-Bedingung** — „Mindestens 3 Sensoren aktiv" als
-  `.Count(...) >= N`.
+- **Aggregator-Semantik für Bedingungen** — „Durchschnitt aller
+  Akkus < 20 %" oder „Summe aller Reaktor-Outputs > 5 MW".
+  Aktuell nur über das Aggregator-LCD-Widget abbildbar, nicht als
+  Bedingung. Würde `list.Average(b => …)` / `list.Sum(b => …)` /
+  `list.Min` / `list.Max` emittieren.
 
 ### Mehrere unabhängige WENN/DANN-Pakete pro Skript
 Aktuell gibt es genau ein WENN/DANN/SONST pro generiertem Skript.

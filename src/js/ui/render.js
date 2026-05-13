@@ -90,6 +90,22 @@ function renderConditions() {
           <input type="checkbox" ${c.useGroup ? "checked" : ""} onchange="updateCond(${i}, 'useGroup', this.checked)">
           ${escapeHtml(t("group.cond"))}
         </label>
+        ${c.useGroup ? `
+        <div class="row ${c.groupSemantic === "count" ? "row-2" : ""}" style="margin-bottom:6px;">
+          <div>
+            <label>${escapeHtml(t("group.semantic.label"))}</label>
+            <select onchange="updateCond(${i}, 'groupSemantic', this.value)">
+              <option value="any"   ${c.groupSemantic === "any"   ? "selected" : ""}>${escapeHtml(t("group.semantic.any"))}</option>
+              <option value="all"   ${c.groupSemantic === "all"   ? "selected" : ""}>${escapeHtml(t("group.semantic.all"))}</option>
+              <option value="count" ${c.groupSemantic === "count" ? "selected" : ""}>${escapeHtml(t("group.semantic.count"))}</option>
+            </select>
+          </div>
+          ${c.groupSemantic === "count" ? `
+          <div>
+            <label>${escapeHtml(t("group.count.label"))}</label>
+            <input type="number" min="1" step="1" value="${escapeAttr(c.groupCount || 1)}" oninput="updateCond(${i}, 'groupCount', this.value)">
+          </div>` : ""}
+        </div>` : ""}
         <div class="row ${rowClass}">
           <div>
             <label>${escapeHtml(t("label.check"))} ${tooltipBadge(c.blockType, c.condId, 'conditions')}</label>

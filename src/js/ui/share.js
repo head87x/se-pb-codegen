@@ -122,6 +122,13 @@ function _shareApplyDefensiveDefaults() {
     state.lcdComposer.multiLcd = { enabled: false, rows: 1, cols: 2, namePattern: "LCD {col}{row}" };
   }
   if (typeof state.useCoroutines !== "boolean") state.useCoroutines = false;
+  // v2.4.0: Gruppen-Semantik defaulten
+  if (Array.isArray(state.conditions)) {
+    for (const c of state.conditions) {
+      if (typeof c.groupSemantic !== "string") c.groupSemantic = "any";
+      if (typeof c.groupCount !== "number") c.groupCount = 1;
+    }
+  }
 }
 
 // Die statischen Form-Felder müssen die State-Werte zeigen

@@ -229,9 +229,22 @@ function generateCode() {
     state.conditions.forEach((c, i) => {
       const blockEntry = ensureBlock(c.blockType, c.blockName, c.useGroup);
       if (!blockEntry) return;
-      const e = blockEntry.isGroup
-        ? `${blockEntry.varName}.Any(_b => ${condExpr(c, "_b")})`
-        : condExpr(c, blockEntry.varName);
+      // Gruppen-Bedingung: any / all / count(>= X), sonst direkter Ausdruck
+      let e;
+      if (blockEntry.isGroup) {
+        const inner = condExpr(c, "_b");
+        const sem = c.groupSemantic || "any";
+        if (sem === "all") {
+          e = `${blockEntry.varName}.All(_b => ${inner})`;
+        } else if (sem === "count") {
+          const n = Math.max(1, parseInt(c.groupCount, 10) || 1);
+          e = `${blockEntry.varName}.Count(_b => ${inner}) >= ${n}`;
+        } else {
+          e = `${blockEntry.varName}.Any(_b => ${inner})`;
+        }
+      } else {
+        e = condExpr(c, blockEntry.varName);
+      }
       const op = i === 0 ? "" : (c.logicOp === "OR" ? " || " : " && ");
       parts.push(op + "(" + e + ")");
     });

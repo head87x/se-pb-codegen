@@ -31,7 +31,9 @@ function addConditionOfType(blockType) {
     arg: "",
     arg2: "",
     logicOp: "AND",
-    useGroup: false
+    useGroup: false,
+    groupSemantic: "any",   // "any" | "all" | "count"
+    groupCount: 1            // nur relevant bei groupSemantic === "count"
   });
   render();
 }
@@ -63,6 +65,18 @@ function updateCond(i, field, val) {
     // Strukturwechsel: Label "Block-Name" ↔ "Gruppen-Name" + Generator
     state.conditions[i].useGroup = !!val;
     render();
+    return;
+  }
+  if (field === "groupSemantic") {
+    // Strukturwechsel: count blendet Count-Input ein
+    state.conditions[i].groupSemantic = val || "any";
+    render();
+    return;
+  }
+  if (field === "groupCount") {
+    const n = parseInt(val, 10);
+    state.conditions[i].groupCount = isNaN(n) ? 1 : Math.max(1, n);
+    generateCode();
     return;
   }
   // blockName, arg, arg2, logicOp: reine Werteänderung, kein Re-Render

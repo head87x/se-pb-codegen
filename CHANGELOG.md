@@ -7,6 +7,41 @@ das Projekt folgt [Semantic Versioning](https://semver.org/lang/de/).
 
 ## [Unreleased]
 
+## [2.4.0] — 2026-05-14
+
+### Hinzugefügt (Block-Gruppen-Semantik)
+- Wenn eine Bedingung auf eine **Block-Gruppe** angewendet wird,
+  kann jetzt die **Semantik** der Gruppe gewählt werden:
+  - **Any** (Default, wie bisher) — Bedingung erfüllt sobald
+    irgendein Block der Gruppe sie erfüllt → `list.Any(_b => ...)`
+  - **All** — Bedingung nur erfüllt wenn alle Blöcke sie erfüllen
+    → `list.All(_b => ...)`
+  - **Count ≥ X** — Bedingung erfüllt sobald X Blöcke sie erfüllen
+    → `list.Count(_b => ...) >= X`
+- **UI**: Bei aktivem Gruppen-Toggle erscheint ein zusätzliches
+  Dropdown „Gruppen-Semantik". Bei „Count ≥ X" zusätzlich ein
+  Number-Input für die Mindest-Anzahl.
+- **Use-Cases**:
+  - „Alle Tüten geschlossen": Tür-Gruppe + Bedingung „Ist offen"
+    invertieren oder umgekehrt mit „All"-Semantik.
+  - „Mindestens 2 von 5 Sensoren aktiv": Sensor-Gruppe + Bedingung
+    „Etwas erkannt" + „Count ≥ 2".
+  - „Alle Akkus unter 20 %": Akku-Gruppe + „Ladung < 20 %" + „All".
+
+### Geändert
+- `addConditionOfType()` legt `groupSemantic: "any"` und
+  `groupCount: 1` als Defaults an.
+- `updateCond()` behandelt die neuen Felder als Strukturwechsel
+  (Re-Render) bzw. Werteänderung.
+- Generator (`generateCode()`) emittiert `.Any/All/Count`-LINQ
+  je nach Semantik.
+- `loadTemplate()` und `_shareApplyDefensiveDefaults()` migrieren
+  alte Vorlagen/Token defensiv (fehlende Felder → Defaults).
+
+### i18n
+- DE/EN-Keys für `group.semantic.label`, `group.semantic.any`,
+  `group.semantic.all`, `group.semantic.count`, `group.count.label`.
+
 ## [2.3.0] — 2026-05-14
 
 ### Hinzugefügt (Coroutines erweitert — Aggregator-Chunking + Statistik)

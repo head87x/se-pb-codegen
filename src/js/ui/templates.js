@@ -40,6 +40,13 @@ function loadTemplate(i) {
   }
   // v2.2.0: Coroutines-Toggle defensiv defaulten
   if (typeof state.useCoroutines !== "boolean") state.useCoroutines = false;
+  // v2.4.0: Gruppen-Semantik defaulten (alte Vorlagen kannten nur "any")
+  if (Array.isArray(state.conditions)) {
+    for (const c of state.conditions) {
+      if (typeof c.groupSemantic !== "string") c.groupSemantic = "any";
+      if (typeof c.groupCount !== "number") c.groupCount = 1;
+    }
+  }
 
   // Migration: alte Grid-Widgets in Manual-Modus konvertieren.
   // Setzt einen einfachen vertikalen Stack als initiale Position.
