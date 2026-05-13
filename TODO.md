@@ -151,12 +151,17 @@ Border + Tooltip) an Block-Name-Inputs in Bedingungen/Aktionen.
 Erkennt: leer, führende/nachgestellte Leerzeichen, unsichtbare
 Steuerzeichen.
 
+**Erledigt in v2.7.0** (Phase 2): gleiche Validierung greift jetzt
+auch im klassischen LCD-Name-Feld, im LCD-Composer-Name-Feld und in
+den Source-Block-Feldern aller LCD-Widgets (`sourceBlock`,
+`block1`/`block2` beim Doppel-Balken). Live beim Tippen, initial
+beim Page-Load, nach Template-/Token-Load erneut aktualisiert.
+
 Noch offen / nice-to-have:
-- Validierung auch im LCD-Composer-Name-Feld (statisches Input in
-  index.html — bräuchte einen kleinen Live-Update-Handler).
-- Validierung der Source-Block-Felder in LCD-Widgets.
 - Optional: Warnung bei doppelten Block-Namen über mehrere
   Bedingungen/Aktionen hinweg (könnte aber gewollt sein).
+- Optional: Vorschlagsliste bekannter Block-Namen aus anderen
+  Bedingungen/Aktionen als Auto-Complete (`<datalist>`).
 
 ### Block-Namen aus Save-File auslesen
 Sehr spekulativ: SE speichert Welten als XML. Bei lokal liegenden

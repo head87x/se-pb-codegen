@@ -160,6 +160,8 @@ function onLcdEnableChange(checked) {
 
 function onLcdNameInput(val) {
   state.lcdName = val;
+  const el = document.getElementById("lcd-name");
+  if (typeof _refreshBlockNameValidation === "function") _refreshBlockNameValidation(el);
   generateCode();
 }
 
@@ -187,6 +189,8 @@ function onLcdComposerEnable(checked) {
 
 function onLcdComposerNameInput(val) {
   state.lcdComposer.lcdName = val;
+  const el = document.getElementById("lcd-composer-name");
+  if (typeof _refreshBlockNameValidation === "function") _refreshBlockNameValidation(el);
   generateCode();
 }
 

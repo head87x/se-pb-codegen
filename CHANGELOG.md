@@ -7,6 +7,31 @@ das Projekt folgt [Semantic Versioning](https://semver.org/lang/de/).
 
 ## [Unreleased]
 
+## [2.7.0] — 2026-05-14
+
+### Hinzugefügt (Block-Namen-Validierung Phase 2)
+- Die in v2.6.0 eingeführte Live-Validierung (⚠-Badge + farbiger
+  Border) wirkt jetzt auch in den LCD-Bereichen:
+  - **LCD STATUS-AUSGABE (Text)** — Feld „LCD Block-Name".
+  - **LCD BAUKASTEN (Grafik)** — Feld „LCD / Cockpit Block-Name".
+  - **Source-Block-Felder in LCD-Widgets** — `sourceBlock` in den
+    Standard-Widgets sowie `block1`/`block2` im Doppel-Balken.
+- Validierung läuft live beim Tippen (kein Re-Render, kein Fokus-
+  Verlust), zeigt drei Stufen analog zu v2.6.0:
+  - **Fehler (rot)**: Name leer / nur Leerzeichen.
+  - **Warnung (gelb)**: führende/nachgestellte Leerzeichen oder
+    unsichtbare Steuerzeichen.
+  - **OK**: kein Indikator.
+- Beim Laden von Vorlagen oder eines Share-Tokens werden die
+  statischen Inputs ebenfalls validiert, damit Warnungen sofort
+  sichtbar sind.
+- Auf Page-Load wird die Validierung der beiden statischen Inputs
+  einmalig initialisiert.
+
+### Hinweis
+- Output-Format des generierten C#-Codes ist unverändert — reines
+  UI-Feature.
+
 ## [2.6.1] — 2026-05-14
 
 ### Behoben (Live-Validierung beim Tippen)

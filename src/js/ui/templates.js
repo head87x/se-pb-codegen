@@ -80,6 +80,10 @@ function loadTemplate(i) {
   document.getElementById("lcd-composer-resolution").value = state.lcdComposer.resolution;
   document.getElementById("lcd-composer-config").style.display = state.lcdComposer.enabled ? "block" : "none";
   render();
+  if (typeof _refreshBlockNameValidation === "function") {
+    _refreshBlockNameValidation(document.getElementById("lcd-name"));
+    _refreshBlockNameValidation(document.getElementById("lcd-composer-name"));
+  }
   showToast(t("toast.template_loaded", templates[i].name));
 }
 
@@ -110,4 +114,8 @@ async function newProject() {
   document.getElementById("lcd-composer-resolution").value = "square";
   document.getElementById("lcd-composer-config").style.display = "none";
   render();
+  if (typeof _refreshBlockNameValidation === "function") {
+    _refreshBlockNameValidation(document.getElementById("lcd-name"));
+    _refreshBlockNameValidation(document.getElementById("lcd-composer-name"));
+  }
 }

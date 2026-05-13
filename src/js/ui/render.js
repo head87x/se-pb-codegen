@@ -380,6 +380,17 @@ function _renderLcdSingleField(f, i, val, widgetType) {
   const inputType = f.type === "number" ? "number" : "text";
   const placeholder = _fhint ? ` placeholder="${escapeAttr(_fhint)}"` : "";
   const step = f.type === "number" ? ' step="any"' : "";
+
+  // Block-Name-Felder in Widgets bekommen Validierung wie in Bedingungen/Aktionen.
+  // Keys: sourceBlock (Standard-Widgets), block1/block2 (Doppel-Balken).
+  if (f.type === "text" && (f.key === "sourceBlock" || f.key === "block1" || f.key === "block2")) {
+    return `
+    <div>
+      <label>${escapeHtml(_flabel)}</label>
+      ${_blockNameInputHtml(val, `updateLcdWidget(${i}, '${f.key}', this.value)`, _fhint || "")}
+    </div>`;
+  }
+
   return `
     <div>
       <label>${escapeHtml(_flabel)}</label>

@@ -149,6 +149,11 @@ function _shareSyncUiFields() {
   set("lcd-composer-surface",         state.lcdComposer.surfaceIndex);
   set("lcd-composer-resolution",      state.lcdComposer.resolution);
   setDisplay("lcd-composer-config",   !!state.lcdComposer.enabled);
+
+  if (typeof _refreshBlockNameValidation === "function") {
+    _refreshBlockNameValidation(document.getElementById("lcd-name"));
+    _refreshBlockNameValidation(document.getElementById("lcd-composer-name"));
+  }
 }
 
 function _shareUpdateInfo() {
