@@ -7,6 +7,34 @@ das Projekt folgt [Semantic Versioning](https://semver.org/lang/de/).
 
 ## [Unreleased]
 
+## [2.5.0] — 2026-05-14
+
+### Hinzugefügt (Smart-Snap im LCD-Composer)
+- Beim Verschieben und Resizen von Widgets in der LCD-Vorschau snappen
+  jetzt zusätzlich zu den Grid-Linien folgende Positionen:
+  - **Canvas-Kanten** und **Canvas-Mitte**
+  - **LCD-Grenzen** (bei Multi-LCD die Übergänge zwischen LCDs)
+  - **Kanten + Mitte aller anderen Widgets** (Links, Rechts, Center-X,
+    Top, Bottom, Center-Y)
+- **Snap-Schwelle: 8 LCD-Pixel** (halb so groß wie das normale Grid).
+  Wenn man im 8-px-Radius einer Snap-Linie ist, springt das Widget
+  direkt drauf — sonst übernimmt das normale 16-px-Grid.
+- **Visuelle Snap-Guides**: dünne türkise (Theme-Accent-2) Linien
+  zeigen die aktive Snap-Position während des Drag-Vorgangs. Eine
+  vertikale + eine horizontale Linie, jeweils nur sichtbar wenn
+  Snap aktiv ist.
+- **Beim Resize** snappt die treibende Achse (X bei waagrechtem,
+  Y bei senkrechtem Maus-Delta) an die Kandidaten; die andere
+  Dimension folgt dem Aspect-Lock wie bisher.
+- **Drag** prüft alle drei Anker (Links-/Mitte-/Rechts-Kante des
+  Widgets) gegen die Snap-Kandidaten — wer am nächsten dran ist,
+  gewinnt.
+
+### Geändert
+- `_lcdVirtualCanvas()` liefert jetzt zusätzlich `lcdW`/`lcdH`/`cols`/`rows`
+  — gebraucht für die LCD-Grenzen-Kandidaten.
+- Neue Konstante `LCD_SMART_SNAP = 8` (Threshold in LCD-Pixeln).
+
 ## [2.4.0] — 2026-05-14
 
 ### Hinzugefügt (Block-Gruppen-Semantik)

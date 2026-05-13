@@ -162,6 +162,11 @@ verschieben/ausrichten/löschen. Aktuell ist Bearbeiten Widget-für-
 Widget.
 
 ### Smart-Snap im LCD-Composer
-Beim Drag aktuell nur Grid-Snap (16 px). Erweiterung: Snap an Kanten
-anderer Widgets („align with X"-Linien), Snap an LCD-Mitte/-Drittel,
-Snap an gleiche Größe wie Nachbar-Widget.
+**Erledigt in v2.5.0**: Snap an Canvas-Kanten, Canvas-Mitte,
+LCD-Grenzen (Multi-LCD), Kanten + Mitte aller anderen Widgets.
+Threshold 8 LCD-Pixel mit visuellen Guide-Linien.
+
+Mögliche Erweiterung: Snap an Drittel/Viertel des Canvas
+(Rule-of-Thirds) — eher cosmetic. „Gleiche Größe wie Nachbar"
+beim Resize würde ein Width-Match-Candidate erfordern, ist
+machbar — sag Bescheid wenn gewünscht.

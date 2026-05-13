@@ -11,8 +11,9 @@
 // gibt's einen kompletten render(), damit die Editor-Felder
 // die neuen Werte zeigen.
 
-const LCD_SNAP = 16;      // LCD-Pixel pro Snap-Schritt (grob = sauber alignen)
-const LCD_MIN_SIZE = 32;  // Minimale Widget-Größe (LCD-Pixel, an Snap-Vielfaches)
+const LCD_SNAP = 16;            // LCD-Pixel pro Snap-Schritt (grob = sauber alignen)
+const LCD_MIN_SIZE = 32;        // Minimale Widget-Größe
+const LCD_SMART_SNAP = 8;       // Threshold für Smart-Snap (LCD-Pixel)
 
 let _lcdDragState = null;
 
@@ -26,7 +27,88 @@ function _lcdVirtualCanvas() {
   const multi = ml && ml.enabled === true && (lc.displayMode || "external") === "external";
   const cols = multi ? Math.max(1, parseInt(ml.cols, 10) || 1) : 1;
   const rows = multi ? Math.max(1, parseInt(ml.rows, 10) || 1) : 1;
-  return { w: res.w * cols, h: res.h * rows };
+  return { w: res.w * cols, h: res.h * rows, lcdW: res.w, lcdH: res.h, cols, rows };
+}
+
+// Smart-Snap: sammle alle Snap-Kandidaten in X/Y-Richtung.
+// `excludeIdx` ist das gerade gezogene Widget — dessen eigene Kanten
+// nicht mitnehmen, sonst snappt es auf sich selbst.
+function _lcdSnapCandidates(virt, excludeIdx) {
+  const xs = [0, virt.w, virt.w / 2];   // Canvas-Kanten + Mitte
+  const ys = [0, virt.h, virt.h / 2];
+  // Multi-LCD interior boundaries
+  for (let c = 1; c < (virt.cols || 1); c++) xs.push(c * virt.lcdW);
+  for (let r = 1; r < (virt.rows || 1); r++) ys.push(r * virt.lcdH);
+  // Andere Widgets
+  const widgets = state.lcdComposer.widgets || [];
+  widgets.forEach((w, i) => {
+    if (i === excludeIdx) return;
+    if (w.hidden) return;
+    const wx = parseFloat(w.manualX) || 0;
+    const wy = parseFloat(w.manualY) || 0;
+    const ww = parseFloat(w.manualW) || 100;
+    const wh = parseFloat(w.manualH) || 40;
+    xs.push(wx, wx + ww, wx + ww / 2);
+    ys.push(wy, wy + wh, wy + wh / 2);
+  });
+  return { xs, ys };
+}
+
+// Findet den besten Snap für die übergebenen Anker-Positionen.
+// Gibt { offset, guide } zurück: offset = wie viel der originale Wert
+// verschoben werden muss; guide = die Snap-Linien-Position (oder null).
+function _lcdBestSnap(anchorPositions, candidates, threshold) {
+  let bestDist = threshold + 1;
+  let bestCandidate = null;
+  let bestAnchor = null;
+  for (const ap of anchorPositions) {
+    for (const c of candidates) {
+      const d = Math.abs(ap.pos - c);
+      if (d < bestDist) {
+        bestDist = d;
+        bestCandidate = c;
+        bestAnchor = ap;
+      }
+    }
+  }
+  if (bestAnchor === null) return { delta: 0, guide: null };
+  return { delta: bestCandidate - bestAnchor.pos, guide: bestCandidate };
+}
+
+// Erzeugt die zwei Snap-Guide-Linien (vertical + horizontal) im Preview-
+// Container. Bleiben den Drag über bestehen, werden bei mouseup entfernt.
+function _lcdCreateGuides(container) {
+  const vg = document.createElement("div");
+  vg.className = "lcd-snap-guide lcd-snap-guide-v";
+  vg.style.display = "none";
+  const hg = document.createElement("div");
+  hg.className = "lcd-snap-guide lcd-snap-guide-h";
+  hg.style.display = "none";
+  container.appendChild(vg);
+  container.appendChild(hg);
+  return { v: vg, h: hg };
+}
+
+function _lcdUpdateGuide(guides, scale, xPos, yPos) {
+  if (!guides) return;
+  if (xPos === null) {
+    guides.v.style.display = "none";
+  } else {
+    guides.v.style.display = "";
+    guides.v.style.left = (xPos * scale) + "px";
+  }
+  if (yPos === null) {
+    guides.h.style.display = "none";
+  } else {
+    guides.h.style.display = "";
+    guides.h.style.top = (yPos * scale) + "px";
+  }
+}
+
+function _lcdRemoveGuides(guides) {
+  if (!guides) return;
+  if (guides.v && guides.v.parentNode) guides.v.parentNode.removeChild(guides.v);
+  if (guides.h && guides.h.parentNode) guides.h.parentNode.removeChild(guides.h);
 }
 
 function initLcdDragHandlers() {
@@ -52,6 +134,11 @@ function _lcdMouseDown(e) {
   const virt = _lcdVirtualCanvas();
   const scaleScreen = container.clientWidth / virt.w;
 
+  // Snap-Kandidaten einmal beim Drag-Start einsammeln (statisch — sich
+  // bewegende Widgets sind eh nur dieses eine, das wir excluden).
+  const candidates = _lcdSnapCandidates(virt, idx);
+  const guides = _lcdCreateGuides(container);
+
   _lcdDragState = {
     idx, widget, isResize, scaleScreen,
     startScreenX: e.clientX,
@@ -60,7 +147,7 @@ function _lcdMouseDown(e) {
     origY: parseFloat(widget.manualY) || 0,
     origW: parseFloat(widget.manualW) || 100,
     origH: parseFloat(widget.manualH) || 40,
-    virt, container
+    virt, container, candidates, guides
   };
 
   // Live-Maße-Badge erzeugen
@@ -97,21 +184,43 @@ function _lcdMouseMove(e) {
   const dx = (e.clientX - s.startScreenX) / s.scaleScreen;
   const dy = (e.clientY - s.startScreenY) / s.scaleScreen;
 
+  // Scale für Guide-Positionierung (LCD-Pixel → Screen-Pixel)
+  const guideScale = s.container.clientWidth / s.virt.w;
+  let guideX = null, guideY = null;
+
   if (s.isResize) {
     // Aspect-Lock: das Verhältnis aus LCD_MANUAL_DEFAULTS halten.
-    // Wir nehmen den GRÖSSEREN Delta als treibend, damit's flüssig wirkt.
     const aspect = (typeof getLcdWidgetAspect === "function")
       ? getLcdWidgetAspect(s.widget.type) : (s.origW / s.origH);
     let newW, newH;
-    if (Math.abs(dx) >= Math.abs(dy)) {
+    const driveX = Math.abs(dx) >= Math.abs(dy);
+    if (driveX) {
       newW = _snap(Math.max(LCD_MIN_SIZE, s.origW + dx));
+      // Smart-Snap: rechte Kante = origX + newW an X-Kandidat?
+      const snap = _lcdBestSnap(
+        [{ pos: s.origX + newW }],
+        s.candidates.xs,
+        LCD_SMART_SNAP
+      );
+      if (snap.guide !== null) {
+        newW = Math.max(LCD_MIN_SIZE, newW + snap.delta);
+        guideX = snap.guide;
+      }
       newH = _snap(Math.max(LCD_MIN_SIZE, newW / aspect));
     } else {
       newH = _snap(Math.max(LCD_MIN_SIZE, s.origH + dy));
+      const snap = _lcdBestSnap(
+        [{ pos: s.origY + newH }],
+        s.candidates.ys,
+        LCD_SMART_SNAP
+      );
+      if (snap.guide !== null) {
+        newH = Math.max(LCD_MIN_SIZE, newH + snap.delta);
+        guideY = snap.guide;
+      }
       newW = _snap(Math.max(LCD_MIN_SIZE, newH * aspect));
     }
-    // Boundary: nicht über virtuellen Canvas hinaus (Multi-LCD: cols × rows × LCD).
-    // Innerhalb des Canvas dürfen Widgets LCD-Grenzen überspannen.
+    // Boundary: nicht über virtuellen Canvas hinaus
     if (s.origX + newW > s.virt.w) {
       newW = s.virt.w - s.origX;
       newH = _snap(newW / aspect);
@@ -125,6 +234,39 @@ function _lcdMouseMove(e) {
   } else {
     let newX = _snap(s.origX + dx);
     let newY = _snap(s.origY + dy);
+
+    // Smart-Snap X: prüfe links / Mitte / rechts gegen X-Kandidaten
+    const w = s.origW;
+    const snapX = _lcdBestSnap(
+      [
+        { pos: newX },          // linke Kante
+        { pos: newX + w / 2 },  // Mitte
+        { pos: newX + w }       // rechte Kante
+      ],
+      s.candidates.xs,
+      LCD_SMART_SNAP
+    );
+    if (snapX.guide !== null) {
+      newX += snapX.delta;
+      guideX = snapX.guide;
+    }
+
+    // Smart-Snap Y: prüfe oben / Mitte / unten gegen Y-Kandidaten
+    const h = s.origH;
+    const snapY = _lcdBestSnap(
+      [
+        { pos: newY },
+        { pos: newY + h / 2 },
+        { pos: newY + h }
+      ],
+      s.candidates.ys,
+      LCD_SMART_SNAP
+    );
+    if (snapY.guide !== null) {
+      newY += snapY.delta;
+      guideY = snapY.guide;
+    }
+
     // Boundary: Widget bleibt innerhalb des virtuellen Canvas
     newX = Math.max(0, Math.min(newX, s.virt.w - s.origW));
     newY = Math.max(0, Math.min(newY, s.virt.h - s.origH));
@@ -134,6 +276,7 @@ function _lcdMouseMove(e) {
 
   _lcdUpdateCellGeometry(s.idx);
   _lcdUpdateBadge();
+  _lcdUpdateGuide(s.guides, guideScale, guideX, guideY);
 }
 
 function _lcdMouseUp() {
@@ -142,6 +285,7 @@ function _lcdMouseUp() {
   document.removeEventListener("mouseup", _lcdMouseUp);
   document.body.style.userSelect = "";
   if (_lcdDragState.badge) _lcdDragState.badge.remove();
+  _lcdRemoveGuides(_lcdDragState.guides);
   _lcdDragState = null;
   render();
 }
