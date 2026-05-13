@@ -506,6 +506,33 @@ input, select, textarea {
   transition: border-color 0.15s;
 }
 
+/* Block-Name-Validierung — Wrap-Container, Border + Badge */
+.input-with-warn {
+  position: relative;
+}
+.input-with-warn input {
+  padding-right: 28px; /* Platz für Badge */
+}
+.input-with-warn.input-warn-error input {
+  border-color: var(--warn);
+  background: rgba(var(--shadow-rgb), 0.05);
+}
+.input-with-warn.input-warn-warning input {
+  border-color: #d6a13a; /* Bernstein — distinct from danger */
+}
+.input-warn-badge {
+  position: absolute;
+  right: 6px;
+  top: 50%;
+  transform: translateY(-50%);
+  pointer-events: auto;
+  cursor: help;
+  font-size: 14px;
+  user-select: none;
+}
+.input-warn-badge.error   { color: var(--warn); }
+.input-warn-badge.warning { color: #d6a13a; }
+
 .group-toggle {
   display: flex;
   align-items: center;

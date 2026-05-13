@@ -41,6 +41,44 @@ function _argField(mutator, value, argType, hint) {
   return `<input type="text" value="${safeVal}" oninput="${oninput}"${placeholder}>`;
 }
 
+// Regex via Konstruktor — vermeidet, dass die Source-Datei selbst
+// versehentlich Steuerzeichen enthält. Matches:
+//   ASCII-Control (- außer \t/\n) + zero-width-Spaces +
+//   Bidi-Marks + BOM.
+const _CTRL_CHAR_REGEX = new RegExp(
+  "[\\u0001-\\u0008\\u000B-\\u001F\\u200B-\\u200F\\u202A-\\u202E\\uFEFF]"
+);
+
+// Validiert einen Block-/Gruppen-Namen. Liefert { level, msgKey } —
+// level: "ok" | "warning" | "error". Wird im Render genutzt um ein
+// kleines (⚠) Badge + farbigen Border zu zeigen.
+function _validateBlockName(name) {
+  if (!name || !name.trim()) {
+    return { level: "error", msgKey: "validate.empty" };
+  }
+  if (name !== name.trim()) {
+    return { level: "warning", msgKey: "validate.whitespace" };
+  }
+  if (_CTRL_CHAR_REGEX.test(name)) {
+    return { level: "warning", msgKey: "validate.controlchar" };
+  }
+  return { level: "ok" };
+}
+
+
+// Liefert HTML für ein Block-Name-Input mit optionalem Warnindikator.
+function _blockNameInputHtml(value, onInputCall, placeholder) {
+  const v = _validateBlockName(value);
+  const cls = v.level === "error" ? "input-warn-error"
+            : v.level === "warning" ? "input-warn-warning" : "";
+  const badge = (v.level === "ok") ? "" :
+    `<span class="input-warn-badge ${v.level}" title="${escapeAttr(t(v.msgKey))}">⚠</span>`;
+  return `<div class="input-with-warn ${cls}">
+    <input value="${escapeAttr(value || "")}" oninput="${onInputCall}" placeholder="${escapeAttr(placeholder || "")}">
+    ${badge}
+  </div>`;
+}
+
 function renderConditions() {
   const root = document.getElementById("conditions");
   if (state.conditions.length === 0) {
@@ -83,7 +121,11 @@ function renderConditions() {
           </div>
           <div>
             <label>${escapeHtml(t(c.useGroup ? "group.name" : "block.name"))}</label>
-            <input value="${escapeAttr(c.blockName)}" oninput="updateCond(${i}, 'blockName', this.value)" placeholder="${escapeAttr(t(c.useGroup ? "group.name_ph" : "block.name_ph"))}">
+            ${_blockNameInputHtml(
+              c.blockName,
+              `updateCond(${i}, 'blockName', this.value)`,
+              t(c.useGroup ? "group.name_ph" : "block.name_ph")
+            )}
           </div>
         </div>
         <label class="group-toggle">
@@ -163,7 +205,11 @@ function renderActions(which) {
           </div>
           <div>
             <label>${escapeHtml(t(a.useGroup ? "group.name" : "block.name"))}</label>
-            <input value="${escapeAttr(a.blockName)}" oninput="updateAct('${which}', ${i}, 'blockName', this.value)" placeholder="${escapeAttr(t(a.useGroup ? "group.name_ph" : "block.name_ph"))}">
+            ${_blockNameInputHtml(
+              a.blockName,
+              `updateAct('${which}', ${i}, 'blockName', this.value)`,
+              t(a.useGroup ? "group.name_ph" : "block.name_ph")
+            )}
           </div>
         </div>
         <label class="group-toggle">

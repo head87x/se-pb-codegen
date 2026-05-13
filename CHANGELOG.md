@@ -7,6 +7,29 @@ das Projekt folgt [Semantic Versioning](https://semver.org/lang/de/).
 
 ## [Unreleased]
 
+## [2.6.0] — 2026-05-14
+
+### Hinzugefügt (Block-Namen-Validierung)
+- **Inline-Warnindikator** an den Block-Name-Inputs in Bedingungen
+  und Aktionen. Drei Stufen:
+  - **Fehler (rot)**: Name leer oder nur Leerzeichen → Eintrag wird
+    vom Generator stillschweigend ignoriert.
+  - **Warnung (gelb)**: Führende/nachgestellte Leerzeichen oder
+    unsichtbare Steuerzeichen (z. B. zero-width-Spaces aus Discord-
+    Copy-Paste). Häufige Quelle für „Block not found"-Fehler im Spiel.
+  - **OK**: kein Indikator.
+- **Tooltip** am ⚠-Badge erklärt das konkrete Problem.
+- Funktioniert für Bedingungen + Aktionen + ELSE-Aktionen, in
+  Einzelblock- und Gruppen-Modus.
+
+### Geändert
+- Render-Helper `_blockNameInputHtml()` baut Input + Badge + Border
+  einheitlich. Validation-Regeln in `_validateBlockName()`.
+
+### i18n
+- DE/EN-Keys für `validate.empty`, `validate.whitespace`,
+  `validate.controlchar`.
+
 ## [2.5.0] — 2026-05-14
 
 ### Hinzugefügt (Smart-Snap im LCD-Composer)

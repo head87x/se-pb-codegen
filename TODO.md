@@ -146,9 +146,17 @@ zwischen Bedingungen — schwierig sauber zu bauen, aber für komplexe
 Logik nötig.
 
 ### Validierung von Block-Namen
-Aktuell nur Escaping von Anführungszeichen. Checks wie „Block-Name
-leer", „doppelter Name", „enthält ungültige Zeichen" wären user-
-freundlich.
+**Erledigt in v2.6.0**: Inline-Warnindikator (⚠ Badge + farbiger
+Border + Tooltip) an Block-Name-Inputs in Bedingungen/Aktionen.
+Erkennt: leer, führende/nachgestellte Leerzeichen, unsichtbare
+Steuerzeichen.
+
+Noch offen / nice-to-have:
+- Validierung auch im LCD-Composer-Name-Feld (statisches Input in
+  index.html — bräuchte einen kleinen Live-Update-Handler).
+- Validierung der Source-Block-Felder in LCD-Widgets.
+- Optional: Warnung bei doppelten Block-Namen über mehrere
+  Bedingungen/Aktionen hinweg (könnte aber gewollt sein).
 
 ### Block-Namen aus Save-File auslesen
 Sehr spekulativ: SE speichert Welten als XML. Bei lokal liegenden
