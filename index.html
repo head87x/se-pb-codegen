@@ -18,7 +18,7 @@
       <span class="theme-picker-label" data-i18n="header.theme">THEME</span>
       <select id="tool-theme-select" onchange="setToolTheme(this.value)"></select>
     </label>
-    <span class="tag">v2.0.0 :: <span data-i18n="header.subtitle">SPACE ENGINEERS PROGRAMMABLE BLOCK</span></span>
+    <span class="tag">v2.1.0 :: <span data-i18n="header.subtitle">SPACE ENGINEERS PROGRAMMABLE BLOCK</span></span>
   </div>
 </header>
 
@@ -87,10 +87,10 @@
           <label data-i18n="exec.mode">Modus</label>
           <select id="exec-mode" onchange="onExecModeChange(this.value)">
             <option value="argument"   data-i18n="exec.argument">Manuell (per Argument / Button)</option>
-            <option value="continuous" data-i18n="exec.continuous">Kontinuierlich (jeden Tick)</option>
-            <option value="timer1"     data-i18n="exec.timer1">Alle 1 Sekunde (Update1)</option>
-            <option value="timer10"    data-i18n="exec.timer10">Alle 10 Ticks (Update10)</option>
             <option value="timer100"   data-i18n="exec.timer100">Alle 100 Ticks (Update100)</option>
+            <option value="timer10"    data-i18n="exec.timer10">Alle 10 Ticks (Update10)</option>
+            <option value="timer1"     data-i18n="exec.timer1">Alle 1 Sekunde (Update1)</option>
+            <option value="continuous" data-i18n="exec.continuous">⚠ Kontinuierlich (jeden Tick)</option>
           </select>
           <div class="help-text" id="exec-help"></div>
         </div>
@@ -221,7 +221,8 @@
     <div class="panel-header">
       <span data-i18n="code.title">▶ GENERIERTER CODE</span>
       <div class="btn-row">
-        <button class="small" onclick="copyCode()" data-i18n="code.copy">⧉ Kopieren</button>
+        <button class="small primary" onclick="copyCode()" data-i18n="code.copy">⧉ Kopieren</button>
+        <button class="small" onclick="showPlainCode()" data-i18n="code.plain">📄 Klartext</button>
         <button class="small" onclick="downloadCode()" data-i18n="code.download">⤓ Download</button>
       </div>
     </div>
@@ -254,6 +255,7 @@
 <script src="src/js/blocks/descriptions.js"></script>
 <script src="src/js/state.js"></script>
 <script src="src/js/lcd/widgets.js"></script>
+<script src="src/js/lcd/i18n_en.js"></script>
 <script src="src/js/lcd/preview-svg.js"></script>
 <script src="src/js/lcd/composer.js"></script>
 <script src="src/js/generator/highlight.js"></script>

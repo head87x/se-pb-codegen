@@ -7,6 +7,68 @@ das Projekt folgt [Semantic Versioning](https://semver.org/lang/de/).
 
 ## [Unreleased]
 
+## [2.1.0] — 2026-05-13
+
+### Geändert (Block-Caching nach PB-Wiki-Best-Practices)
+- **Generierter Code nutzt jetzt Class-Felder + `EnsureBlocks()`**.
+  Bisher wurden `GridTerminalSystem.GetBlockWithName(...)` und
+  `GetBlocksOfType<T>(...)` bei JEDEM Tick im `Main()` aufgerufen —
+  laut PB-Experten + Space-Engineers-Wiki ein klares Anti-Pattern.
+- **Neue Struktur:** Blöcke sind jetzt Class-Felder, werden in
+  `EnsureBlocks()` lazy aufgelöst und über `block.Closed`-Check
+  validiert. Bei `null`/`Closed` wird neu geholt; sonst Cache.
+- **Multi-LCD-Setup**: das gesamte Surface-Array (`IMyTextSurface[]`)
+  ist gecacht. Beim Schreiben des Skripts auf 6 LCDs: vorher bis zu
+  6 Fetches pro Tick — jetzt nur beim ersten Mal.
+- **Aggregator-Widget**: `List<IMyBatteryBlock>` etc. ist
+  Class-Feld, wird mit `Clear()` + `GetBlocksOfType()` pro Tick
+  aktualisiert (List-Reuse statt `new` jedes Tick).
+- **StringBuilder** für LCD-Status-Ausgabe ist Class-Feld
+  (`readonly _sb`), `Clear()` statt `new` pro Tick.
+
+### Hinzugefügt (LCD-i18n Phase 3 — komplett)
+- **Neue Datei `src/js/lcd/i18n_en.js`** mit Maps für: Widget-
+  Labels (19), Field-Labels (~90, common + widget-specific),
+  Hints, Select-Optionen (align/format/blink/icon/aggregateType/
+  mode/clock_format), Gruppen-Labels, Themes, Presets,
+  Resolutions, numerische + boolean Datenquellen.
+- **Helper-Funktionen** `getLcdWidgetLabel`, `getLcdFieldLabel`,
+  `getLcdHintLabel`, `getLcdOptionLabel`, `getLcdGroupLabel`,
+  `getLcdThemeLabel`, `getLcdPresetMeta`, `getLcdResolutionLabel`,
+  `getLcdSourceLabel`, `getLcdBoolSourceLabel` — alle mit
+  DE-Fallback.
+- **LCD-Composer-UI** (Widget-Add-Buttons, Theme-Buttons,
+  Preset-Dropdown, Resolution-Dropdown, Field-Labels in
+  Widget-Editoren, „LIVE-VORSCHAU", „EBENEN", „Position & Größe",
+  „— Display ist leer —" etc.) ist jetzt komplett DE/EN-fähig.
+
+### Geändert (Update-Modi de-emphasis)
+- Reihenfolge im Exec-Mode-Dropdown umgestellt:
+  Argument → 100 Ticks → 10 Ticks → 1 Sek → ⚠ Continuous (Update1).
+  Sparsame Modi nach oben, Update1 als letzte Option mit
+  Warnung im Hilfetext (rot, fett).
+
+### Hinzugefügt (Klartext-Modal)
+- **Output-Pane ist nicht mehr manuell selektierbar** (`user-select:
+  none`). Verhindert, dass HTML-Markup aus dem Syntax-Highlighting
+  beim manuellen Selektieren in die Zwischenablage rutscht.
+- **Neuer „📄 Klartext"-Button** neben Copy/Download öffnet ein
+  themed Modal mit dem reinen Code in einem `user-select: text`-
+  Container. Wer einzelne Zeilen kopieren möchte, kann das dort
+  bedenkenlos tun.
+
+### Hinzugefügt
+- i18n-Keys für Generator-Kommentare (`gen.cmt.fields`,
+  `gen.cmt.ensure`, `gen.cmt.lcd_status_optional`,
+  `gen.cmt.lcd_block_404`, `gen.cmt.agg_count_word` etc.).
+
+### Quellen
+- Discord-Feedback Malware, Digi, itbemeagain (Mai 2026)
+- https://spaceengineers.wiki.gg/wiki/Scripting/Do%27s_and_Don%27ts
+- https://spaceengineers.wiki.gg/wiki/Scripting/Coroutines_-_Run_operations_over_multiple_ticks
+  (Coroutines bewusst zurückgestellt — passt nicht zum aktuellen
+  One-Shot-Charakter, kommt in späterem MAJOR-Release.)
+
 ## [2.0.0] — 2026-05-12
 
 ### Hinzugefügt (Öffentliche Veröffentlichung)

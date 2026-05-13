@@ -101,12 +101,33 @@ Felder, Multi-LCD-Konfiguration, Share-Token, Footer.
 - v1.6.0: i18n-Layer + statische UI-Strings (Sektion-Titel, Buttons, Toasts, …).
 - v1.7.0: 52 Block-Namen, 13 Kategorien, C#-Code-Kommentare, Optgroup-Labels.
 - v1.8.0: 514 Condition/Action-Labels + ~280 Tooltip-Texte komplett auf EN.
+- v2.1.0: LCD-Composer-UI komplett EN (Widget-Namen, Field-Labels, Themes,
+  Presets, Resolutions, UI-Strings, Hints, Optionen, Gruppen).
 
 **Optional für später**:
 - Weitere Sprachen (RU, FR, ES, …) mit DE als Fallback. Infrastruktur
   ist drin — nur eine weitere Sprache zur `I18N_LANGS`-Liste in
   `src/js/ui/i18n.js` hinzufügen und entsprechende Maps anlegen
-  (kopiere `BLOCKS_EN` etc. und übersetze).
+  (kopiere `BLOCKS_EN` + `LCD_*_EN` etc. und übersetze).
+
+### Coroutines (zurückgestellt aus v2.1.0)
+PB-Wiki empfiehlt Coroutines (IEnumerator + yield return) für
+Operationen die zu lange für einen einzelnen Tick dauern. Aktuell
+passt das nicht zum One-Shot-Charakter unserer Skripte. Sinnvoll
+wäre es bei:
+- Aggregator-Widgets mit sehr großen Block-Listen (>500 Blöcke)
+- Skripten mit vielen Sprite-Operationen auf vielen LCDs
+- Multi-LCD-Setups mit 6×6 Grid
+
+Wäre ein eigenes „advanced mode"-Toggle pro Widget oder global.
+Großer Brocken, MAJOR-Release-Material.
+
+### Block-List-Refresh-Intervall (zurückgestellt aus v2.1.0)
+SE-Wiki: „Updates to block lists every 100+ ticks". Aktuell
+refreshen wir die Aggregator-Listen jeden Tick (Clear + GetBlocksOfType).
+Feintuning für Performance: nur alle N Ticks neu, Tick-Counter
+als Class-Feld. Sinnvoll bei Skripten mit hoher Update-Frequenz
+und vielen Blöcken.
 
 ### Vorlagen-Export / -Import als JSON-Datei
 Aktuell liegen Vorlagen nur im LocalStorage des Browsers. Datei-

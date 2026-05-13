@@ -287,23 +287,26 @@ async function onLcdPresetSelect(key) {
   // Preset-Dropdown zurücksetzen (so wirkt es wie ein "einmaliger Befehl")
   const sel = document.getElementById("lcd-composer-preset");
   if (sel) sel.value = "";
-  showToast(`Preset "${preset.label}" geladen (${preset.widgets.length} Widgets).`);
+  const _plabel = (typeof getLcdPresetMeta === "function") ? getLcdPresetMeta(key).label : preset.label;
+  showToast(t("lcd.toast.preset_loaded", _plabel, preset.widgets.length));
 }
 
 // Füllt das Resolution-Dropdown beim Init mit den Optionen
 function initLcdComposerSelects() {
   const sel = document.getElementById("lcd-composer-resolution");
   if (sel && typeof LCD_RESOLUTION_ORDER !== "undefined") {
+    const _rlabel = (k) => (typeof getLcdResolutionLabel === "function") ? getLcdResolutionLabel(k) : LCD_RESOLUTIONS[k].label;
     sel.innerHTML = LCD_RESOLUTION_ORDER.map(k =>
-      `<option value="${k}">${LCD_RESOLUTIONS[k].label}</option>`
+      `<option value="${k}">${_rlabel(k)}</option>`
     ).join("");
     sel.value = state.lcdComposer.resolution || "square";
   }
   // Preset-Dropdown füllen
   const presetSel = document.getElementById("lcd-composer-preset");
   if (presetSel && typeof LCD_PRESET_ORDER !== "undefined") {
-    presetSel.innerHTML = `<option value="">— Preset laden —</option>` +
-      LCD_PRESET_ORDER.map(k => `<option value="${k}">${LCD_PRESETS[k].label}</option>`).join("");
+    const _plabel = (k) => (typeof getLcdPresetMeta === "function") ? getLcdPresetMeta(k).label : LCD_PRESETS[k].label;
+    presetSel.innerHTML = `<option value="">${t("lcd.preset.placeholder")}</option>` +
+      LCD_PRESET_ORDER.map(k => `<option value="${k}">${_plabel(k)}</option>`).join("");
   }
 }
 
@@ -462,5 +465,6 @@ function applyLcdTheme(themeName) {
   }
   state.lcdComposer.theme = themeName;
   render();
-  showToast(`Theme "${newT.label}" angewendet — ${changed} Farben umgestellt.`);
+  const _tlabel = (typeof getLcdThemeLabel === "function") ? getLcdThemeLabel(themeName) : newT.label;
+  showToast(t("lcd.toast.theme_applied", _tlabel, changed));
 }

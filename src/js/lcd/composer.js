@@ -105,7 +105,9 @@ function _multiLcdLayout(lc) {
 
 // Emittiert die Widget-Schleife (gleich für Single- und Multi-LCD —
 // nur lcdOffX/lcdOffY sind Variable, die im umgebenden Scope gesetzt werden).
-function _emitWidgetsBlock(widgets, ensureBlock) {
+// ctx sammelt Class-Felder und EnsureBlocks-Code für widget-übergreifende
+// Caches (z. B. Aggregator-Listen).
+function _emitWidgetsBlock(widgets, ensureBlock, ctx) {
   let out = "";
   for (let idx = 0; idx < widgets.length; idx++) {
     const w = widgets[idx];
@@ -127,17 +129,20 @@ function _emitWidgetsBlock(widgets, ensureBlock) {
       out += `                sp.Color = ${_csColor(w.widgetBg)};\n`;
       out += `                frame.Add(sp);\n`;
     }
-    out += _emitWidget(w, ensureBlock);
+    out += _emitWidget(w, idx, ensureBlock, ctx);
     out += `            }\n`;
   }
   return out;
 }
 
-// Hauptfunktion
+// Hauptfunktion — liefert { used, fields, ensure, code } mit:
+//   fields : Class-Feld-Deklarationen (Surface-Cache, Aggregator-Listen)
+//   ensure : Body für die EnsureBlocks()-Methode (Validation + Refresh)
+//   code   : Inhalt für Main() (DrawFrame-Loops, nutzt gecachte Felder)
 function generateLcdComposerCode(ensureBlock) {
   const lc = state.lcdComposer;
   if (!lc || !lc.enabled || !lc.widgets || lc.widgets.length === 0) {
-    return { code: "", used: false };
+    return { used: false, code: "", fields: "", ensure: "" };
   }
 
   const mode = lc.displayMode || "external";
@@ -145,86 +150,119 @@ function generateLcdComposerCode(ensureBlock) {
   const multi = _multiLcdLayout(lc);
 
   if ((mode === "external" || mode === "cockpit") && !multi && !lc.lcdName) {
-    return { code: "", used: false };
+    return { used: false, code: "", fields: "", ensure: "" };
   }
 
-  let out = "";
   const _t = (typeof t === "function") ? t : ((k) => k);
-  out += `\n    // ${_t("gen.cmt.lcd_composer")}\n`;
+  const ctx = { fields: [], ensure: [] };
+
+  let mainCode = "";
+  mainCode += `\n    // ${_t("gen.cmt.lcd_composer")}\n`;
 
   if (multi) {
-    // Multi-LCD: pro physischem LCD ein eigener DrawFrame-Block,
-    // alle aus demselben virtuellen Canvas (cols × rows × LCD-Größe).
-    out += `    // Multi-LCD: ${multi.cols}×${multi.rows} = ${multi.cells.length} LCDs als virtuelles ${multi.res.w * multi.cols}×${multi.res.h * multi.rows} Display\n`;
-    out += `    string[] lcdNames_ = new string[] {\n`;
-    out += `        ${multi.cells.map(c => _csString(c.name)).join(", ")}\n`;
-    out += `    };\n`;
-    out += `    float[] lcdOffX_ = new float[] { ${multi.cells.map(c => c.offX + "f").join(", ")} };\n`;
-    out += `    float[] lcdOffY_ = new float[] { ${multi.cells.map(c => c.offY + "f").join(", ")} };\n`;
-    out += `    for (int _li = 0; _li < lcdNames_.Length; _li++)\n`;
-    out += `    {\n`;
-    out += `        var lcdComp = GridTerminalSystem.GetBlockWithName(lcdNames_[_li]) as IMyTextSurface;\n`;
-    out += `        if (lcdComp == null) { Echo("LCD-Composer: Block '" + lcdNames_[_li] + "' nicht gefunden!"); continue; }\n`;
-    out += `        lcdComp.ContentType = ContentType.SCRIPT;\n`;
-    out += `        lcdComp.Script = "";\n`;
-    out += `        using (var frame = lcdComp.DrawFrame())\n`;
-    out += `        {\n`;
-    out += `            var rect = new RectangleF((lcdComp.TextureSize - lcdComp.SurfaceSize) / 2f, lcdComp.SurfaceSize);\n`;
-    out += `            float lcdOffX = lcdOffX_[_li];\n`;
-    out += `            float lcdOffY = lcdOffY_[_li];\n`;
-    out += `            float yPos = 0f;\n`;
-    out += `            float colOffsetX = 0f;\n`;
-    out += `            float widthInner = 100f;\n`;
-    out += `            MySprite sp;\n`;
-    out += _emitWidgetsBlock(lc.widgets, ensureBlock);
-    out += `        }\n`;
-    out += `    }\n`;
-    return { code: out, used: true };
+    // Multi-LCD — Class-Felder für Namen, Offsets und Surface-Cache.
+    // Surfaces werden lazy in EnsureBlocks() validiert.
+    ctx.fields.push(`readonly string[] _lcdNames_ = new string[] { ${multi.cells.map(c => _csString(c.name)).join(", ")} };`);
+    ctx.fields.push(`readonly float[]  _lcdOffX_ = new float[] { ${multi.cells.map(c => c.offX + "f").join(", ")} };`);
+    ctx.fields.push(`readonly float[]  _lcdOffY_ = new float[] { ${multi.cells.map(c => c.offY + "f").join(", ")} };`);
+    ctx.fields.push(`IMyTextSurface[] _lcdSurfaces_;`);
+
+    ctx.ensure.push(`    if (_lcdSurfaces_ == null) _lcdSurfaces_ = new IMyTextSurface[_lcdNames_.Length];`);
+    ctx.ensure.push(`    for (int _i = 0; _i < _lcdNames_.Length; _i++) {`);
+    ctx.ensure.push(`        if (_lcdSurfaces_[_i] == null || _lcdSurfaces_[_i].Closed)`);
+    ctx.ensure.push(`            _lcdSurfaces_[_i] = GridTerminalSystem.GetBlockWithName(_lcdNames_[_i]) as IMyTextSurface;`);
+    ctx.ensure.push(`    }`);
+
+    // Echo-Zeile mit Runtime-Interpolation: template an {0} splitten und
+    // mit C#-String-Concat zusammensetzen.
+    const errTpl = _t("gen.cmt.lcd_block_404");
+    const errParts = errTpl.split("{0}");
+    const errLeft = escapeCs(errParts[0] || "");
+    const errRight = escapeCs(errParts[1] || "");
+
+    mainCode += `    // Multi-LCD: ${multi.cols}×${multi.rows} = ${multi.cells.length} LCDs (virtueller Canvas ${multi.res.w * multi.cols}×${multi.res.h * multi.rows})\n`;
+    mainCode += `    for (int _li = 0; _li < _lcdSurfaces_.Length; _li++)\n`;
+    mainCode += `    {\n`;
+    mainCode += `        var lcdComp = _lcdSurfaces_[_li];\n`;
+    mainCode += `        if (lcdComp == null) { Echo("${errLeft}" + _lcdNames_[_li] + "${errRight}"); continue; }\n`;
+    mainCode += `        lcdComp.ContentType = ContentType.SCRIPT;\n`;
+    mainCode += `        lcdComp.Script = "";\n`;
+    mainCode += `        using (var frame = lcdComp.DrawFrame())\n`;
+    mainCode += `        {\n`;
+    mainCode += `            var rect = new RectangleF((lcdComp.TextureSize - lcdComp.SurfaceSize) / 2f, lcdComp.SurfaceSize);\n`;
+    mainCode += `            float lcdOffX = _lcdOffX_[_li];\n`;
+    mainCode += `            float lcdOffY = _lcdOffY_[_li];\n`;
+    mainCode += `            float yPos = 0f;\n`;
+    mainCode += `            float colOffsetX = 0f;\n`;
+    mainCode += `            float widthInner = 100f;\n`;
+    mainCode += `            MySprite sp;\n`;
+    mainCode += _emitWidgetsBlock(lc.widgets, ensureBlock, ctx);
+    mainCode += `        }\n`;
+    mainCode += `    }\n`;
+    return {
+      used: true,
+      code: mainCode,
+      fields: ctx.fields.map(s => s + "\n").join(""),
+      ensure: ctx.ensure.map(s => s + "\n").join("")
+    };
   }
 
-  // Single-LCD (Standard-Pfad)
+  // Single-LCD: Surface als Class-Feld gecacht.
+  ctx.fields.push(`IMyTextSurface _lcdComp_;`);
+
   if (mode === "pb") {
-    out += `    IMyTextSurface lcdComp = Me.GetSurface(${surfaceIdx});\n`;
+    // Me.GetSurface() ist nicht teuer und Me bleibt immer gültig — trotzdem cachen.
+    ctx.ensure.push(`    if (_lcdComp_ == null) _lcdComp_ = Me.GetSurface(${surfaceIdx});`);
   } else if (mode === "cockpit") {
-    out += `    var lcdProv = GridTerminalSystem.GetBlockWithName(${_csString(lc.lcdName)}) as IMyTextSurfaceProvider;\n`;
-    out += `    IMyTextSurface lcdComp = lcdProv != null && lcdProv.SurfaceCount > ${surfaceIdx} ? lcdProv.GetSurface(${surfaceIdx}) : null;\n`;
+    ctx.ensure.push(`    if (_lcdComp_ == null || _lcdComp_.Closed) {`);
+    ctx.ensure.push(`        var lcdProv = GridTerminalSystem.GetBlockWithName(${_csString(lc.lcdName)}) as IMyTextSurfaceProvider;`);
+    ctx.ensure.push(`        _lcdComp_ = lcdProv != null && lcdProv.SurfaceCount > ${surfaceIdx} ? lcdProv.GetSurface(${surfaceIdx}) : null;`);
+    ctx.ensure.push(`    }`);
   } else {
-    out += `    IMyTextSurface lcdComp = GridTerminalSystem.GetBlockWithName(${_csString(lc.lcdName)}) as IMyTextSurface;\n`;
+    ctx.ensure.push(`    if (_lcdComp_ == null || _lcdComp_.Closed)`);
+    ctx.ensure.push(`        _lcdComp_ = GridTerminalSystem.GetBlockWithName(${_csString(lc.lcdName)}) as IMyTextSurface;`);
   }
 
-  out += `    if (lcdComp != null)\n`;
-  out += `    {\n`;
-  out += `        lcdComp.ContentType = ContentType.SCRIPT;\n`;
-  out += `        lcdComp.Script = "";\n`;
-  out += `        using (var frame = lcdComp.DrawFrame())\n`;
-  out += `        {\n`;
-  out += `            var rect = new RectangleF((lcdComp.TextureSize - lcdComp.SurfaceSize) / 2f, lcdComp.SurfaceSize);\n`;
-  out += `            float lcdOffX = 0f;\n`;
-  out += `            float lcdOffY = 0f;\n`;
-  out += `            float yPos = 0f;\n`;
-  out += `            float colOffsetX = 0f;\n`;
-  out += `            float widthInner = 100f;\n`;
-  out += `            MySprite sp;\n`;
-  out += _emitWidgetsBlock(lc.widgets, ensureBlock);
-  out += `        }\n`;
-  out += `    }\n`;
-  // Fehlermeldung je nach Modus
+  mainCode += `    if (_lcdComp_ != null)\n`;
+  mainCode += `    {\n`;
+  mainCode += `        _lcdComp_.ContentType = ContentType.SCRIPT;\n`;
+  mainCode += `        _lcdComp_.Script = "";\n`;
+  mainCode += `        using (var frame = _lcdComp_.DrawFrame())\n`;
+  mainCode += `        {\n`;
+  mainCode += `            var rect = new RectangleF((_lcdComp_.TextureSize - _lcdComp_.SurfaceSize) / 2f, _lcdComp_.SurfaceSize);\n`;
+  mainCode += `            float lcdOffX = 0f;\n`;
+  mainCode += `            float lcdOffY = 0f;\n`;
+  mainCode += `            float yPos = 0f;\n`;
+  mainCode += `            float colOffsetX = 0f;\n`;
+  mainCode += `            float widthInner = 100f;\n`;
+  mainCode += `            MySprite sp;\n`;
+  mainCode += _emitWidgetsBlock(lc.widgets, ensureBlock, ctx);
+  mainCode += `        }\n`;
+  mainCode += `    }\n`;
   if (mode === "pb") {
-    out += `    else { Echo(\"LCD-Composer: PB hat keinen Surface-Index ${surfaceIdx}\"); }\n`;
+    mainCode += `    else { Echo("${escapeCs(_t("gen.cmt.lcd_pb_404", surfaceIdx))}"); }\n`;
   } else if (mode === "cockpit") {
-    const safeName = (lc.lcdName || "").replace(/'/g, "\\'");
-    out += `    else { Echo(\"LCD-Composer: Cockpit '${safeName}' nicht gefunden oder Surface-Index ${surfaceIdx} ungültig\"); }\n`;
+    mainCode += `    else { Echo("${escapeCs(_t("gen.cmt.lcd_cockpit_404", lc.lcdName || "", surfaceIdx))}"); }\n`;
   } else {
-    const safeName = (lc.lcdName || "").replace(/'/g, "\\'");
-    out += `    else { Echo(\"LCD-Composer: Block '${safeName}' nicht gefunden!\"); }\n`;
+    mainCode += `    else { Echo("${escapeCs(_t("gen.cmt.lcd_block_404_single", lc.lcdName || ""))}"); }\n`;
   }
 
-  return { code: out, used: true };
+  return {
+    used: true,
+    code: mainCode,
+    fields: ctx.fields.map(s => s + "\n").join(""),
+    ensure: ctx.ensure.map(s => s + "\n").join("")
+  };
 }
 
 // Pro Widget-Typ den C#-Code-Block erzeugen.
-function _emitWidget(w, ensureBlock) {
+// idx = widget-Index im Composer-Array (für unique Field-Namen wie _agg0_list).
+// ctx = { fields:[], ensure:[] } für Class-Felder + EnsureBlocks-Code,
+//       die in codegen.js außerhalb des Main-Bodys eingesetzt werden.
+function _emitWidget(w, idx, ensureBlock, ctx) {
   let out = "";
+  // Fallback falls ctx fehlt (alte Aufrufpfade)
+  if (!ctx) ctx = { fields: [], ensure: [] };
 
   if (w.type === "header") {
     const alignCs = w.align === "left" ? "TextAlignment.LEFT"
@@ -558,7 +596,9 @@ function _emitWidget(w, ensureBlock) {
     out += `                frame.Add(sp);\n`;
 
   } else if (w.type === "aggregator") {
-    // Multi-Block-Aggregation via GetBlocksOfType<...>
+    // Multi-Block-Aggregation via GetBlocksOfType<...>.
+    // Liste wird als Class-Feld gecacht und in EnsureBlocks() refreshed —
+    // KEIN `new List<>()` und KEIN GetBlocksOfType im Render-Pfad.
     const agg = w.aggregateType || "battery_charge";
     let iface, expr, unit;
     switch (agg) {
@@ -573,34 +613,50 @@ function _emitWidget(w, ensureBlock) {
       default:               iface = "IMyBatteryBlock";    expr = "0f";                                                unit = ""; break;
     }
     const mode = w.mode || "avg";
-    out += `                var bs = new List<${iface}>();\n`;
-    out += `                GridTerminalSystem.GetBlocksOfType(bs);\n`;
-    out += `                float aggVal = 0f; int aggCnt = 0;\n`;
-    if (mode === "min") out += `                float aggMin = float.MaxValue;\n`;
-    if (mode === "max") out += `                float aggMax = float.MinValue;\n`;
-    out += `                foreach (var b in bs)\n`;
+    const listVar = `_agg${idx}_list`;
+    const valVar  = `_agg${idx}_val`;
+    const cntVar  = `_agg${idx}_cnt`;
+    const resVar  = `_agg${idx}_res`;
+
+    // Class-Feld + EnsureBlocks-Update (einmalig pro Aggregator-Widget registrieren)
+    if (!ctx._aggSeen) ctx._aggSeen = new Set();
+    if (!ctx._aggSeen.has(listVar)) {
+      ctx._aggSeen.add(listVar);
+      ctx.fields.push(`List<${iface}> ${listVar};`);
+      ctx.ensure.push(`    if (${listVar} == null) ${listVar} = new List<${iface}>();`);
+      ctx.ensure.push(`    ${listVar}.Clear();`);
+      ctx.ensure.push(`    GridTerminalSystem.GetBlocksOfType(${listVar});`);
+    }
+
+    // Render-Code (nur Lesen aus Cache, keine Allokationen mehr)
+    out += `                float ${valVar} = 0f; int ${cntVar} = 0;\n`;
+    if (mode === "min") out += `                float ${valVar}_min = float.MaxValue;\n`;
+    if (mode === "max") out += `                float ${valVar}_max = float.MinValue;\n`;
+    out += `                foreach (var b in ${listVar})\n`;
     out += `                {\n`;
     out += `                    float v = ${expr};\n`;
-    if (mode === "sum" || mode === "avg") out += `                    aggVal += v;\n`;
-    if (mode === "min") out += `                    if (v < aggMin) aggMin = v;\n`;
-    if (mode === "max") out += `                    if (v > aggMax) aggMax = v;\n`;
-    out += `                    aggCnt++;\n`;
+    if (mode === "sum" || mode === "avg") out += `                    ${valVar} += v;\n`;
+    if (mode === "min") out += `                    if (v < ${valVar}_min) ${valVar}_min = v;\n`;
+    if (mode === "max") out += `                    if (v > ${valVar}_max) ${valVar}_max = v;\n`;
+    out += `                    ${cntVar}++;\n`;
     out += `                }\n`;
-    if (mode === "avg") out += `                float result = aggCnt > 0 ? aggVal / aggCnt : 0f;\n`;
-    else if (mode === "min") out += `                float result = aggCnt > 0 ? aggMin : 0f;\n`;
-    else if (mode === "max") out += `                float result = aggCnt > 0 ? aggMax : 0f;\n`;
-    else out += `                float result = aggVal;\n`;
+    if (mode === "avg") out += `                float ${resVar} = ${cntVar} > 0 ? ${valVar} / ${cntVar} : 0f;\n`;
+    else if (mode === "min") out += `                float ${resVar} = ${cntVar} > 0 ? ${valVar}_min : 0f;\n`;
+    else if (mode === "max") out += `                float ${resVar} = ${cntVar} > 0 ? ${valVar}_max : 0f;\n`;
+    else out += `                float ${resVar} = ${valVar};\n`;
+
     const symbol = mode === "sum" ? "Σ" : (mode === "min" ? "↓" : (mode === "max" ? "↑" : "Ø"));
+    const _t = (typeof t === "function") ? t : ((k) => k);
     out += `                sp = MySprite.CreateText(${_csString(symbol)}, "White", ${_csColor(w.color)}, 1.1f, TextAlignment.LEFT);\n`;
     out += `                sp.Position = new Vector2(rect.Position.X + colOffsetX, yPos + 4f);\n`;
     out += `                frame.Add(sp);\n`;
-    out += `                sp = MySprite.CreateText(${_csString(w.label || "")}, "White", new Color(216, 225, 236), 0.7f, TextAlignment.LEFT);\n`;
+    out += `                sp = MySprite.CreateText(${_csString(w.label || "")}, "White", ${_csColor(lcdLabelColor())}, 0.7f, TextAlignment.LEFT);\n`;
     out += `                sp.Position = new Vector2(rect.Position.X + colOffsetX + 18f, yPos + 4f);\n`;
     out += `                frame.Add(sp);\n`;
-    out += `                sp = MySprite.CreateText(result.ToString("0") + ${_csString(unit)}, "White", ${_csColor(w.color)}, 1.1f, TextAlignment.RIGHT);\n`;
+    out += `                sp = MySprite.CreateText(${resVar}.ToString("0") + ${_csString(unit)}, "White", ${_csColor(w.color)}, 1.1f, TextAlignment.RIGHT);\n`;
     out += `                sp.Position = new Vector2(rect.Position.X + colOffsetX + widthInner, yPos + 12f);\n`;
     out += `                frame.Add(sp);\n`;
-    out += `                sp = MySprite.CreateText("(" + aggCnt + " Blöcke)", "White", new Color(107,122,141), 0.55f, TextAlignment.LEFT);\n`;
+    out += `                sp = MySprite.CreateText("(" + ${cntVar} + ${_csString(" " + _t("gen.cmt.agg_count_word"))} + ")", "White", new Color(107,122,141), 0.55f, TextAlignment.LEFT);\n`;
     out += `                sp.Position = new Vector2(rect.Position.X + colOffsetX + 18f, yPos + 20f);\n`;
     out += `                frame.Add(sp);\n`;
 

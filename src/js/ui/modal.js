@@ -138,3 +138,41 @@ function showAlert(message, options) {
     hideCancel:   true
   });
 }
+
+// Zeigt den reinen Code in einem themed Modal mit selektierbarem
+// Container. Wird vom „Klartext"-Button im Output-Bereich aufgerufen.
+function showCodeView(code) {
+  const ov = _modalEnsure();
+  ov.querySelector("#modal-title").textContent = _i18n("code.plain.title", "Code als Klartext");
+  // Message ersetzen wir durch ein scrollbares <pre> mit dem Code
+  const msgEl = ov.querySelector("#modal-message");
+  msgEl.innerHTML = "";
+  const hint = document.createElement("div");
+  hint.style.fontSize = "11px";
+  hint.style.color = "var(--muted)";
+  hint.style.marginBottom = "8px";
+  hint.textContent = _i18n("code.plain.hint", "Strg+A markiert alles, Strg+C kopiert.");
+  const pre = document.createElement("pre");
+  pre.className = "modal-code";
+  pre.textContent = code || "";
+  msgEl.appendChild(hint);
+  msgEl.appendChild(pre);
+  // Input verstecken (kein Prompt)
+  const inp = ov.querySelector("#modal-input");
+  inp.style.display = "none";
+  // Cancel-Button raus, nur „Schließen"-Confirm
+  const cancel = ov.querySelector("#modal-cancel");
+  cancel.style.display = "none";
+  ov.querySelector("#modal-confirm").textContent = _i18n("modal.ok", "Schließen");
+
+  return new Promise(resolve => {
+    _modalResolve = () => resolve();
+    ov.classList.add("show");
+    setTimeout(() => pre.focus(), 0);
+
+    _modalKeyHandler = (e) => {
+      if (e.key === "Escape") { e.preventDefault(); _modalClose(false); }
+    };
+    document.addEventListener("keydown", _modalKeyHandler);
+  });
+}

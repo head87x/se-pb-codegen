@@ -176,14 +176,18 @@ function renderActions(which) {
 }
 
 function renderExecHelp() {
-  const help = {
-    argument: "Aktion läuft nur, wenn der PB manuell ausgeführt wird (z.B. Knopf, Sensor-Aktion, Timer-Block).",
-    continuous: "Aktion läuft jeden Game-Tick (~60×/Sek). Vorsicht: kann Performance kosten.",
-    timer1:   "Aktion läuft ca. 1× pro Sekunde (Update1).",
-    timer10:  "Aktion läuft alle 10 Ticks (~6×/Sek).",
-    timer100: "Aktion läuft alle 100 Ticks (~0.6×/Sek)."
-  };
-  document.getElementById("exec-help").textContent = help[state.execMode];
+  const txt = t("exec.help." + state.execMode);
+  const helpEl = document.getElementById("exec-help");
+  if (!helpEl) return;
+  helpEl.textContent = txt;
+  // Warnung bei continuous (Update1) — visuell hervorheben
+  if (state.execMode === "continuous") {
+    helpEl.style.color = "var(--warn)";
+    helpEl.style.fontWeight = "600";
+  } else {
+    helpEl.style.color = "";
+    helpEl.style.fontWeight = "";
+  }
 }
 
 // Master render — wird bei strukturellen Änderungen aufgerufen
@@ -205,43 +209,53 @@ function render() {
 // LCD-COMPOSER (Phase 4a)
 // ============================================================
 
-function _renderLcdSingleField(f, i, val) {
+function _renderLcdSingleField(f, i, val, widgetType) {
+  // Labels & Hints durch i18n-Helper jagen (Fallback = Original aus widgets.js)
+  const _flabel = (typeof getLcdFieldLabel === "function") ? getLcdFieldLabel(widgetType, f.key, f.label) : f.label;
+  const _fhint  = (typeof getLcdHintLabel === "function") ? getLcdHintLabel(widgetType, f.key, f.hint) : f.hint;
+
   if (f.type === "lcd-source") {
-    const opts = LCD_SOURCES.map(s =>
-      `<option value="${s.value}"${s.value === val ? " selected" : ""}>${escapeHtml(s.label)}</option>`
-    ).join("");
+    const opts = LCD_SOURCES.map(s => {
+      const lbl = (typeof getLcdSourceLabel === "function") ? getLcdSourceLabel(s.value) : s.label;
+      return `<option value="${s.value}"${s.value === val ? " selected" : ""}>${escapeHtml(lbl)}</option>`;
+    }).join("");
     return `
       <div>
-        <label>${escapeHtml(f.label)}</label>
+        <label>${escapeHtml(_flabel)}</label>
         <select onchange="updateLcdWidgetAndRender(${i}, '${f.key}', this.value)">${opts}</select>
       </div>`;
   }
   if (f.type === "lcd-bool") {
-    const opts = LCD_BOOL_SOURCES.map(s =>
-      `<option value="${s.value}"${s.value === val ? " selected" : ""}>${escapeHtml(s.label)}</option>`
-    ).join("");
+    const opts = LCD_BOOL_SOURCES.map(s => {
+      const lbl = (typeof getLcdBoolSourceLabel === "function") ? getLcdBoolSourceLabel(s.value) : s.label;
+      return `<option value="${s.value}"${s.value === val ? " selected" : ""}>${escapeHtml(lbl)}</option>`;
+    }).join("");
     return `
       <div>
-        <label>${escapeHtml(f.label)}</label>
+        <label>${escapeHtml(_flabel)}</label>
         <select onchange="updateLcdWidgetAndRender(${i}, '${f.key}', this.value)">${opts}</select>
       </div>`;
   }
   if (f.type === "select") {
-    const opts = f.options.map(o =>
-      `<option value="${o.value}"${o.value === val ? " selected" : ""}>${escapeHtml(o.label)}</option>`
-    ).join("");
+    // Option-Context auswählen: f.key ("align" / "format" / "blink" / "icon" / "aggregateType" / "mode")
+    // Für clock.format -> "clock_format" (sonst kollidiert mit value.format)
+    const optionCtx = (widgetType === "clock" && f.key === "format") ? "clock_format" : f.key;
+    const opts = f.options.map(o => {
+      const lbl = (typeof getLcdOptionLabel === "function") ? getLcdOptionLabel(optionCtx, o.value, o.label) : o.label;
+      return `<option value="${o.value}"${o.value === val ? " selected" : ""}>${escapeHtml(lbl)}</option>`;
+    }).join("");
     return `
       <div>
-        <label>${escapeHtml(f.label)}</label>
+        <label>${escapeHtml(_flabel)}</label>
         <select onchange="updateLcdWidgetAndRender(${i}, '${f.key}', this.value)">${opts}</select>
       </div>`;
   }
   const inputType = f.type === "number" ? "number" : "text";
-  const placeholder = f.hint ? ` placeholder="${escapeAttr(f.hint)}"` : "";
+  const placeholder = _fhint ? ` placeholder="${escapeAttr(_fhint)}"` : "";
   const step = f.type === "number" ? ' step="any"' : "";
   return `
     <div>
-      <label>${escapeHtml(f.label)}</label>
+      <label>${escapeHtml(_flabel)}</label>
       <input type="${inputType}"${step} value="${escapeAttr(val)}" oninput="updateLcdWidget(${i}, '${f.key}', this.value)"${placeholder}>
     </div>`;
 }
@@ -264,28 +278,30 @@ function _renderLcdWidgetFields(w, i) {
 
   let html = "";
   if (noGroup.length > 0) {
-    html += `<div class="lcd-widget-fields">${noGroup.map(f => _renderLcdSingleField(f, i, w[f.key])).join("")}</div>`;
+    html += `<div class="lcd-widget-fields">${noGroup.map(f => _renderLcdSingleField(f, i, w[f.key], w.type)).join("")}</div>`;
   }
   for (const [groupName, fields] of groups) {
-    html += `<div class="lcd-widget-group-title">${escapeHtml(groupName)}</div>`;
-    html += `<div class="lcd-widget-fields">${fields.map(f => _renderLcdSingleField(f, i, w[f.key])).join("")}</div>`;
+    const _gname = (typeof getLcdGroupLabel === "function") ? getLcdGroupLabel(groupName) : groupName;
+    html += `<div class="lcd-widget-group-title">${escapeHtml(_gname)}</div>`;
+    html += `<div class="lcd-widget-fields">${fields.map(f => _renderLcdSingleField(f, i, w[f.key], w.type)).join("")}</div>`;
   }
 
   // Position & Größe (Manual ist jetzt der einzige Modus)
-  html += `<div class="lcd-widget-group-title">Position & Größe</div>`;
+  html += `<div class="lcd-widget-group-title">${escapeHtml(t("lcd.builder.pos_size"))}</div>`;
   html += `<div class="lcd-widget-fields">`;
-  html += _renderLcdSingleField({ key: "manualX", label: "X (px)",      type: "number" }, i, w.manualX);
-  html += _renderLcdSingleField({ key: "manualY", label: "Y (px)",      type: "number" }, i, w.manualY);
-  html += _renderLcdSingleField({ key: "manualW", label: "Breite (px)", type: "number" }, i, w.manualW);
-  html += _renderLcdSingleField({ key: "manualH", label: "Höhe (px)",   type: "number" }, i, w.manualH);
+  html += _renderLcdSingleField({ key: "manualX", label: t("lcd.field.x"), type: "number" }, i, w.manualX, w.type);
+  html += _renderLcdSingleField({ key: "manualY", label: t("lcd.field.y"), type: "number" }, i, w.manualY, w.type);
+  html += _renderLcdSingleField({ key: "manualW", label: t("lcd.field.w"), type: "number" }, i, w.manualW, w.type);
+  html += _renderLcdSingleField({ key: "manualH", label: t("lcd.field.h"), type: "number" }, i, w.manualH, w.type);
   html += `</div>`;
 
-  html += `<div class="lcd-widget-group-title">Hintergrund (optional)</div>`;
+  html += `<div class="lcd-widget-group-title">${escapeHtml(t("lcd.builder.bg_optional"))}</div>`;
   html += `<div class="lcd-widget-fields">`;
   html += _renderLcdSingleField(
-    { key: "widgetBg", label: "Hintergrundfarbe (R,G,B)", type: "text", hint: "leer = kein Hintergrund" },
+    { key: "widgetBg", label: getLcdFieldLabel(w.type, "widgetBg", "Hintergrundfarbe (R,G,B)"), type: "text", hint: t("lcd.builder.bg_empty") },
     i,
-    w.widgetBg
+    w.widgetBg,
+    w.type
   );
   html += `</div>`;
 
@@ -344,9 +360,12 @@ function _renderFullLcdPreview() {
     }
   }
 
+  const _liveLabel = t("lcd.builder.live_preview");
+  const _snapLabel = t("lcd.builder.snap");
+  const _resLabel  = (typeof getLcdResolutionLabel === "function") ? getLcdResolutionLabel(resKey) : res.label;
   const headerLabel = multi
-    ? `LIVE-VORSCHAU — ${cols}×${rows} ${escapeHtml(res.label)} · Snap ${LCD_SNAP}px`
-    : `LIVE-VORSCHAU — ${escapeHtml(res.label)}${widgets.length > 0 ? ` · Snap ${LCD_SNAP}px` : ""}`;
+    ? `${_liveLabel} — ${cols}×${rows} ${escapeHtml(_resLabel)} · ${_snapLabel} ${LCD_SNAP}px`
+    : `${_liveLabel} — ${escapeHtml(_resLabel)}${widgets.length > 0 ? ` · ${_snapLabel} ${LCD_SNAP}px` : ""}`;
 
   if (widgets.length === 0) {
     return `
@@ -355,7 +374,7 @@ function _renderFullLcdPreview() {
         <div class="lcd-full-preview" style="width:${outerWidth}px;height:${outerHeight}px;position:relative;">
           ${lcdSepOverlay}
           ${lcdNamesOverlay}
-          <div class="lcd-full-empty">— Display ist leer —</div>
+          <div class="lcd-full-empty">${escapeHtml(t("lcd.builder.display_empty"))}</div>
         </div>
       </div>`;
   }
@@ -423,36 +442,34 @@ function renderLcdComposer() {
     const info = (typeof computeMultiLcdNames === "function") ? computeMultiLcdNames() : { names: [] };
     const sample = info.names.slice(0, 12).join(" · ");
     const extra = info.names.length > 12 ? ` · …(+${info.names.length - 12})` : "";
-    namesPrev.innerHTML = `LCD-Namen: ${escapeHtml(sample)}${escapeHtml(extra)}`;
+    namesPrev.innerHTML = `${escapeHtml(t("lcd.builder.lcd_names"))} ${escapeHtml(sample)}${escapeHtml(extra)}`;
   } else if (namesPrev) {
     namesPrev.innerHTML = "";
   }
 
-  // Header-Bereich: Add-Buttons
+  // Header-Bereich: Add-Buttons — Widget-Namen i18n-aware
+  const _wlabel = (type) => (typeof getLcdWidgetLabel === "function") ? getLcdWidgetLabel(type) : (LCD_WIDGETS[type] || {}).label || type;
   const addButtons = LCD_WIDGET_ORDER.map(type => {
-    const def = LCD_WIDGETS[type];
-    return `<button class="small" onclick="addLcdWidget('${type}')">+ ${escapeHtml(def.label)}</button>`;
+    return `<button class="small" onclick="addLcdWidget('${type}')">+ ${escapeHtml(_wlabel(type))}</button>`;
   }).join("");
 
-  // Theme-Buttons (Phase 4c)
+  // Theme-Buttons (Phase 4c) — Theme-Namen i18n-aware
   const themeButtons = LCD_THEME_ORDER.map(key => {
-    const t = LCD_THEMES[key];
-    const accent = t.accent.split(",").map(s => s.trim()).join(",");
+    const themeDef = LCD_THEMES[key];
+    const accent = themeDef.accent.split(",").map(s => s.trim()).join(",");
     const isActive = state.lcdComposer.theme === key ? " primary" : "";
-    return `<button class="small${isActive}" style="border-left:3px solid rgb(${accent})" onclick="applyLcdTheme('${key}')">${escapeHtml(t.label)}</button>`;
+    const _tlabel = (typeof getLcdThemeLabel === "function") ? getLcdThemeLabel(key) : themeDef.label;
+    return `<button class="small${isActive}" style="border-left:3px solid rgb(${accent})" onclick="applyLcdTheme('${key}')">${escapeHtml(_tlabel)}</button>`;
   }).join("");
 
   const themeBar = `
     <div class="lcd-theme-bar">
-      <span class="lcd-theme-label">Theme:</span>
+      <span class="lcd-theme-label">${escapeHtml(t("lcd.builder.theme_label"))}</span>
       <div class="btn-row">${themeButtons}</div>
     </div>`;
 
   const widgets = state.lcdComposer.widgets;
-  // Live-Vorschau des ganzen Displays
   const fullPreview = _renderFullLcdPreview();
-
-  // Layer-Liste (Phase B.1)
   const layerList = _renderLcdLayerList(widgets);
 
   if (widgets.length === 0) {
@@ -460,26 +477,29 @@ function renderLcdComposer() {
       ${themeBar}
       ${fullPreview}
       <div class="btn-row" style="margin-bottom:10px;">${addButtons}</div>
-      <span class="empty-hint">Noch keine Widgets. Klick einen Button oben.</span>`;
+      <span class="empty-hint">${escapeHtml(t("lcd.builder.empty"))}</span>`;
     return;
   }
 
+  const _showLabel    = t("lcd.builder.show");
+  const _hideLabel    = t("lcd.builder.hide");
+  const _invisLabel   = t("lcd.builder.invisible");
   root.innerHTML = `
     ${themeBar}
     ${fullPreview}
     ${layerList}
     <div class="btn-row" style="margin-bottom:10px;">${addButtons}</div>
     ${widgets.map((w, i) => {
-      const def = LCD_WIDGETS[w.type] || { label: w.type };
       const isExpanded = !!w.expanded;
       const isHidden = !!w.hidden;
       const label = w.label || w.text || w.title || "";
+      const wlbl = _wlabel(w.type);
       return `
         <div class="lcd-widget-block ${isExpanded ? "expanded" : "collapsed"}" data-widget-idx="${i}">
           <div class="lcd-widget-header" onclick="toggleLcdWidgetExpanded(${i})">
-            <span><span class="lcd-collapse-arrow">${isExpanded ? "▼" : "▶"}</span> #${i + 1} ${escapeHtml(def.label)}${label ? ` — ${escapeHtml(String(label).slice(0,20))}` : ""}${isHidden ? " (unsichtbar)" : ""}</span>
+            <span><span class="lcd-collapse-arrow">${isExpanded ? "▼" : "▶"}</span> #${i + 1} ${escapeHtml(wlbl)}${label ? ` — ${escapeHtml(String(label).slice(0,20))}` : ""}${isHidden ? ` ${_invisLabel}` : ""}</span>
             <div class="btn-row" onclick="event.stopPropagation()">
-              <button class="small" title="${isHidden ? 'Einblenden' : 'Ausblenden'}" onclick="toggleLcdWidgetVisible(${i})">${isHidden ? "⌀" : "👁"}</button>
+              <button class="small" title="${isHidden ? _showLabel : _hideLabel}" onclick="toggleLcdWidgetVisible(${i})">${isHidden ? "⌀" : "👁"}</button>
               <button class="small" onclick="moveLcdWidget(${i}, -1)" ${i === 0 ? "disabled" : ""}>▲</button>
               <button class="small" onclick="moveLcdWidget(${i}, 1)" ${i === widgets.length - 1 ? "disabled" : ""}>▼</button>
               <button class="small danger" onclick="removeLcdWidget(${i})">✕</button>
@@ -498,19 +518,21 @@ function renderLcdComposer() {
 // Kompakte Layer-Liste mit Sichtbarkeits-Toggle und Klick-to-Select
 function _renderLcdLayerList(widgets) {
   if (widgets.length === 0) return "";
+  const _wlabel = (type) => (typeof getLcdWidgetLabel === "function") ? getLcdWidgetLabel(type) : (LCD_WIDGETS[type] || {}).label || type;
+  const _showLabel = t("lcd.builder.show");
+  const _hideLabel = t("lcd.builder.hide");
   const rows = widgets.map((w, i) => {
-    const def = LCD_WIDGETS[w.type] || { label: w.type };
     const label = w.label || w.text || w.title || "";
     const hiddenIcon = w.hidden ? "⌀" : "👁";
     return `
       <div class="lcd-layer-row ${w.hidden ? "is-hidden" : ""}">
-        <button class="lcd-layer-eye" title="${w.hidden ? 'Einblenden' : 'Ausblenden'}" onclick="toggleLcdWidgetVisible(${i})">${hiddenIcon}</button>
-        <button class="lcd-layer-name" onclick="selectLcdWidget(${i})">#${i + 1} ${escapeHtml(def.label)}${label ? ` — ${escapeHtml(String(label).slice(0,18))}` : ""}</button>
+        <button class="lcd-layer-eye" title="${w.hidden ? _showLabel : _hideLabel}" onclick="toggleLcdWidgetVisible(${i})">${hiddenIcon}</button>
+        <button class="lcd-layer-name" onclick="selectLcdWidget(${i})">#${i + 1} ${escapeHtml(_wlabel(w.type))}${label ? ` — ${escapeHtml(String(label).slice(0,18))}` : ""}</button>
       </div>`;
   }).join("");
   return `
     <div class="lcd-layer-list">
-      <div class="lcd-layer-title">EBENEN (${widgets.length})</div>
+      <div class="lcd-layer-title">${escapeHtml(t("lcd.builder.layers"))} (${widgets.length})</div>
       ${rows}
     </div>`;
 }

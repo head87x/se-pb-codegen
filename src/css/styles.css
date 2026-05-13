@@ -732,7 +732,31 @@ button.small {
   min-height: 400px;
   max-height: calc(100vh - 220px);
   overflow-y: auto;
+  /* Manuelle Selektion blockieren — Copy/Klartext-Buttons nutzen statt
+     Markup zu leaken. Highlighting bleibt sichtbar. */
+  user-select: none;
+  -webkit-user-select: none;
+  cursor: default;
 }
+
+.modal-code {
+  background: var(--code-bg);
+  border: 1px solid var(--border);
+  border-radius: 2px;
+  padding: 10px 12px;
+  font-family: 'Consolas', 'Courier New', monospace;
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--text);
+  white-space: pre;
+  max-height: 60vh;
+  overflow: auto;
+  user-select: text;
+  -webkit-user-select: text;
+  /* Größer als das normale message-Element */
+  margin-top: 4px;
+}
+.modal-box:has(.modal-code) { max-width: 920px; width: 90vw; }
 
 .code-output .kw   { color: var(--syn-kw); }
 .code-output .type { color: var(--syn-type); }

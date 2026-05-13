@@ -64,7 +64,7 @@ const I18N = {
     "exec.title":            "::: AUSFÜHRUNG",
     "exec.mode":             "Modus",
     "exec.argument":         "Manuell (per Argument / Button)",
-    "exec.continuous":       "Kontinuierlich (jeden Tick)",
+    "exec.continuous":       "⚠ Kontinuierlich (jeden Tick)",
     "exec.timer1":           "Alle 1 Sekunde (Update1)",
     "exec.timer10":          "Alle 10 Ticks (Update10)",
     "exec.timer100":         "Alle 100 Ticks (Update100)",
@@ -157,7 +157,47 @@ const I18N = {
     "gen.lcd.tick":          "Tick: ",
     "gen.lcd.cond_yes":      "ERFÜLLT",
     "gen.lcd.cond_no":       "nicht erfüllt",
-    "gen.lcd.cond_line":     "Bedingung: "
+    "gen.lcd.cond_line":     "Bedingung: ",
+    "gen.cmt.fields":        "---------- Block-Referenzen (Cache) ----------",
+    "gen.cmt.ensure":        "Holt die Block-Referenzen einmal und validiert sie pro Tick",
+    "gen.cmt.lcd_status_optional": "Optional — Skript läuft weiter, wenn das LCD fehlt",
+    "gen.cmt.lcd_block_404": "LCD-Composer: Block '{0}' nicht gefunden!",
+    "gen.cmt.lcd_block_404_single": "LCD-Composer: Block '{0}' nicht gefunden!",
+    "gen.cmt.lcd_cockpit_404": "LCD-Composer: Cockpit '{0}' nicht gefunden oder Surface-Index {1} ungültig",
+    "gen.cmt.lcd_pb_404":    "LCD-Composer: PB hat keinen Surface-Index {0}",
+    "gen.cmt.agg_count_word": "Blöcke",
+    "toast.downloaded":      "Datei heruntergeladen",
+    // LCD-Composer UI (Render-time)
+    "lcd.builder.layers":         "EBENEN",
+    "lcd.builder.empty":          "Noch keine Widgets. Klick einen Button oben.",
+    "lcd.builder.live_preview":   "LIVE-VORSCHAU",
+    "lcd.builder.display_empty":  "— Display ist leer —",
+    "lcd.builder.theme_label":    "Theme:",
+    "lcd.builder.pos_size":       "Position & Größe",
+    "lcd.builder.bg_optional":    "Hintergrund (optional)",
+    "lcd.builder.bg_empty":       "leer = kein Hintergrund",
+    "lcd.builder.show":           "Einblenden",
+    "lcd.builder.hide":           "Ausblenden",
+    "lcd.builder.invisible":      "(unsichtbar)",
+    "lcd.builder.snap":           "Snap",
+    "lcd.builder.lcd_names":      "LCD-Namen:",
+    "lcd.field.x":                "X (px)",
+    "lcd.field.y":                "Y (px)",
+    "lcd.field.w":                "Breite (px)",
+    "lcd.field.h":                "Höhe (px)",
+    "lcd.toast.preset_loaded":    "Preset „{0}\" geladen ({1} Widgets).",
+    "lcd.toast.theme_applied":    "Theme „{0}\" angewendet — {1} Farben umgestellt.",
+    "lcd.preset.placeholder":     "— Preset wählen —",
+    // Execution-Mode Warning
+    "exec.help.argument":         "Aktion läuft nur, wenn der PB manuell ausgeführt wird (z.B. Knopf, Sensor-Aktion, Timer-Block).",
+    "exec.help.timer100":         "Aktion läuft alle 100 Ticks (~0.6×/Sek) — sparsamste Variante.",
+    "exec.help.timer10":          "Aktion läuft alle 10 Ticks (~6×/Sek).",
+    "exec.help.timer1":           "Aktion läuft ~1× pro Sekunde (Update100).",
+    "exec.help.continuous":       "⚠ Aktion läuft jeden Game-Tick (~60×/Sek). Nur nutzen wenn wirklich nötig — kostet Performance.",
+    // Code-Output Klartext-Button
+    "code.plain":                 "📄 Klartext",
+    "code.plain.title":           "Code als Klartext",
+    "code.plain.hint":            "Strg+A markiert alles, Strg+C kopiert."
   },
 
   en: {
@@ -199,7 +239,7 @@ const I18N = {
     "exec.title":            "::: EXECUTION",
     "exec.mode":             "Mode",
     "exec.argument":         "Manual (argument / button)",
-    "exec.continuous":       "Continuous (every tick)",
+    "exec.continuous":       "⚠ Continuous (every tick)",
     "exec.timer1":           "Every 1 second (Update1)",
     "exec.timer10":          "Every 10 ticks (Update10)",
     "exec.timer100":         "Every 100 ticks (Update100)",
@@ -282,7 +322,44 @@ const I18N = {
     "gen.lcd.tick":          "Tick: ",
     "gen.lcd.cond_yes":      "MET",
     "gen.lcd.cond_no":       "not met",
-    "gen.lcd.cond_line":     "Condition: "
+    "gen.lcd.cond_line":     "Condition: ",
+    "gen.cmt.fields":        "---------- Block references (cache) ----------",
+    "gen.cmt.ensure":        "Resolves and validates block references once per tick",
+    "gen.cmt.lcd_status_optional": "Optional — script keeps running if the LCD is missing",
+    "gen.cmt.lcd_block_404": "LCD-Composer: Block '{0}' not found!",
+    "gen.cmt.lcd_block_404_single": "LCD-Composer: Block '{0}' not found!",
+    "gen.cmt.lcd_cockpit_404": "LCD-Composer: Cockpit '{0}' not found or surface index {1} invalid",
+    "gen.cmt.lcd_pb_404":    "LCD-Composer: PB has no surface at index {0}",
+    "gen.cmt.agg_count_word": "blocks",
+    "toast.downloaded":      "File downloaded",
+    "lcd.builder.layers":         "LAYERS",
+    "lcd.builder.empty":          "No widgets yet. Click a button above.",
+    "lcd.builder.live_preview":   "LIVE PREVIEW",
+    "lcd.builder.display_empty":  "— Display is empty —",
+    "lcd.builder.theme_label":    "Theme:",
+    "lcd.builder.pos_size":       "Position & Size",
+    "lcd.builder.bg_optional":    "Background (optional)",
+    "lcd.builder.bg_empty":       "empty = no background",
+    "lcd.builder.show":           "Show",
+    "lcd.builder.hide":           "Hide",
+    "lcd.builder.invisible":      "(invisible)",
+    "lcd.builder.snap":           "Snap",
+    "lcd.builder.lcd_names":      "LCD names:",
+    "lcd.field.x":                "X (px)",
+    "lcd.field.y":                "Y (px)",
+    "lcd.field.w":                "Width (px)",
+    "lcd.field.h":                "Height (px)",
+    "lcd.toast.preset_loaded":    "Preset \"{0}\" loaded ({1} widgets).",
+    "lcd.toast.theme_applied":    "Theme \"{0}\" applied — {1} colors changed.",
+    "lcd.preset.placeholder":     "— Choose preset —",
+    "exec.help.argument":         "Action only runs when the PB is triggered manually (button, sensor action, timer block).",
+    "exec.help.timer100":         "Action runs every 100 ticks (~0.6×/s) — most efficient.",
+    "exec.help.timer10":          "Action runs every 10 ticks (~6×/s).",
+    "exec.help.timer1":           "Action runs ~1× per second (Update100).",
+    "exec.help.continuous":       "⚠ Action runs every game tick (~60×/s). Only use when really needed — costs performance.",
+    "code.plain":                 "📄 Plain text",
+    "code.plain.title":           "Code as plain text",
+    "code.plain.hint":            "Ctrl+A selects all, Ctrl+C copies."
   }
 };
 
@@ -301,6 +378,8 @@ function setLang(lang) {
   const sel = document.getElementById("lang-select");
   if (sel) sel.value = lang;
   if (typeof renderPalette === "function") renderPalette();
+  // LCD-Format-/Preset-Dropdown neu rendern (haben statische <option>-Texte)
+  if (typeof initLcdComposerSelects === "function") initLcdComposerSelects();
   if (typeof render === "function") render();
 }
 
