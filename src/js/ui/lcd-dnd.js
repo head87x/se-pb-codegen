@@ -114,11 +114,45 @@ function _lcdRemoveGuides(guides) {
 function initLcdDragHandlers() {
   // Delegation am Document, weil die Cells per render() neu gemalt werden
   document.addEventListener("mousedown", _lcdMouseDown);
+  document.addEventListener("keydown", _lcdKeyDown);
+}
+
+// ESC = Auswahl löschen. Delete/Backspace = selektierte Widgets löschen,
+// aber nur wenn der Fokus NICHT in einem Eingabefeld ist (sonst
+// versehentliches Löschen beim Tippen). Tastenkürzel sind nur aktiv,
+// wenn der LCD-Composer überhaupt aktiviert ist und mindestens ein
+// Widget selektiert ist.
+function _lcdKeyDown(e) {
+  if (!state || !state.lcdComposer || !state.lcdComposer.enabled) return;
+  const sel = state.lcdComposer.selectedIndices || [];
+  if (e.key === "Escape") {
+    if (sel.length > 0 && typeof clearLcdSelection === "function") {
+      clearLcdSelection();
+      e.preventDefault();
+    }
+    return;
+  }
+  if (e.key === "Delete" || e.key === "Backspace") {
+    if (sel.length === 0) return;
+    // Kein Löschen während Eingabe in Inputs/Textareas
+    const tag = (document.activeElement && document.activeElement.tagName) || "";
+    if (tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT") return;
+    if (typeof deleteSelectedLcdWidgets === "function") {
+      deleteSelectedLcdWidgets();
+      e.preventDefault();
+    }
+  }
 }
 
 function _lcdMouseDown(e) {
+  // Klick auf den Preview-Hintergrund (nicht auf eine Cell) → Selektion leeren
+  if (!e.target.closest(".lcd-cell-manual")) {
+    if (e.target.closest(".lcd-full-preview")) {
+      if (typeof clearLcdSelection === "function") clearLcdSelection();
+    }
+    return;
+  }
   const cell = e.target.closest(".lcd-cell-manual");
-  if (!cell) return;
   const isResize = e.target.classList.contains("lcd-cell-resize");
   const idx = parseInt(cell.dataset.widgetIdx, 10);
   if (isNaN(idx)) return;
@@ -126,6 +160,30 @@ function _lcdMouseDown(e) {
   if (!widget) return;
 
   e.preventDefault();
+
+  // Selection-Logik VOR dem Drag:
+  // - Shift+Click: Selektion toggle, KEIN Drag starten
+  // - Plain Click auf bereits selektiertes Widget: alle selektierten draggen
+  // - Plain Click auf unselektiertes Widget: nur dieses selektieren + draggen
+  // Beim Resize-Handle immer single-Drag (kein Multi-Resize).
+  const shiftHeld = !!e.shiftKey;
+  if (shiftHeld && !isResize) {
+    if (typeof toggleLcdSelection === "function") toggleLcdSelection(idx);
+    render();
+    return;
+  }
+  let dragGroup = [idx];
+  if (!isResize) {
+    if (typeof isLcdWidgetSelected === "function" && isLcdWidgetSelected(idx)) {
+      // Multi-Drag: alle aktuell selektierten Widgets ziehen
+      const sel = state.lcdComposer.selectedIndices || [];
+      dragGroup = sel.slice();
+    } else {
+      // Nur dieses Widget — Selektion zurücksetzen
+      if (typeof selectLcdOnly === "function") selectLcdOnly(idx);
+      render();
+    }
+  }
 
   const container = cell.closest(".lcd-full-preview");
   if (!container) return;
@@ -139,6 +197,17 @@ function _lcdMouseDown(e) {
   const candidates = _lcdSnapCandidates(virt, idx);
   const guides = _lcdCreateGuides(container);
 
+  // Bei Multi-Drag merken wir uns die Original-Positionen aller
+  // selektierten Widgets, damit jedes seinen Delta-Verlauf kennt.
+  const groupOrig = dragGroup.map((gi) => {
+    const w = state.lcdComposer.widgets[gi];
+    return {
+      idx: gi,
+      origX: parseFloat(w.manualX) || 0,
+      origY: parseFloat(w.manualY) || 0
+    };
+  });
+
   _lcdDragState = {
     idx, widget, isResize, scaleScreen,
     startScreenX: e.clientX,
@@ -147,7 +216,8 @@ function _lcdMouseDown(e) {
     origY: parseFloat(widget.manualY) || 0,
     origW: parseFloat(widget.manualW) || 100,
     origH: parseFloat(widget.manualH) || 40,
-    virt, container, candidates, guides
+    virt, container, candidates, guides,
+    dragGroup, groupOrig
   };
 
   // Live-Maße-Badge erzeugen
@@ -272,6 +342,27 @@ function _lcdMouseMove(e) {
     newY = Math.max(0, Math.min(newY, s.virt.h - s.origH));
     s.widget.manualX = newX;
     s.widget.manualY = newY;
+
+    // Multi-Drag: verbleibende Gruppen-Widgets um denselben Delta
+    // verschieben, basierend auf ihren ursprünglichen Positionen.
+    if (s.dragGroup && s.dragGroup.length > 1) {
+      const finalDX = newX - s.origX;
+      const finalDY = newY - s.origY;
+      for (const go of s.groupOrig) {
+        if (go.idx === s.idx) continue;
+        const other = state.lcdComposer.widgets[go.idx];
+        if (!other) continue;
+        const ow = parseFloat(other.manualW) || 100;
+        const oh = parseFloat(other.manualH) || 40;
+        let nx = go.origX + finalDX;
+        let ny = go.origY + finalDY;
+        nx = Math.max(0, Math.min(nx, s.virt.w - ow));
+        ny = Math.max(0, Math.min(ny, s.virt.h - oh));
+        other.manualX = nx;
+        other.manualY = ny;
+        _lcdUpdateCellGeometry(go.idx);
+      }
+    }
   }
 
   _lcdUpdateCellGeometry(s.idx);

@@ -133,6 +133,8 @@ function _shareApplyDefensiveDefaults() {
   if (!state.scriptInfo) {
     state.scriptInfo = { enabled: false, name: "", author: "", version: "", description: "", tags: "" };
   }
+  // v2.10.0: Multi-Select-Indices nicht persistieren — frischer Start
+  state.lcdComposer.selectedIndices = [];
 }
 
 // Die statischen Form-Felder müssen die State-Werte zeigen

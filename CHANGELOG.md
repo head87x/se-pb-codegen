@@ -7,6 +7,35 @@ das Projekt folgt [Semantic Versioning](https://semver.org/lang/de/).
 
 ## [Unreleased]
 
+## [2.10.0] — 2026-05-14
+
+### Hinzugefügt (Multi-Widget-Auswahl im LCD-Composer)
+- **Shift-Klick** auf ein Widget in der Live-Vorschau oder in der
+  Layer-Liste → Widget zur Auswahl hinzufügen/entfernen.
+- **Plain-Klick** auf ein Widget → setzt die Auswahl auf genau
+  dieses eine.
+- **Klick auf den Vorschau-Hintergrund** → leert die Auswahl.
+- Selektierte Widgets bekommen ein deutliches Highlight-Outline
+  in der Vorschau und einen markierten linken Rand in der
+  Layer-Liste.
+- **Multi-Drag**: alle selektierten Widgets verschieben sich
+  gemeinsam um den selben Delta — Snap und Boundary werden pro
+  Widget eigenständig respektiert (jedes bleibt im virtuellen
+  Canvas).
+- **Action-Bar** über der Layer-Liste (sobald ≥1 selektiert):
+  zeigt Anzahl + 🗑-Button („Auswahl löschen") + ✕-Button
+  („Abwählen") — mit Bestätigungs-Dialog vor dem Löschen.
+- **Keyboard-Shortcuts**: ESC räumt die Auswahl, Delete/Backspace
+  löscht selektierte Widgets (nur außerhalb von Inputs/Textareas,
+  damit nicht versehentlich beim Tippen).
+- Verschieben einzelner Widgets per ▲▼-Button in der Liste
+  schiebt die Selektion korrekt mit.
+- Vorlagen und Share-Token tragen die Auswahl **nicht** persistent
+  — beim Laden startet die Auswahl frisch.
+
+### Geändert
+- `TOOL_VERSION` von `2.9.0` auf `2.10.0`.
+
 ## [2.9.0] — 2026-05-14
 
 ### Hinzugefügt (Vorlagen-Datei-Export / -Import)

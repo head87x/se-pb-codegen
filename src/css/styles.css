@@ -1176,6 +1176,30 @@ footer .accent { color: var(--accent); }
   padding: 2px 0;
 }
 .lcd-layer-row.is-hidden { opacity: 0.45; }
+/* v2.10.0 — Layer-Highlight für Multi-Select */
+.lcd-layer-row.is-selected {
+  background: rgba(var(--shadow-rgb, 0,0,0), 0.25);
+  border-left: 2px solid var(--accent-2, var(--accent));
+  padding-left: 4px;
+}
+.lcd-select-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin: 4px 0 6px;
+  padding: 4px 8px;
+  background: rgba(var(--shadow-rgb, 0,0,0), 0.35);
+  border: 1px solid var(--accent-2, var(--accent));
+  border-radius: 4px;
+}
+.lcd-select-count {
+  font-family: 'Consolas', monospace;
+  font-size: 11px;
+  letter-spacing: 1px;
+  color: var(--accent-2, var(--accent));
+  text-transform: uppercase;
+}
 .lcd-layer-eye {
   background: transparent;
   border: 1px solid transparent;
@@ -1352,6 +1376,16 @@ footer .accent { color: var(--accent); }
 }
 .lcd-cell-manual:hover {
   outline: 2px solid var(--accent);
+}
+/* v2.10.0 — Multi-Select: deutliches Outline + Glow für selektierte Widgets */
+.lcd-cell-manual.is-selected {
+  outline: 2px solid var(--accent-2, var(--accent));
+  outline-offset: -2px;
+  box-shadow: 0 0 0 1px rgba(var(--shadow-rgb, 0,0,0), 0.4), 0 0 14px rgba(var(--shadow-rgb, 0,0,0), 0.35);
+  z-index: 4;
+}
+.lcd-cell-manual.is-selected:hover {
+  outline: 2px solid var(--accent-2, var(--accent));
 }
 /* SVG-Inhalt fängt mousedown nicht ab — Drag soll von der Cell selbst gestartet werden */
 .lcd-cell-manual > svg {

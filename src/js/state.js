@@ -6,7 +6,7 @@
 
 // Single source of truth — wird im Header-Tag und im generierten
 // Code-Attribution-Header verwendet.
-const TOOL_VERSION = "2.9.0";
+const TOOL_VERSION = "2.10.0";
 
 var state = {
   conditions: [],   // { blockType, blockName, condId, arg, arg2, logicOp ('AND'|'OR') }
@@ -24,6 +24,7 @@ var state = {
     resolution: "square",    // LCD-Format-Key aus LCD_RESOLUTIONS
     columns: 1,              // 1, 2 oder 3 Spalten
     widgets: [],             // { type, ...params, widgetHeight?, colSpan? }
+    selectedIndices: [],     // v2.10.0 — Multi-Auswahl (Shift-Klick im Composer)
     multiLcd: {              // Phase 5 — mehrere LCDs als ein virtuelles Display
       enabled: false,
       rows: 1,

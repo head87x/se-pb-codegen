@@ -406,7 +406,74 @@ function _findNextLcdPosition(w, h) {
 
 function removeLcdWidget(i) {
   state.lcdComposer.widgets.splice(i, 1);
+  // Selektion bereinigen: gelöschten Index raus, höhere um 1 verschieben
+  _lcdRemapSelectionAfterDelete(i);
   render();
+}
+
+// ---------- Multi-Select (v2.10.0) ----------
+
+function _lcdEnsureSelection() {
+  if (!Array.isArray(state.lcdComposer.selectedIndices)) {
+    state.lcdComposer.selectedIndices = [];
+  }
+  return state.lcdComposer.selectedIndices;
+}
+
+function isLcdWidgetSelected(i) {
+  const sel = _lcdEnsureSelection();
+  return sel.indexOf(i) !== -1;
+}
+
+function selectLcdOnly(i) {
+  const sel = _lcdEnsureSelection();
+  sel.length = 0;
+  sel.push(i);
+}
+
+function toggleLcdSelection(i) {
+  const sel = _lcdEnsureSelection();
+  const pos = sel.indexOf(i);
+  if (pos === -1) sel.push(i);
+  else sel.splice(pos, 1);
+}
+
+function clearLcdSelection() {
+  if (!state.lcdComposer) return;
+  if (!Array.isArray(state.lcdComposer.selectedIndices)) {
+    state.lcdComposer.selectedIndices = [];
+    return;
+  }
+  if (state.lcdComposer.selectedIndices.length === 0) return;
+  state.lcdComposer.selectedIndices.length = 0;
+  render();
+}
+
+function _lcdRemapSelectionAfterDelete(deletedIdx) {
+  const sel = _lcdEnsureSelection();
+  for (let i = sel.length - 1; i >= 0; i--) {
+    if (sel[i] === deletedIdx)      sel.splice(i, 1);
+    else if (sel[i] > deletedIdx)   sel[i] -= 1;
+  }
+}
+
+async function deleteSelectedLcdWidgets() {
+  const sel = _lcdEnsureSelection();
+  if (sel.length === 0) return;
+  const n = sel.length;
+  const ok = await showConfirm(t("lcd.select.delete_q", n), { confirmLabel: t("lcd.select.delete_btn") });
+  if (!ok) return;
+  // Höchste Indizes zuerst löschen, damit darunter liegende Indizes
+  // gültig bleiben.
+  const sorted = [...sel].sort((a, b) => b - a);
+  for (const idx of sorted) {
+    if (idx >= 0 && idx < state.lcdComposer.widgets.length) {
+      state.lcdComposer.widgets.splice(idx, 1);
+    }
+  }
+  state.lcdComposer.selectedIndices = [];
+  render();
+  showToast(t("lcd.select.deleted", n));
 }
 
 // Layer-Liste: Sichtbarkeit toggeln (👁 / ⌀)
@@ -423,12 +490,25 @@ function selectLcdWidget(i) {
   for (let j = 0; j < state.lcdComposer.widgets.length; j++) {
     state.lcdComposer.widgets[j].expanded = (j === i);
   }
+  selectLcdOnly(i);
   render();
   // Sanft zum Widget-Editor scrollen
   setTimeout(() => {
     const el = document.querySelector(`.lcd-widget-block[data-widget-idx="${i}"]`);
     if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
   }, 50);
+}
+
+// v2.10.0 — Klick in der Layer-Liste:
+//   Shift gehalten → Multi-Select toggle (kein Expand)
+//   sonst         → Expand + Single-Select (alter Workflow)
+function selectLcdLayerRow(event, i) {
+  if (event && event.shiftKey) {
+    toggleLcdSelection(i);
+    render();
+    return;
+  }
+  selectLcdWidget(i);
 }
 
 function toggleLcdWidgetExpanded(i) {
@@ -443,6 +523,15 @@ function moveLcdWidget(i, dir) {
   const j = i + dir;
   if (j < 0 || j >= ws.length) return;
   [ws[i], ws[j]] = [ws[j], ws[i]];
+  // Selektion: i ↔ j tauschen, damit die Auswahl dem Widget folgt.
+  const sel = _lcdEnsureSelection();
+  const hasI = sel.indexOf(i) !== -1;
+  const hasJ = sel.indexOf(j) !== -1;
+  if (hasI !== hasJ) {
+    const target = hasI ? i : j;
+    const replacement = hasI ? j : i;
+    sel[sel.indexOf(target)] = replacement;
+  }
   render();
 }
 

@@ -521,6 +521,9 @@ function _renderFullLcdPreview() {
     .map((w, idx) => ({ w, idx }))
     .filter(o => !o.w.hidden);
 
+  const selectedSet = new Set(
+    Array.isArray(state.lcdComposer.selectedIndices) ? state.lcdComposer.selectedIndices : []
+  );
   const items = visibleWidgets.map(({ w, idx }) => {
     const mx = Math.max(0, parseFloat(w.manualX) || 0);
     const my = Math.max(0, parseFloat(w.manualY) || 0);
@@ -530,7 +533,8 @@ function _renderFullLcdPreview() {
     const top  = Math.round(my * scale);
     const wPx  = Math.round(mw * scale);
     const hPx  = Math.round(mh * scale);
-    return `<div class="lcd-full-cell lcd-cell-manual" data-widget-idx="${idx}" style="left:${left}px;top:${top}px;width:${wPx}px;height:${hPx}px;">${renderLcdWidgetPreview(w)}<div class="lcd-cell-resize" data-widget-idx="${idx}"></div></div>`;
+    const selCls = selectedSet.has(idx) ? " is-selected" : "";
+    return `<div class="lcd-full-cell lcd-cell-manual${selCls}" data-widget-idx="${idx}" style="left:${left}px;top:${top}px;width:${wPx}px;height:${hPx}px;">${renderLcdWidgetPreview(w)}<div class="lcd-cell-resize" data-widget-idx="${idx}"></div></div>`;
   }).join("");
 
   const snapPx = (LCD_SNAP * scale).toFixed(3);
@@ -659,18 +663,35 @@ function _renderLcdLayerList(widgets) {
   const _wlabel = (type) => (typeof getLcdWidgetLabel === "function") ? getLcdWidgetLabel(type) : (LCD_WIDGETS[type] || {}).label || type;
   const _showLabel = t("lcd.builder.show");
   const _hideLabel = t("lcd.builder.hide");
+  const selectedSet = new Set(
+    Array.isArray(state.lcdComposer.selectedIndices) ? state.lcdComposer.selectedIndices : []
+  );
   const rows = widgets.map((w, i) => {
     const label = w.label || w.text || w.title || "";
     const hiddenIcon = w.hidden ? "⌀" : "👁";
+    const selCls = selectedSet.has(i) ? " is-selected" : "";
     return `
-      <div class="lcd-layer-row ${w.hidden ? "is-hidden" : ""}">
+      <div class="lcd-layer-row ${w.hidden ? "is-hidden" : ""}${selCls}">
         <button class="lcd-layer-eye" title="${w.hidden ? _showLabel : _hideLabel}" onclick="toggleLcdWidgetVisible(${i})">${hiddenIcon}</button>
-        <button class="lcd-layer-name" onclick="selectLcdWidget(${i})">#${i + 1} ${escapeHtml(_wlabel(w.type))}${label ? ` — ${escapeHtml(String(label).slice(0,18))}` : ""}</button>
+        <button class="lcd-layer-name" onclick="selectLcdLayerRow(event, ${i})">#${i + 1} ${escapeHtml(_wlabel(w.type))}${label ? ` — ${escapeHtml(String(label).slice(0,18))}` : ""}</button>
       </div>`;
   }).join("");
+
+  // Floating Action-Bar erscheint nur, wenn etwas selektiert ist.
+  const selCount = selectedSet.size;
+  const actionBar = selCount > 0 ? `
+      <div class="lcd-select-bar">
+        <span class="lcd-select-count">${escapeHtml(t("lcd.select.count", selCount))}</span>
+        <div class="btn-row">
+          <button class="small danger" onclick="deleteSelectedLcdWidgets()">${escapeHtml(t("lcd.select.delete"))}</button>
+          <button class="small" onclick="clearLcdSelection()">${escapeHtml(t("lcd.select.clear"))}</button>
+        </div>
+      </div>` : "";
+
   return `
     <div class="lcd-layer-list">
       <div class="lcd-layer-title">${escapeHtml(t("lcd.builder.layers"))} (${widgets.length})</div>
+      ${actionBar}
       ${rows}
     </div>`;
 }

@@ -51,6 +51,9 @@ function loadTemplate(i) {
   if (!state.scriptInfo) {
     state.scriptInfo = { enabled: false, name: "", author: "", version: "", description: "", tags: "" };
   }
+  // v2.10.0: selectedIndices defaulten (Multi-Select). Vorlagen tragen die
+  // Selektion nicht persistent — beim Laden wird sie immer geleert.
+  state.lcdComposer.selectedIndices = [];
 
   // Migration: alte Grid-Widgets in Manual-Modus konvertieren.
   // Setzt einen einfachen vertikalen Stack als initiale Position.
@@ -115,7 +118,7 @@ async function newProject() {
   state = {
     conditions: [], actionsThen: [], actionsElse: [],
     execMode: "argument", useCoroutines: false, lcdEnable: false, lcdName: "",
-    lcdComposer: { enabled: false, displayMode: "external", lcdName: "", surfaceIndex: 0, resolution: "square", widgets: [] },
+    lcdComposer: { enabled: false, displayMode: "external", lcdName: "", surfaceIndex: 0, resolution: "square", widgets: [], selectedIndices: [] },
     scriptInfo: { enabled: false, name: "", author: "", version: "", description: "", tags: "" }
   };
   document.getElementById("exec-mode").value = "argument";

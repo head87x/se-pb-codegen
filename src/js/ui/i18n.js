@@ -55,6 +55,13 @@ const I18N = {
     "templates.import_confirm":    "{0} Vorlage(n) zur Liste hinzufügen? Bestehende Einträge bleiben erhalten.",
     "templates.import_btn":  "Importieren",
     "templates.import_ok":   "{0} Vorlage(n) importiert",
+    // v2.10.0 — Multi-Select im LCD-Composer
+    "lcd.select.count":      "{0} Widget(s) ausgewählt",
+    "lcd.select.delete":     "🗑 Auswahl löschen",
+    "lcd.select.clear":      "✕ Abwählen",
+    "lcd.select.delete_q":   "{0} ausgewählte Widget(s) wirklich löschen?",
+    "lcd.select.delete_btn": "Löschen",
+    "lcd.select.deleted":    "{0} Widget(s) gelöscht",
     // Share-Token
     "share.title":           "::: SHARE-TOKEN",
     "share.export":          "💾 Token erzeugen",
@@ -285,6 +292,13 @@ const I18N = {
     "templates.import_confirm":    "Add {0} template(s) to the list? Existing entries are kept.",
     "templates.import_btn":  "Import",
     "templates.import_ok":   "{0} template(s) imported",
+    // v2.10.0 — multi-select in LCD composer
+    "lcd.select.count":      "{0} widget(s) selected",
+    "lcd.select.delete":     "🗑 Delete selection",
+    "lcd.select.clear":      "✕ Deselect",
+    "lcd.select.delete_q":   "Really delete {0} selected widget(s)?",
+    "lcd.select.delete_btn": "Delete",
+    "lcd.select.deleted":    "{0} widget(s) deleted",
     "share.title":           "::: SHARE-TOKEN",
     "share.export":          "💾 Generate token",
     "share.import":          "📥 Load token",

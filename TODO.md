@@ -192,9 +192,23 @@ Vorschlagsliste anbieten. Aber: Pfade variieren je OS, und das Tool
 soll offline-only bleiben.
 
 ### Multi-Widget-Auswahl im LCD-Composer
-Mehrere Widgets gleichzeitig selektieren (Shift-Click) und gemeinsam
-verschieben/ausrichten/löschen. Aktuell ist Bearbeiten Widget-für-
-Widget.
+**Erledigt in v2.10.0**: Shift-Klick im Composer + Layer-Liste,
+Highlight-Outline, gemeinsames Verschieben per Drag, Action-Bar
+mit Löschen-Button, ESC/Delete-Shortcuts. Plain-Klick setzt
+Single-Select; Klick auf Hintergrund leert.
+
+Mögliche Erweiterungen:
+- **Ausrichten**: Buttons im Action-Bar für „links/rechts/oben/
+  unten/horizontal-Mitte/vertikal-Mitte" — nutzt erste Selektion
+  als Referenz oder die Bounding-Box.
+- **Verteilen**: gleiche Abstände zwischen ≥3 selektierten
+  Widgets (horizontal oder vertikal).
+- **Strg+A** = alle Widgets selektieren.
+- **Lasso-Select**: Rechteck mit der Maus ziehen, alle Widgets im
+  Rahmen selektieren.
+- **Auswahl persistieren**: aktuell wird die Selektion beim Laden
+  einer Vorlage / eines Tokens geleert. Könnte beibehalten werden,
+  falls gewünscht.
 
 ### Smart-Snap im LCD-Composer
 **Erledigt in v2.5.0**: Snap an Canvas-Kanten, Canvas-Mitte,
