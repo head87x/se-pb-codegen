@@ -6,7 +6,7 @@
 
 // Single source of truth — wird im Header-Tag und im generierten
 // Code-Attribution-Header verwendet.
-const TOOL_VERSION = "2.10.2";
+const TOOL_VERSION = "2.11.0";
 
 var state = {
   conditions: [],   // { blockType, blockName, condId, arg, arg2, logicOp ('AND'|'OR') }
@@ -14,6 +14,7 @@ var state = {
   actionsElse: [],
   execMode: "argument",
   useCoroutines: false,  // v2.2.0 — verteilt LCD-Drawing über mehrere Ticks
+  autoRecoverBlocks: false, // v2.11.0 — Default: Init in Program(), kein Closed-Recheck pro Tick
   lcdEnable: false,  // alte einfache Status-Ausgabe
   lcdName: "",       // LCD-Block-Name für die alte Status-Ausgabe
   lcdComposer: {     // Phase 4a — LCD-Baukasten (Sprite-API)

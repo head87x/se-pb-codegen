@@ -7,6 +7,56 @@ das Projekt folgt [Semantic Versioning](https://semver.org/lang/de/).
 
 ## [Unreleased]
 
+## [2.11.0] — 2026-05-14
+
+### Geändert (Block-Initialisierung im Constructor — Etappe 2/3 aus Expert-Feedback)
+- **Default-Verhalten umgestellt**: Block-Referenzen werden jetzt
+  **einmalig im Program()-Constructor** geholt — nicht mehr pro
+  Tick. Standard im SE-Modding-Best-Practice: bei zerstörten
+  Blöcken drückt der Spieler im Spiel den **Recompile-Button**,
+  was den Constructor erneut ausführt.
+- Neue Funktionen im generierten Code:
+  - **`InitBlocks()`** läuft genau einmal aus dem Constructor.
+    Holt alle Single-Block-Refs, allokiert Gruppen-Listen + Aggregator-
+    Listen, initialisiert LCD-Surfaces. Setzt `_initFailed` auf
+    `true` wenn ein benannter Block oder eine Gruppe nicht
+    gefunden wurde — das Skript stoppt dann sauber per Early-Return
+    in `Main()`.
+  - **`RefreshBlocks()`** läuft pro Tick aus `Main()`, **aber nur
+    wenn nötig**: bei Block-Gruppen (Mitglieder-Refresh,
+    Aggregator-Listen) oder bei aktiviertem Auto-Recovery.
+
+### Hinzugefügt (Toggle „Auto-Recovery zerstörter Blöcke")
+- Neuer Toggle in der AUSFÜHRUNG-Sektion: **🛡 Auto-Recovery
+  zerstörter Blöcke** (Default: aus).
+- Wenn aktiviert: `RefreshBlocks()` führt pro Tick zusätzlich
+  Closed-Rechecks für Single-Blocks und LCD-Surfaces durch und
+  re-fetcht sie bei Zerstörung. Bringt einen Tick-Overhead, ist
+  aber sinnvoll für Skripte die durchlaufen und mit zerstörten
+  Blöcken umgehen müssen.
+- Hilfetext erklärt den Trade-off.
+
+### Hinweise
+- **Output-Format ändert sich**: der generierte Code hat jetzt
+  `InitBlocks()` und (optional) `RefreshBlocks()` statt der alten
+  `EnsureBlocks()`-Funktion. Funktional gleichwertig — Aktionen,
+  Gruppen, LCD-Updates verhalten sich identisch.
+- **Vorlagen + Share-Token aus älteren Versionen** bekommen
+  defensiv `autoRecoverBlocks: false` als Default — das ist das
+  neue, performance-bewusste Verhalten. Wer das alte Verhalten
+  wieder haben möchte, kann den Toggle aktivieren.
+- Performance: pro Skript-Tick werden bei N Single-Blocks N
+  Null-or-Closed-Checks und ggf. `GetBlockWithName`-Aufrufe
+  gespart. Bei vielen Blöcken merklich.
+
+### Composer-Refactor (intern)
+- `generateLcdComposerCode()` liefert jetzt drei zusätzliche
+  Code-Buckets neben `ensure` (rückwärtskompatibel): `init`,
+  `refresh`, `closedRecheck`. Aufrufer kann passend kombinieren.
+- Aggregator-Listen werden immer pro Tick neu gefüllt (Block-
+  Mitgliedschaft kann sich ändern), LCD-Surface-Rechecks laufen
+  nur bei aktivem Auto-Recovery.
+
 ## [2.10.2] — 2026-05-14
 
 ### Behoben (i18n-Lücken im EN-Modus)

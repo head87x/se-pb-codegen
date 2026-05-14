@@ -40,6 +40,8 @@ function loadTemplate(i) {
   }
   // v2.2.0: Coroutines-Toggle defensiv defaulten
   if (typeof state.useCoroutines !== "boolean") state.useCoroutines = false;
+  // v2.11.0: autoRecoverBlocks-Toggle defensiv defaulten
+  if (typeof state.autoRecoverBlocks !== "boolean") state.autoRecoverBlocks = false;
   // v2.4.0: Gruppen-Semantik defaulten (alte Vorlagen kannten nur "any")
   if (Array.isArray(state.conditions)) {
     for (const c of state.conditions) {
@@ -77,6 +79,8 @@ function loadTemplate(i) {
   document.getElementById("exec-mode").value = state.execMode;
   const coroEl = document.getElementById("exec-coroutines");
   if (coroEl) coroEl.checked = !!state.useCoroutines;
+  const arEl = document.getElementById("exec-auto-recover");
+  if (arEl) arEl.checked = !!state.autoRecoverBlocks;
   document.getElementById("lcd-enable").checked = !!state.lcdEnable;
   document.getElementById("lcd-name").value = state.lcdName || "";
   document.getElementById("lcd-config").style.display = state.lcdEnable ? "block" : "none";
@@ -124,6 +128,8 @@ async function newProject() {
   document.getElementById("exec-mode").value = "argument";
   const coroEl2 = document.getElementById("exec-coroutines");
   if (coroEl2) coroEl2.checked = false;
+  const arEl2 = document.getElementById("exec-auto-recover");
+  if (arEl2) arEl2.checked = false;
   document.getElementById("lcd-enable").checked = false;
   document.getElementById("lcd-name").value = "";
   document.getElementById("lcd-config").style.display = "none";

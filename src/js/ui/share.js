@@ -122,6 +122,7 @@ function _shareApplyDefensiveDefaults() {
     state.lcdComposer.multiLcd = { enabled: false, rows: 1, cols: 2, namePattern: "LCD {col}{row}" };
   }
   if (typeof state.useCoroutines !== "boolean") state.useCoroutines = false;
+  if (typeof state.autoRecoverBlocks !== "boolean") state.autoRecoverBlocks = false;
   // v2.4.0: Gruppen-Semantik defaulten
   if (Array.isArray(state.conditions)) {
     for (const c of state.conditions) {
@@ -146,6 +147,7 @@ function _shareSyncUiFields() {
 
   set("exec-mode",                    state.execMode);
   setChecked("exec-coroutines",       state.useCoroutines);
+  setChecked("exec-auto-recover",     state.autoRecoverBlocks);
   setChecked("lcd-enable",            state.lcdEnable);
   set("lcd-name",                     state.lcdName || "");
   setDisplay("lcd-config",            !!state.lcdEnable);

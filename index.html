@@ -18,7 +18,7 @@
       <span class="theme-picker-label" data-i18n="header.theme">THEME</span>
       <select id="tool-theme-select" onchange="setToolTheme(this.value)"></select>
     </label>
-    <span class="tag">v<span id="version-tag">2.10.2</span> :: <span data-i18n="header.subtitle">SPACE ENGINEERS PROGRAMMABLE BLOCK</span></span>
+    <span class="tag">v<span id="version-tag">2.11.0</span> :: <span data-i18n="header.subtitle">SPACE ENGINEERS PROGRAMMABLE BLOCK</span></span>
   </div>
 </header>
 
@@ -144,6 +144,15 @@
             Verteilt LCD-Updates über mehrere Ticks. Empfohlen ab Multi-LCD 3×3 oder vielen Aggregator-Widgets — vermeidet „Script too complex"-Fehler. Trade-off: LCDs aktualisieren nicht alle gleichzeitig, sondern ein Display pro Tick.
           </div>
           <div id="exec-coroutines-stats" class="help-text" style="margin-top:4px; display:none; color:var(--accent-2); font-weight:600;"></div>
+          <div class="toggle-row" style="margin-top:10px;">
+            <label>
+              <input type="checkbox" id="exec-auto-recover" onchange="onAutoRecoverChange(this.checked)">
+              <span data-i18n="exec.auto_recover">🛡 Auto-Recovery zerstörter Blöcke</span>
+            </label>
+          </div>
+          <div class="help-text" data-i18n="exec.auto_recover.help" style="margin-top:4px;">
+            Standardmäßig holt das Skript Block-Referenzen einmalig im Constructor (Recompile-Button im Spiel). Aktivieren wenn das Skript dauerhaft laufen muss und Blöcke zur Laufzeit zerstört werden dürfen — bringt einen Tick-Overhead.
+          </div>
         </div>
       </div>
 

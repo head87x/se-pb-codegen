@@ -100,6 +100,9 @@ function generateCode() {
   // in den Cache fließen.
   let composerFields = "";
   let composerEnsure = "";
+  let composerInit = "";
+  let composerRefresh = "";
+  let composerClosedRecheck = "";
   let composerMain   = "";
   let composerPrecompute = "";
   let composerUsesCoroutines = false;
@@ -108,11 +111,16 @@ function generateCode() {
     if (c.used) {
       composerFields = c.fields || "";
       composerEnsure = c.ensure || "";
+      composerInit = c.init || "";
+      composerRefresh = c.refresh || "";
+      composerClosedRecheck = c.closedRecheck || "";
       composerMain   = c.code   || "";
       composerPrecompute = c.precompute || "";
       composerUsesCoroutines = !!c.useCoroutines;
     }
   }
+  // v2.11.0 — Default: Init in Program(), kein Closed-Recheck pro Tick.
+  const autoRecover = !!state.autoRecoverBlocks;
 
   const _t = (typeof t === "function") ? t : ((k) => k);
   const lcdStatusEnabled = state.lcdEnable && state.lcdName && state.lcdName.trim().length > 0;
@@ -187,6 +195,9 @@ function generateCode() {
   if (useCoroutines) {
     code += `IEnumerator<bool> _drawCoroutine;\n`;
   }
+  // v2.11.0 — Init-Fehler-Flag (Block oder Gruppe nicht gefunden im Constructor)
+  const hasAnyBlocks = blockMap.size > 0 || lcdStatusEnabled || !!composerInit;
+  if (hasAnyBlocks) code += `bool _initFailed;\n`;
   code += "\n";
 
   // ---------- Constructor ----------
@@ -199,55 +210,91 @@ function generateCode() {
     case "timer100":   code += "    Runtime.UpdateFrequency = UpdateFrequency.Update100;\n"; break;
     default:           code += `    // ${_t("gen.cmt.manual")}\n`; break;
   }
+  if (hasAnyBlocks) code += `    InitBlocks();\n`;
   code += "}\n\n";
 
   code += "public void Save() { }\n\n";
 
   // ---------- Inventory-Helper (optional) ----------
-  // (wird unten via _injectInventoryHelpers vor EnsureBlocks gesetzt)
+  // (wird unten via _injectInventoryHelpers vor InitBlocks gesetzt)
   const INVENTORY_HELPERS_MARKER = "// __INVENTORY_HELPERS_MARKER__\n";
   code += INVENTORY_HELPERS_MARKER;
 
-  // ---------- EnsureBlocks (lazy fetch + Closed-Validation) ----------
-  code += `// ${_t("gen.cmt.ensure")}\n`;
-  code += "bool EnsureBlocks()\n";
-  code += "{\n";
-  if (blockMap.size === 0 && !lcdStatusEnabled && !composerEnsure) {
-    code += "    return true;\n";
-  } else {
+  // ---------- v2.11.0: InitBlocks (einmalig im Constructor) ----------
+  // Vorher lief das per Tick in EnsureBlocks() — jetzt nur noch initial.
+  // Single-Block-Closed-Rechecks per Tick gibt's nur mit autoRecoverBlocks.
+  if (hasAnyBlocks) {
+    code += `// ${_t("gen.cmt.program_init")}\n`;
+    code += "void InitBlocks()\n";
+    code += "{\n";
+    code += "    _initFailed = false;\n";
     for (const e of blockMap.values()) {
       if (e.isGroup) {
-        code += `    if (${e.varName}_grp == null) {\n`;
-        code += `        ${e.varName}_grp = GridTerminalSystem.GetBlockGroupWithName("${escapeCs(e.blockName)}");\n`;
-        code += `        if (${e.varName}_grp == null) { Echo("${escapeCs(_t("gen.err.group", e.blockName))}"); return false; }\n`;
+        code += `    ${e.varName}_grp = GridTerminalSystem.GetBlockGroupWithName("${escapeCs(e.blockName)}");\n`;
+        code += `    if (${e.varName}_grp == null) { Echo("${escapeCs(_t("gen.err.group", e.blockName))}"); _initFailed = true; }\n`;
+        code += `    else {\n`;
         code += `        ${e.varName} = new List<${e.interface}>();\n`;
+        code += `        ${e.varName}_grp.GetBlocksOfType(${e.varName});\n`;
         code += `    }\n`;
-        // Liste jedes Mal refreshen — Liste-Reuse statt new
-        code += `    ${e.varName}.Clear();\n`;
-        code += `    ${e.varName}_grp.GetBlocksOfType(${e.varName});\n`;
       } else {
-        code += `    if (${e.varName} == null || ${e.varName}.Closed) {\n`;
-        code += `        ${e.varName} = GridTerminalSystem.GetBlockWithName("${escapeCs(e.blockName)}") as ${e.interface};\n`;
-        code += `        if (${e.varName} == null) { Echo("${escapeCs(_t("gen.err.block", e.blockName))}"); return false; }\n`;
-        code += `    }\n`;
+        code += `    ${e.varName} = GridTerminalSystem.GetBlockWithName("${escapeCs(e.blockName)}") as ${e.interface};\n`;
+        code += `    if (${e.varName} == null) { Echo("${escapeCs(_t("gen.err.block", e.blockName))}"); _initFailed = true; }\n`;
       }
     }
     if (lcdStatusEnabled) {
-      // LCD-Status ist optional — bei Fehlen läuft das Skript weiter, nur ohne LCD-Output.
-      code += `    if (lcd_status == null || lcd_status.Closed) {\n`;
-      code += `        lcd_status = GridTerminalSystem.GetBlockWithName("${escapeCs(state.lcdName)}") as IMyTextSurface;\n`;
-      code += `        // ${_t("gen.cmt.lcd_status_optional")}\n`;
+      code += `    lcd_status = GridTerminalSystem.GetBlockWithName("${escapeCs(state.lcdName)}") as IMyTextSurface;\n`;
+      code += `    // ${_t("gen.cmt.lcd_status_optional")}\n`;
+    }
+    if (composerInit) code += composerInit;
+    code += "}\n\n";
+  }
+
+  // ---------- v2.11.0: RefreshBlocks (pro Tick — Gruppen-Refresh + opt. Closed-Rechecks) ----------
+  // Wird nur emittiert wenn nötig: Gruppen (immer refresh), autoRecover (closed-rechecks),
+  // oder Composer-Refresh/ClosedRecheck.
+  const groupCount = Array.from(blockMap.values()).filter(e => e.isGroup).length;
+  const singleCount = blockMap.size - groupCount;
+  const needsRefresh = groupCount > 0
+                    || !!composerRefresh
+                    || (autoRecover && (singleCount > 0 || lcdStatusEnabled || !!composerClosedRecheck));
+  if (needsRefresh) {
+    code += `// ${_t("gen.cmt.refresh_lists")}\n`;
+    code += "void RefreshBlocks()\n";
+    code += "{\n";
+    // Single-Block-Closed-Rechecks (nur bei autoRecover)
+    if (autoRecover) {
+      for (const e of blockMap.values()) {
+        if (e.isGroup) continue;
+        code += `    if (${e.varName} == null || ${e.varName}.Closed)\n`;
+        code += `        ${e.varName} = GridTerminalSystem.GetBlockWithName("${escapeCs(e.blockName)}") as ${e.interface};\n`;
+      }
+      if (lcdStatusEnabled) {
+        code += `    if (lcd_status == null || lcd_status.Closed)\n`;
+        code += `        lcd_status = GridTerminalSystem.GetBlockWithName("${escapeCs(state.lcdName)}") as IMyTextSurface;\n`;
+      }
+    }
+    // Gruppen-Listen IMMER refreshen (Mitglieder können sich ändern)
+    for (const e of blockMap.values()) {
+      if (!e.isGroup) continue;
+      code += `    if (${e.varName}_grp != null && ${e.varName} != null) {\n`;
+      code += `        ${e.varName}.Clear();\n`;
+      code += `        ${e.varName}_grp.GetBlocksOfType(${e.varName});\n`;
       code += `    }\n`;
     }
-    if (composerEnsure) code += composerEnsure;
-    code += "    return true;\n";
+    // Composer-Refresh (Aggregator-Listen — immer)
+    if (composerRefresh) code += composerRefresh;
+    // Composer-Closed-Rechecks (nur bei autoRecover)
+    if (autoRecover && composerClosedRecheck) code += composerClosedRecheck;
+    code += "}\n\n";
   }
-  code += "}\n\n";
 
   // ---------- Main ----------
   code += "public void Main(string argument, UpdateType updateSource)\n";
   code += "{\n";
-  code += "    if (!EnsureBlocks()) return;\n\n";
+  // v2.11.0: Init-Failure-Guard + RefreshBlocks-Aufruf
+  if (hasAnyBlocks) code += "    if (_initFailed) return;\n";
+  if (needsRefresh) code += "    RefreshBlocks();\n";
+  if (hasAnyBlocks || needsRefresh) code += "\n";
 
   // LCD-Status (alt — text-mode): StringBuilder wird wiederverwendet
   if (lcdStatusEnabled) {

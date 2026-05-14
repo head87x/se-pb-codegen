@@ -146,6 +146,11 @@ function onUseCoroutinesChange(checked) {
   generateCode();
 }
 
+function onAutoRecoverChange(checked) {
+  state.autoRecoverBlocks = !!checked;
+  generateCode();
+}
+
 function onExecModeChange(val) {
   state.execMode = val;
   renderExecHelp();

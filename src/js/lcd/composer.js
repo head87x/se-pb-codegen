@@ -160,7 +160,15 @@ function generateLcdComposerCode(ensureBlock) {
   }
 
   const _t = (typeof t === "function") ? t : ((k) => k);
-  const ctx = { fields: [], ensure: [], precompute: [], useCoroutines: useCoroutines };
+  // v2.11.0 — Drei-Bucket-Schema:
+  //   init          = Constructor-Code (einmalig)
+  //   refresh       = pro Tick, IMMER (z. B. Aggregator-Listen)
+  //   closedRecheck = pro Tick, NUR wenn autoRecoverBlocks (Surface-Closed-Refetch)
+  // `ensure` bleibt als Legacy-Union erhalten für Aufrufer, die das schon nutzen.
+  const ctx = {
+    fields: [], ensure: [], init: [], refresh: [], closedRecheck: [],
+    precompute: [], useCoroutines: useCoroutines
+  };
 
   let mainCode = "";
   mainCode += `\n    // ${_t("gen.cmt.lcd_composer")}\n`;
@@ -173,6 +181,16 @@ function generateLcdComposerCode(ensureBlock) {
     ctx.fields.push(`readonly float[]  _lcdOffY_ = new float[] { ${multi.cells.map(c => c.offY + "f").join(", ")} };`);
     ctx.fields.push(`IMyTextSurface[] _lcdSurfaces_;`);
 
+    // Allokation + initiale Fetches → Constructor
+    ctx.init.push(`    _lcdSurfaces_ = new IMyTextSurface[_lcdNames_.Length];`);
+    ctx.init.push(`    for (int _i = 0; _i < _lcdNames_.Length; _i++)`);
+    ctx.init.push(`        _lcdSurfaces_[_i] = GridTerminalSystem.GetBlockWithName(_lcdNames_[_i]) as IMyTextSurface;`);
+    // Closed-Recheck → nur bei autoRecoverBlocks
+    ctx.closedRecheck.push(`    for (int _i = 0; _i < _lcdNames_.Length; _i++) {`);
+    ctx.closedRecheck.push(`        if (_lcdSurfaces_[_i] == null || _lcdSurfaces_[_i].Closed)`);
+    ctx.closedRecheck.push(`            _lcdSurfaces_[_i] = GridTerminalSystem.GetBlockWithName(_lcdNames_[_i]) as IMyTextSurface;`);
+    ctx.closedRecheck.push(`    }`);
+    // Legacy-ensure: Vereinigung beider — falls noch jemand das nutzt
     ctx.ensure.push(`    if (_lcdSurfaces_ == null) _lcdSurfaces_ = new IMyTextSurface[_lcdNames_.Length];`);
     ctx.ensure.push(`    for (int _i = 0; _i < _lcdNames_.Length; _i++) {`);
     ctx.ensure.push(`        if (_lcdSurfaces_[_i] == null || _lcdSurfaces_[_i].Closed)`);
@@ -212,6 +230,9 @@ function generateLcdComposerCode(ensureBlock) {
       code: mainCode,
       fields: ctx.fields.map(s => s + "\n").join(""),
       ensure: ctx.ensure.map(s => s + "\n").join(""),
+      init: ctx.init.map(s => s + "\n").join(""),
+      refresh: ctx.refresh.map(s => s + "\n").join(""),
+      closedRecheck: ctx.closedRecheck.map(s => s + "\n").join(""),
       precompute: ctx.precompute.map(s => s + "\n").join(""),
       useCoroutines: useCoroutines
     };
@@ -221,14 +242,33 @@ function generateLcdComposerCode(ensureBlock) {
   ctx.fields.push(`IMyTextSurface _lcdComp_;`);
 
   if (mode === "pb") {
-    // Me.GetSurface() ist nicht teuer und Me bleibt immer gültig — trotzdem cachen.
+    // Me.GetSurface() ist nicht teuer und Me bleibt immer gültig — Init reicht.
+    ctx.init.push(`    _lcdComp_ = Me.GetSurface(${surfaceIdx});`);
+    // Legacy
     ctx.ensure.push(`    if (_lcdComp_ == null) _lcdComp_ = Me.GetSurface(${surfaceIdx});`);
   } else if (mode === "cockpit") {
+    const cockpitFetch = [
+      `        var lcdProv = GridTerminalSystem.GetBlockWithName(${_csString(lc.lcdName)}) as IMyTextSurfaceProvider;`,
+      `        _lcdComp_ = lcdProv != null && lcdProv.SurfaceCount > ${surfaceIdx} ? lcdProv.GetSurface(${surfaceIdx}) : null;`
+    ];
+    // Init: erste Fetch (ohne Closed-Check, Block ist eh frisch)
+    ctx.init.push(`    {`);
+    cockpitFetch.forEach(l => ctx.init.push(l));
+    ctx.init.push(`    }`);
+    // Closed-Recheck
+    ctx.closedRecheck.push(`    if (_lcdComp_ == null || _lcdComp_.Closed) {`);
+    cockpitFetch.forEach(l => ctx.closedRecheck.push(l));
+    ctx.closedRecheck.push(`    }`);
+    // Legacy
     ctx.ensure.push(`    if (_lcdComp_ == null || _lcdComp_.Closed) {`);
-    ctx.ensure.push(`        var lcdProv = GridTerminalSystem.GetBlockWithName(${_csString(lc.lcdName)}) as IMyTextSurfaceProvider;`);
-    ctx.ensure.push(`        _lcdComp_ = lcdProv != null && lcdProv.SurfaceCount > ${surfaceIdx} ? lcdProv.GetSurface(${surfaceIdx}) : null;`);
+    cockpitFetch.forEach(l => ctx.ensure.push(l));
     ctx.ensure.push(`    }`);
   } else {
+    // external
+    ctx.init.push(`    _lcdComp_ = GridTerminalSystem.GetBlockWithName(${_csString(lc.lcdName)}) as IMyTextSurface;`);
+    ctx.closedRecheck.push(`    if (_lcdComp_ == null || _lcdComp_.Closed)`);
+    ctx.closedRecheck.push(`        _lcdComp_ = GridTerminalSystem.GetBlockWithName(${_csString(lc.lcdName)}) as IMyTextSurface;`);
+    // Legacy
     ctx.ensure.push(`    if (_lcdComp_ == null || _lcdComp_.Closed)`);
     ctx.ensure.push(`        _lcdComp_ = GridTerminalSystem.GetBlockWithName(${_csString(lc.lcdName)}) as IMyTextSurface;`);
   }
@@ -264,6 +304,9 @@ function generateLcdComposerCode(ensureBlock) {
     code: mainCode,
     fields: ctx.fields.map(s => s + "\n").join(""),
     ensure: ctx.ensure.map(s => s + "\n").join(""),
+    init: ctx.init.map(s => s + "\n").join(""),
+    refresh: ctx.refresh.map(s => s + "\n").join(""),
+    closedRecheck: ctx.closedRecheck.map(s => s + "\n").join(""),
     precompute: ctx.precompute.map(s => s + "\n").join(""),
     useCoroutines: useCoroutines
   };
@@ -660,6 +703,13 @@ function _emitWidget(w, idx, ensureBlock, ctx) {
     if (!ctx._aggSeen.has(listVar)) {
       ctx._aggSeen.add(listVar);
       ctx.fields.push(`List<${iface}> ${listVar};`);
+      // Init: Liste anlegen + initial füllen (Constructor)
+      ctx.init.push(`    ${listVar} = new List<${iface}>();`);
+      ctx.init.push(`    GridTerminalSystem.GetBlocksOfType(${listVar});`);
+      // Refresh: pro Tick neu füllen (Block-Mitgliedschaft kann sich ändern — IMMER, unabhängig von autoRecover)
+      ctx.refresh.push(`    ${listVar}.Clear();`);
+      ctx.refresh.push(`    GridTerminalSystem.GetBlocksOfType(${listVar});`);
+      // Legacy
       ctx.ensure.push(`    if (${listVar} == null) ${listVar} = new List<${iface}>();`);
       ctx.ensure.push(`    ${listVar}.Clear();`);
       ctx.ensure.push(`    GridTerminalSystem.GetBlocksOfType(${listVar});`);
