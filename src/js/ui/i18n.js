@@ -143,6 +143,9 @@ const I18N = {
     "modal.cancel":          "Abbrechen",
     "modal.ok":              "OK",
     "modal.confirm":         "Bestätigen",
+    // v2.10.2 — Drag&Drop-Toasts bei leerem Block-Typ
+    "dnd.no_conditions":     "„{0}\" hat keine prüfbaren Eigenschaften",
+    "dnd.no_actions":        "„{0}\" hat keine Aktionen",
     "modal.title.confirm":   "Bestätigung",
     "modal.title.prompt":    "Eingabe",
     "modal.title.alert":     "Hinweis",
@@ -382,6 +385,9 @@ const I18N = {
     "modal.cancel":          "Cancel",
     "modal.ok":              "OK",
     "modal.confirm":         "Confirm",
+    // v2.10.2 — drag&drop toasts for empty block type
+    "dnd.no_conditions":     "\"{0}\" has no checkable properties",
+    "dnd.no_actions":        "\"{0}\" has no actions",
     "modal.title.confirm":   "Confirmation",
     "modal.title.prompt":    "Input",
     "modal.title.alert":     "Notice",

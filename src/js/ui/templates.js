@@ -5,7 +5,7 @@
 function renderTemplates() {
   const root = document.getElementById("templates");
   if (templates.length === 0) {
-    root.innerHTML = '<span class="empty-hint">Keine Vorlagen gespeichert.</span>';
+    root.innerHTML = `<span class="empty-hint">${escapeHtml(t("templates.empty"))}</span>`;
     return;
   }
   root.innerHTML = templates.map((t, i) => `

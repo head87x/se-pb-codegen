@@ -7,6 +7,25 @@ das Projekt folgt [Semantic Versioning](https://semver.org/lang/de/).
 
 ## [Unreleased]
 
+## [2.10.2] — 2026-05-14
+
+### Behoben (i18n-Lücken im EN-Modus)
+- **„Keine Vorlagen gespeichert."** in der Vorlagen-Sektion blieb
+  deutsch, obwohl der i18n-Key `templates.empty` mit EN-Übersetzung
+  existierte. `renderTemplates()` in [src/js/ui/templates.js](src/js/ui/templates.js)
+  hat den String hardcoded zurückgesetzt — jetzt korrekt via `t()`.
+- **Drag&Drop-Toasts** bei Block-Typen ohne Conditions/Actions
+  (z. B. wenn man einen „Cockpit"-Block ins WENN-Feld zieht) zeigten
+  in EN noch die deutsche Nachricht. Neue i18n-Keys `dnd.no_conditions`
+  und `dnd.no_actions` ergänzt.
+- Modal-Buttons (Abbrechen/OK/Bestätigen) waren bereits korrekt
+  i18n-verkabelt — keine Änderung dort nötig.
+
+### Hinweis
+- Feedback dazu kam von erfahrenen PB-Codern; weitere zwei
+  Etappen (EnsureBlocks → Program(), GetBlocksOfType-Aggregator)
+  folgen als v2.11.0 + v3.0.0.
+
 ## [2.10.1] — 2026-05-14
 
 ### Behoben (Theme-Dropdown teilweise deutsch im EN-Modus)

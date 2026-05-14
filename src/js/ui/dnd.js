@@ -52,13 +52,13 @@ function makeDropTarget(el, kind) {
     if (kind === "cond") {
       // Bedingungen brauchen einen Block-Typ mit conditions
       if ((BLOCKS[blockType].conditions || []).length === 0) {
-        showToast(`"${blockType}" hat keine prüfbaren Eigenschaften`);
+        showToast(t("dnd.no_conditions", blockType));
         return;
       }
       addConditionOfType(blockType);
     } else if (kind === "then" || kind === "else") {
       if ((BLOCKS[blockType].actions || []).length === 0) {
-        showToast(`"${blockType}" hat keine Aktionen`);
+        showToast(t("dnd.no_actions", blockType));
         return;
       }
       addActionOfType(kind, blockType);
