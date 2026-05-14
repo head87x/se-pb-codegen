@@ -45,26 +45,29 @@ const I18N = {
     "desc.trigger.timer1":     "Etwa einmal pro Sekunde",
     "desc.trigger.continuous": "60 mal pro Sekunde (kontinuierlich)",
     // Block-Phrasen — Singular für single-Mode, Plural für group/type
-    "desc.bp.single":          "{0} „{1}\"",
-    "desc.bp.group_pl":        "Blöcken der Gruppe „{0}\"",
-    "desc.bp.type_sc_pl":      "{0}-Blöcken auf diesem Construct",
-    "desc.bp.type_any_pl":     "{0}-Blöcken (inkl. Subgrids)",
-    // Condition-Klauseln — Form: ".. ob [hier] .."
-    // {0}=BlockPhrase, {1}=CondLabel
-    "desc.cc.single":          "am {0} die Bedingung „{1}\" zutrifft",
-    "desc.cc.any":             "an mindestens einem der {0} die Bedingung „{1}\" zutrifft",
-    "desc.cc.all":             "an allen {0} die Bedingung „{1}\" zutrifft",
-    // {0}=Operator-Wort, {1}=Schwellwert, {2}=BlockPhrase, {3}=CondLabel
-    "desc.cc.count":           "an mindestens {1} {2} die Bedingung „{3}\" zutrifft",
-    // {0}=BlockPhrase, {1}=CondLabel, {2}=Operator-Wort, {3}=Schwellwert
-    "desc.cc.sum":             "die Summe der Werte aller {0} (Bedingung „{1}\") {2} {3} ist",
-    "desc.cc.avg":             "der Durchschnitt der Werte aller {0} (Bedingung „{1}\") {2} {3} ist",
-    "desc.cc.min":             "der schwächste Wert über alle {0} (Bedingung „{1}\") {2} {3} ist",
-    "desc.cc.max":             "der stärkste Wert über alle {0} (Bedingung „{1}\") {2} {3} ist",
-    // Action-Klauseln (OHNE "ausgeführt" am Ende — das setzt fmt)
-    // {0}=ActionLabel, {1}=BlockPhrase
-    "desc.ac.single":          "die Aktion „{0}\" an {1}",
-    "desc.ac.multi":           "die Aktion „{0}\" an {1}",
+    // Block-Phrasen Plural (ohne Artikel — Template liefert "der"/"alle")
+    "desc.bp.group_pl":        "Blöcke der Gruppe „{0}\"",
+    "desc.bp.type_sc_pl":      "{0}-Blöcke auf diesem Construct",
+    "desc.bp.type_any_pl":     "{0}-Blöcke (inkl. Subgrids)",
+    // Condition-Klauseln im Nebensatz — Verb am Ende
+    "desc.cc.single":          "{0} {1}",
+    "desc.cc.any":             "mindestens einer der {0} {1}",
+    "desc.cc.all":             "alle {0} {1}",
+    "desc.cc.count":           "mindestens {0} der {1} {2}",
+    // Numerische Aggregatoren — separates Schema mit Property-Label
+    // {0}=Subjekt-Plural, {1}=CondLabel, {2}=Operator-Wort, {3}=Schwellwert
+    "desc.cc.sum":             "die Summe der Werte über alle {0} (Bedingung „{1}\") {2} {3} ist",
+    "desc.cc.avg":             "der Durchschnitt der Werte über alle {0} (Bedingung „{1}\") {2} {3} ist",
+    "desc.cc.min":             "der niedrigste Wert über alle {0} (Bedingung „{1}\") {2} {3} ist",
+    "desc.cc.max":             "der höchste Wert über alle {0} (Bedingung „{1}\") {2} {3} ist",
+    // Action-Klauseln — {0}=Subjekt, {1}=Partizip ("geöffnet", "eingeschaltet")
+    "desc.ac.single":          "{0} wird {1}",
+    "desc.ac.multi":           "alle {0} werden {1}",
+    // Fallbacks für nicht erkannte Labels
+    "desc.predicate.fallback":       "(unbekannte Bedingung)",
+    "desc.predicate.fallback_label": "die Bedingung „{0}\" erfüllt",
+    "desc.action.fallback":          "ausgelöst",
+    "desc.action.fallback_label":    "mit „{0}\" ausgelöst",
     // Listen-Verbinder
     "desc.join.two":           "{0} und {1}",
     "desc.join.many":          "{0} und {1}",
@@ -76,12 +79,13 @@ const I18N = {
     "desc.op.eq":              "gleich",
     "desc.op.neq":             "ungleich",
     // Satz-Vorlagen — {0}=Trigger, {1}=CondJoined, {2}=Verb, {3}=ThenJoined oder ElseJoined
+    // Satz-Vorlagen — {0}=Trigger, {1}=CondJoined/ActionJoined
     "desc.fmt.cond_open":      "{0} prüft das Skript, ob {1}.",
-    "desc.fmt.then_clause":    "Wenn ja, {0} {1} ausgeführt.",
-    "desc.fmt.else_clause":    "Andernfalls {0} {1} ausgeführt.",
+    "desc.fmt.then_clause":    "Wenn ja, {0}.",
+    "desc.fmt.else_clause":    "Andernfalls {0}.",
     "desc.fmt.then_empty":     "Wenn ja, passiert nichts (keine Aktion in DANN definiert).",
-    "desc.fmt.no_cond":        "{0} {1} {2} ausgeführt.",
-    "desc.fmt.only_else":      "{0} {1} {2} ausgeführt — allerdings nur wenn keine Bedingungen erfüllt sind. Da keine Bedingungen definiert sind, läuft dieser Zweig nie.",
+    "desc.fmt.no_cond":        "{0} läuft das Skript und {1}.",
+    "desc.fmt.only_else":      "{0} würde {1} — aber nur falls Bedingungen nicht erfüllt sind. Da keine Bedingungen definiert sind, passiert hier nichts.",
     // Flag-Zeile
     "desc.flag.coroutines":    "🔄 Coroutines aktiv (LCD-Updates über mehrere Ticks verteilt)",
     "desc.flag.auto_recover":  "🛡 Auto-Recovery aktiv (zerstörte Blöcke werden pro Tick neu gesucht)",
@@ -384,20 +388,28 @@ const I18N = {
     "desc.trigger.timer10":    "About 6 times per second",
     "desc.trigger.timer1":     "About once per second",
     "desc.trigger.continuous": "60 times per second (continuously)",
-    "desc.bp.single":          "the {0} \"{1}\"",
+    // Block phrases
     "desc.bp.group_pl":        "the blocks in group \"{0}\"",
     "desc.bp.type_sc_pl":      "all {0} blocks on this construct",
     "desc.bp.type_any_pl":     "all {0} blocks (including subgrids)",
-    "desc.cc.single":          "the condition \"{1}\" is true for {0}",
-    "desc.cc.any":             "the condition \"{1}\" is true for at least one of {0}",
-    "desc.cc.all":             "the condition \"{1}\" is true for all of {0}",
-    "desc.cc.count":           "the condition \"{3}\" is true for at least {1} of {2}",
+    // Condition clauses — verb in the middle (EN style)
+    "desc.cc.single":          "{0} {1}",
+    "desc.cc.any":             "at least one of the {0} {1}",
+    "desc.cc.all":             "all {0} {1}",
+    "desc.cc.count":           "at least {0} of the {1} {2}",
+    // Numeric aggregators — {0}=subject-plural, {1}=cond-label, {2}=op-word, {3}=threshold
     "desc.cc.sum":             "the sum of values over all {0} (condition \"{1}\") is {2} {3}",
     "desc.cc.avg":             "the average of values over all {0} (condition \"{1}\") is {2} {3}",
     "desc.cc.min":             "the lowest value across all {0} (condition \"{1}\") is {2} {3}",
     "desc.cc.max":             "the highest value across all {0} (condition \"{1}\") is {2} {3}",
-    "desc.ac.single":          "the action \"{0}\" on {1}",
-    "desc.ac.multi":           "the action \"{0}\" on {1}",
+    // Action clauses — {0}=subject, {1}=participle ("opened", "turned on")
+    "desc.ac.single":          "{0} is {1}",
+    "desc.ac.multi":           "all {0} are {1}",
+    // Fallbacks
+    "desc.predicate.fallback":       "(unknown condition)",
+    "desc.predicate.fallback_label": "meets the condition \"{0}\"",
+    "desc.action.fallback":          "triggered",
+    "desc.action.fallback_label":    "triggered with \"{0}\"",
     "desc.join.two":           "{0} and {1}",
     "desc.join.many":          "{0} and {1}",
     "desc.op.gt":              "greater than",
@@ -407,11 +419,11 @@ const I18N = {
     "desc.op.eq":              "equal to",
     "desc.op.neq":             "not equal to",
     "desc.fmt.cond_open":      "{0} the script checks whether {1}.",
-    "desc.fmt.then_clause":    "If so, {1} {0} performed.",
-    "desc.fmt.else_clause":    "Otherwise, {1} {0} performed.",
+    "desc.fmt.then_clause":    "If so, {0}.",
+    "desc.fmt.else_clause":    "Otherwise, {0}.",
     "desc.fmt.then_empty":     "If so, nothing happens (no action defined in THEN).",
-    "desc.fmt.no_cond":        "{0} {2} {1} performed.",
-    "desc.fmt.only_else":      "{0} {2} {1} performed — but only when no conditions are met. Since no conditions are defined, this branch never runs.",
+    "desc.fmt.no_cond":        "{0} the script runs and {1}.",
+    "desc.fmt.only_else":      "{0} would {1} — but only when conditions are not met. Since no conditions are defined, nothing happens.",
     "desc.flag.coroutines":    "🔄 Coroutines active (LCD updates spread across multiple ticks)",
     "desc.flag.auto_recover":  "🛡 Auto-recovery active (destroyed blocks are re-fetched each tick)",
     "palette.title":         "▶ BLOCKS",

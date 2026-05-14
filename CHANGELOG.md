@@ -7,6 +7,50 @@ das Projekt folgt [Semantic Versioning](https://semver.org/lang/de/).
 
 ## [Unreleased]
 
+## [3.2.2] — 2026-05-15
+
+### Geändert (Erklärung jetzt wirklich natursprachlich)
+- Die Plain-Language-Beschreibung sagt jetzt z. B. **„ob Tür 1
+  offen ist"** statt **„am Tür „Tür 1" die Bedingung „Ist offen"
+  zutrifft"**. Catalog-Labels werden nicht mehr in Anführungszeichen
+  rezitiert, sondern in lesbare Satzteile umgeformt.
+- Heuristiken:
+  - Boolean-Conditions „Ist X" → „X ist" (Verb am Ende für
+    deutsche Nebensatz-Wortstellung).
+  - „Hat X" → „X hat".
+  - Number-Conditions „Ladung > X %" mit Wert 50 →
+    „mehr als 50 % Ladung hat".
+  - Singular/Plural-Verb-Anpassung für Multi-All/Count: „ist" →
+    „sind", „hat" → „haben".
+  - Action-Labels wie „Öffnen" / „Schließen" → Partizip
+    „geöffnet" / „geschlossen".
+- Override-Map deckt ~30 Spezialfälle pro Sprache (Sensor, Air Vent,
+  Akku, Reaktor, Cargo, Tür, Sound, Antenne, …).
+- Block-Subjekt im Single-Modus ist jetzt nur der Block-Name (ohne
+  Type-Präfix und Anführungszeichen): „Tür 1" statt „Tür „Tür 1"".
+
+### Beispiel-Output
+
+DE:
+> Etwa 6 mal pro Sekunde prüft das Skript, ob Sensor 1 etwas
+> erkannt hat und Hauptakku mehr als 50 % Ladung hat. Wenn ja,
+> Schleuse wird geöffnet und Notlicht wird eingeschaltet.
+
+DE Gruppe + Count:
+> Etwa 6 mal pro Sekunde prüft das Skript, ob mindestens 3 der
+> Blöcke der Gruppe „BatteryGroup" weniger als 20 % Ladung haben.
+> Wenn ja, NotReaktor wird ausgelöst.
+
+DE Type + Sum:
+> Etwa alle 1,6 Sekunden prüft das Skript, ob die Summe der Werte
+> über alle Solarpanel-Blöcke auf diesem Construct (Bedingung
+> „Output > X (kW)") größer als 50 ist. Wenn ja, alle Tür-Blöcke
+> auf diesem Construct werden geschlossen.
+
+EN:
+> About 6 times per second the script checks whether Airlock is
+> open. If so, Light A is turned on.
+
 ## [3.2.1] — 2026-05-14
 
 ### Geändert (Erklärung als Fließtext statt Stichpunkte)
