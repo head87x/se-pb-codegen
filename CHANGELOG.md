@@ -7,6 +7,21 @@ das Projekt folgt [Semantic Versioning](https://semver.org/lang/de/).
 
 ## [Unreleased]
 
+## [3.1.1] — 2026-05-14
+
+### Behoben (Hilfe-Modal: Scroll ging zur Seite, nicht zum Modal)
+- Beim Versuch im Hilfe-Modal zu scrollen lief der Scroll am Modal
+  vorbei direkt zur Seite im Hintergrund. Ursache: `.modal-body`
+  war kein Flex-Container, daher konnte `flex:1` auf der Hilfe-
+  Message-Box keine Höhe aufbauen → kein interner Scroll-Bereich.
+- Fix: `.modal-body` wird beim Hilfe-Modal explizit zum Flex-
+  Container, die Höhen-Kette greift jetzt durch.
+- Zusätzlich `overscroll-behavior: contain` auf Sidebar und Content,
+  damit das Mausrad am Scroll-Ende nicht zur Seite durchrutscht.
+- Bonus für ALLE Modal-Typen: Body-Scroll wird während eines
+  offenen Modals via `body.style.overflow = "hidden"` gesperrt
+  und beim Schließen wieder freigegeben.
+
 ## [3.1.0] — 2026-05-14
 
 ### Hinzugefügt (Hilfe-System — DE + EN)

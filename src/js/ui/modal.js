@@ -47,6 +47,9 @@ function _modalClose(confirmed) {
   const isPrompt = inp && inp.style.display !== "none";
   const result = confirmed ? (isPrompt ? inp.value : true) : (isPrompt ? null : false);
   _modalOverlay.classList.remove("show");
+  // v3.1.0 — Body-Scroll wieder freigeben (verhindert dass die
+  // Seite hinter dem Modal scrollt)
+  document.body.style.overflow = "";
   if (_modalKeyHandler) {
     document.removeEventListener("keydown", _modalKeyHandler);
     _modalKeyHandler = null;
@@ -81,6 +84,7 @@ function _modalShow(opts) {
   return new Promise(resolve => {
     _modalResolve = resolve;
     ov.classList.add("show");
+    document.body.style.overflow = "hidden";
     setTimeout(() => {
       if (opts.hasInput) inp.focus(); else ov.querySelector("#modal-confirm").focus();
       if (opts.hasInput) inp.select();
@@ -203,6 +207,7 @@ function showHelp(sectionId) {
       resolve();
     };
     ov.classList.add("show");
+    document.body.style.overflow = "hidden";
 
     _modalKeyHandler = (e) => {
       if (e.key === "Escape") { e.preventDefault(); _modalClose(false); }
@@ -240,6 +245,7 @@ function showCodeView(code) {
   return new Promise(resolve => {
     _modalResolve = () => resolve();
     ov.classList.add("show");
+    document.body.style.overflow = "hidden";
     setTimeout(() => pre.focus(), 0);
 
     _modalKeyHandler = (e) => {

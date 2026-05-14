@@ -840,11 +840,26 @@ button.small {
   height: 92vh;
   display: flex;
   flex-direction: column;
+  overflow: hidden;
+}
+/* modal-body und modal-actions teilen den Flex-Container der modal-box.
+   modal-body muss flex:1 sein und selbst Flex-Container werden, damit
+   help-modal-message darin auf 100 % Höhe greifen kann. */
+.modal-box:has(.help-modal-wrap) .modal-body {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 10px;
+}
+.modal-box:has(.help-modal-wrap) .modal-actions {
+  flex: 0 0 auto;
 }
 .help-modal-message {
-  flex: 1;
+  flex: 1 1 auto;
   min-height: 0;
   overflow: hidden;
+  display: flex;
 }
 .help-modal-wrap {
   display: flex;
@@ -855,6 +870,7 @@ button.small {
 .help-modal-sidebar {
   flex: 0 0 240px;
   overflow-y: auto;
+  overscroll-behavior: contain;
   padding-right: 6px;
   border-right: 1px solid rgba(var(--shadow-rgb, 0,0,0), 0.4);
   font-family: 'Consolas', monospace;
@@ -893,9 +909,12 @@ button.small {
   flex: 1;
   min-width: 0;
   overflow-y: auto;
+  overscroll-behavior: contain;
   padding: 0 14px 14px 0;
   line-height: 1.55;
   color: var(--fg);
+  /* white-space:pre-wrap der .modal-message überschreiben */
+  white-space: normal;
 }
 .help-modal-content h2 {
   margin-top: 0;
