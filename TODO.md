@@ -13,11 +13,9 @@ festgelegt — wird gepickt, wenn es passt oder Bedarf da ist.
   UI-Sektion bei aktivem Toggle.
 
 Mögliche Erweiterungen:
-- **Aggregator-Semantik für Bedingungen** — „Durchschnitt aller
-  Akkus < 20 %" oder „Summe aller Reaktor-Outputs > 5 MW".
-  Aktuell nur über das Aggregator-LCD-Widget abbildbar, nicht als
-  Bedingung. Würde `list.Average(b => …)` / `list.Sum(b => …)` /
-  `list.Min` / `list.Max` emittieren.
+- ~~**Aggregator-Semantik für Bedingungen**~~ — **Erledigt in v3.0.0**:
+  alle 7 Modi (any/all/count/sum/avg/min/max) für Gruppen UND
+  „Alle Blöcke vom Typ".
 
 ### Mehrere unabhängige WENN/DANN-Pakete pro Skript
 Aktuell gibt es genau ein WENN/DANN/SONST pro generiertem Skript.

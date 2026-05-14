@@ -31,9 +31,17 @@ function addConditionOfType(blockType) {
     arg: "",
     arg2: "",
     logicOp: "AND",
+    // v3.0.0 — Block-Source-Modus: single | group | type
+    blockSource: "single",
+    sameConstruct: true,         // nur bei blockSource === "type"
+    // Aggregator (nur bei group/type): any | all | count | sum | avg | min | max
+    aggregateMode: "any",
+    aggregateThreshold: 1,
+    aggregateOp: ">=",           // ">" | "<" | ">=" | "<=" | "==" | "!="
+    // Backwards-Compat-Felder (gelesen wenn vorhanden, aber nicht mehr neu gesetzt):
     useGroup: false,
-    groupSemantic: "any",   // "any" | "all" | "count"
-    groupCount: 1            // nur relevant bei groupSemantic === "count"
+    groupSemantic: "any",
+    groupCount: 1
   });
   render();
 }
@@ -62,20 +70,57 @@ function updateCond(i, field, val) {
     return;
   }
   if (field === "useGroup") {
-    // Strukturwechsel: Label "Block-Name" ↔ "Gruppen-Name" + Generator
+    // Backwards-Compat: alte Vorlagen können noch direkten useGroup-Schalter haben.
     state.conditions[i].useGroup = !!val;
+    state.conditions[i].blockSource = val ? "group" : "single";
     render();
     return;
   }
   if (field === "groupSemantic") {
-    // Strukturwechsel: count blendet Count-Input ein
+    // Backwards-Compat — mappt auf aggregateMode
     state.conditions[i].groupSemantic = val || "any";
+    state.conditions[i].aggregateMode = val || "any";
     render();
     return;
   }
   if (field === "groupCount") {
     const n = parseInt(val, 10);
-    state.conditions[i].groupCount = isNaN(n) ? 1 : Math.max(1, n);
+    const clamped = isNaN(n) ? 1 : Math.max(1, n);
+    state.conditions[i].groupCount = clamped;
+    state.conditions[i].aggregateThreshold = clamped;
+    generateCode();
+    return;
+  }
+  // v3.0.0 — neue Felder
+  if (field === "blockSource") {
+    // single | group | type — Strukturwechsel: Label + Felder
+    state.conditions[i].blockSource = val || "single";
+    // useGroup synchronisieren für Backwards-Compat im Codegen
+    state.conditions[i].useGroup = (val === "group");
+    render();
+    return;
+  }
+  if (field === "sameConstruct") {
+    state.conditions[i].sameConstruct = !!val;
+    generateCode();
+    return;
+  }
+  if (field === "aggregateMode") {
+    // Strukturwechsel: sum/avg/min/max blendet Threshold+Op ein
+    state.conditions[i].aggregateMode = val || "any";
+    state.conditions[i].groupSemantic = val || "any";  // sync
+    render();
+    return;
+  }
+  if (field === "aggregateThreshold") {
+    const n = parseFloat(val);
+    state.conditions[i].aggregateThreshold = isNaN(n) ? 0 : n;
+    state.conditions[i].groupCount = isNaN(n) ? 1 : Math.max(1, Math.round(n));  // sync
+    generateCode();
+    return;
+  }
+  if (field === "aggregateOp") {
+    state.conditions[i].aggregateOp = val || ">=";
     generateCode();
     return;
   }
@@ -102,7 +147,11 @@ function addActionOfType(which, blockType) {
     actId: def.actions[0].id,
     arg: "",
     arg2: "",
-    useGroup: false
+    // v3.0.0 — gleicher Block-Source-Modus wie Conditions
+    blockSource: "single",   // single | group | type
+    sameConstruct: true,
+    // Bei Actions kein Aggregator — foreach wird automatisch genutzt bei group/type
+    useGroup: false           // Backwards-Compat
   });
   render();
 }
@@ -132,7 +181,20 @@ function updateAct(which, i, field, val) {
   }
   if (field === "useGroup") {
     list[i].useGroup = !!val;
+    list[i].blockSource = val ? "group" : "single";
     render();
+    return;
+  }
+  // v3.0.0 — gleicher Block-Source-Switch wie bei Conditions
+  if (field === "blockSource") {
+    list[i].blockSource = val || "single";
+    list[i].useGroup = (val === "group");
+    render();
+    return;
+  }
+  if (field === "sameConstruct") {
+    list[i].sameConstruct = !!val;
+    generateCode();
     return;
   }
   // blockName, arg, arg2: reine Werteänderung

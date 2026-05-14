@@ -123,13 +123,27 @@ function _shareApplyDefensiveDefaults() {
   }
   if (typeof state.useCoroutines !== "boolean") state.useCoroutines = false;
   if (typeof state.autoRecoverBlocks !== "boolean") state.autoRecoverBlocks = false;
-  // v2.4.0: Gruppen-Semantik defaulten
+  // v2.4.0: Gruppen-Semantik defaulten + v3.0.0 Migration
   if (Array.isArray(state.conditions)) {
     for (const c of state.conditions) {
       if (typeof c.groupSemantic !== "string") c.groupSemantic = "any";
       if (typeof c.groupCount !== "number") c.groupCount = 1;
+      if (typeof c.blockSource !== "string") c.blockSource = c.useGroup ? "group" : "single";
+      if (typeof c.sameConstruct !== "boolean") c.sameConstruct = true;
+      if (typeof c.aggregateMode !== "string") c.aggregateMode = c.groupSemantic || "any";
+      if (typeof c.aggregateThreshold !== "number") c.aggregateThreshold = c.groupCount || 1;
+      if (typeof c.aggregateOp !== "string") c.aggregateOp = ">=";
     }
   }
+  const _shareMigActs = (arr) => {
+    if (!Array.isArray(arr)) return;
+    for (const a of arr) {
+      if (typeof a.blockSource !== "string") a.blockSource = a.useGroup ? "group" : "single";
+      if (typeof a.sameConstruct !== "boolean") a.sameConstruct = true;
+    }
+  };
+  _shareMigActs(state.actionsThen);
+  _shareMigActs(state.actionsElse);
   // v2.8.0: scriptInfo defaulten
   if (!state.scriptInfo) {
     state.scriptInfo = { enabled: false, name: "", author: "", version: "", description: "", tags: "" };

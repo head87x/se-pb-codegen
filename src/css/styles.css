@@ -548,6 +548,53 @@ input, select, textarea {
   user-select: none;
   border-radius: 2px;
 }
+/* v3.0.0 — 3-Wege-Block-Source-Auswahl (Pills) */
+.block-source-row {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 6px 0 4px;
+  padding: 4px 8px;
+  background: rgba(var(--shadow-rgb), 0.12);
+  border-left: 2px solid var(--accent-2);
+  border-radius: 2px;
+  font-size: 11px;
+  font-family: 'Consolas', monospace;
+  color: var(--muted);
+}
+.bsource-label {
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  white-space: nowrap;
+}
+.bsource-pills {
+  display: flex;
+  gap: 4px;
+}
+.bsource-pills button.small {
+  opacity: 0.6;
+}
+.bsource-pills button.small.active {
+  opacity: 1;
+  background: var(--accent);
+  color: var(--panel);
+  border-color: var(--accent);
+}
+.same-construct-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin-left: auto;
+  cursor: pointer;
+  font-size: 11px;
+}
+.same-construct-toggle input[type="checkbox"] {
+  width: auto;
+  margin: 0;
+  accent-color: var(--accent);
+  cursor: pointer;
+}
 .group-toggle input[type="checkbox"] {
   width: auto;
   margin: 0;

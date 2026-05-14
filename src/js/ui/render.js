@@ -142,6 +142,14 @@ function renderConditions() {
             <label>${escapeHtml(cond.arg2)}</label>
             ${_argField({kind:"cond", i, field:"arg2"}, c.arg2, cond.arg2Type, cond.arg2)}
           </div>` : "";
+    // v3.0.0 — Block-Source-Modus mit 3-Wege-Auswahl
+    const src = c.blockSource || (c.useGroup ? "group" : "single");
+    const isType  = src === "type";
+    const isGroup = src === "group";
+    const isMulti = isType || isGroup;
+    const aggMode = c.aggregateMode || c.groupSemantic || "any";
+    const showThreshold = (aggMode === "count" || aggMode === "sum" || aggMode === "avg" || aggMode === "min" || aggMode === "max");
+    const nameLabel = isType ? null : (isGroup ? "group.name" : "block.name");
     return `
       ${logicSelect}
       <div class="condition-block">
@@ -149,38 +157,63 @@ function renderConditions() {
           <span>${escapeHtml(t("cond.add").replace(/^\+\s*/, "").toUpperCase())} #${i + 1}</span>
           <button class="small danger" onclick="removeCond(${i})">${escapeHtml(t("btn.remove"))}</button>
         </div>
-        <div class="row row-2">
+        <div class="row ${isType ? "" : "row-2"}">
           <div>
             <label>${escapeHtml(t("label.blocktype"))}</label>
             <select onchange="updateCond(${i}, 'blockType', this.value)">${blockTypeOptions('conditions')}</select>
           </div>
+          ${isType ? "" : `
           <div>
-            <label>${escapeHtml(t(c.useGroup ? "group.name" : "block.name"))}</label>
+            <label>${escapeHtml(t(nameLabel))}</label>
             ${_blockNameInputHtml(
               c.blockName,
               `updateCond(${i}, 'blockName', this.value)`,
-              t(c.useGroup ? "group.name_ph" : "block.name_ph")
+              t(isGroup ? "group.name_ph" : "block.name_ph")
             )}
-          </div>
+          </div>`}
         </div>
-        <label class="group-toggle">
-          <input type="checkbox" ${c.useGroup ? "checked" : ""} onchange="updateCond(${i}, 'useGroup', this.checked)">
-          ${escapeHtml(t("group.cond"))}
-        </label>
-        ${c.useGroup ? `
-        <div class="row ${c.groupSemantic === "count" ? "row-2" : ""}" style="margin-bottom:6px;">
+        <div class="block-source-row">
+          <label class="bsource-label">${escapeHtml(t("source.label"))}</label>
+          <div class="bsource-pills">
+            <button class="small${src === "single" ? " active" : ""}" onclick="updateCond(${i}, 'blockSource', 'single')">${escapeHtml(t("source.single"))}</button>
+            <button class="small${src === "group"  ? " active" : ""}" onclick="updateCond(${i}, 'blockSource', 'group')">${escapeHtml(t("source.group"))}</button>
+            <button class="small${src === "type"   ? " active" : ""}" onclick="updateCond(${i}, 'blockSource', 'type')">${escapeHtml(t("source.type"))}</button>
+          </div>
+          ${isType ? `
+          <label class="same-construct-toggle">
+            <input type="checkbox" ${c.sameConstruct !== false ? "checked" : ""} onchange="updateCond(${i}, 'sameConstruct', this.checked)">
+            ${escapeHtml(t("source.same_construct"))}
+          </label>` : ""}
+        </div>
+        ${isMulti ? `
+        <div class="row ${showThreshold ? "row-3" : ""}" style="margin-bottom:6px;">
           <div>
-            <label>${escapeHtml(t("group.semantic.label"))}</label>
-            <select onchange="updateCond(${i}, 'groupSemantic', this.value)">
-              <option value="any"   ${c.groupSemantic === "any"   ? "selected" : ""}>${escapeHtml(t("group.semantic.any"))}</option>
-              <option value="all"   ${c.groupSemantic === "all"   ? "selected" : ""}>${escapeHtml(t("group.semantic.all"))}</option>
-              <option value="count" ${c.groupSemantic === "count" ? "selected" : ""}>${escapeHtml(t("group.semantic.count"))}</option>
+            <label>${escapeHtml(t("agg.mode.label"))}</label>
+            <select onchange="updateCond(${i}, 'aggregateMode', this.value)">
+              <option value="any"   ${aggMode === "any"   ? "selected" : ""}>${escapeHtml(t("agg.mode.any"))}</option>
+              <option value="all"   ${aggMode === "all"   ? "selected" : ""}>${escapeHtml(t("agg.mode.all"))}</option>
+              <option value="count" ${aggMode === "count" ? "selected" : ""}>${escapeHtml(t("agg.mode.count"))}</option>
+              <option value="sum"   ${aggMode === "sum"   ? "selected" : ""}>${escapeHtml(t("agg.mode.sum"))}</option>
+              <option value="avg"   ${aggMode === "avg"   ? "selected" : ""}>${escapeHtml(t("agg.mode.avg"))}</option>
+              <option value="min"   ${aggMode === "min"   ? "selected" : ""}>${escapeHtml(t("agg.mode.min"))}</option>
+              <option value="max"   ${aggMode === "max"   ? "selected" : ""}>${escapeHtml(t("agg.mode.max"))}</option>
             </select>
           </div>
-          ${c.groupSemantic === "count" ? `
+          ${showThreshold ? `
           <div>
-            <label>${escapeHtml(t("group.count.label"))}</label>
-            <input type="number" min="1" step="1" value="${escapeAttr(c.groupCount || 1)}" oninput="updateCond(${i}, 'groupCount', this.value)">
+            <label>${escapeHtml(t("agg.op.label"))}</label>
+            <select onchange="updateCond(${i}, 'aggregateOp', this.value)">
+              <option value=">"  ${(c.aggregateOp || ">=") === ">"  ? "selected" : ""}>${escapeHtml(t("agg.op.gt"))}</option>
+              <option value=">=" ${(c.aggregateOp || ">=") === ">=" ? "selected" : ""}>${escapeHtml(t("agg.op.gte"))}</option>
+              <option value="<"  ${(c.aggregateOp || ">=") === "<"  ? "selected" : ""}>${escapeHtml(t("agg.op.lt"))}</option>
+              <option value="<=" ${(c.aggregateOp || ">=") === "<=" ? "selected" : ""}>${escapeHtml(t("agg.op.lte"))}</option>
+              <option value="==" ${(c.aggregateOp || ">=") === "==" ? "selected" : ""}>${escapeHtml(t("agg.op.eq"))}</option>
+              <option value="!=" ${(c.aggregateOp || ">=") === "!=" ? "selected" : ""}>${escapeHtml(t("agg.op.neq"))}</option>
+            </select>
+          </div>
+          <div>
+            <label>${escapeHtml(t("agg.threshold.label"))}</label>
+            <input type="number" step="any" value="${escapeAttr((c.aggregateThreshold != null ? c.aggregateThreshold : (c.groupCount || 1)))}" oninput="updateCond(${i}, 'aggregateThreshold', this.value)">
           </div>` : ""}
         </div>` : ""}
         <div class="row ${rowClass}">
@@ -227,30 +260,44 @@ function renderActions(which) {
             <label>${escapeHtml(act.arg2)}</label>
             ${_argField({kind:"act", which, i, field:"arg2"}, a.arg2, act.arg2Type, act.arg2)}
           </div>` : "";
+    const asrc = a.blockSource || (a.useGroup ? "group" : "single");
+    const aIsType  = asrc === "type";
+    const aIsGroup = asrc === "group";
+    const aNameLabel = aIsType ? null : (aIsGroup ? "group.name" : "block.name");
     return `
       <div class="action-block ${which === "else" ? "else-block" : ""}">
         <div class="act-header">
           <span>${escapeHtml(t("label.action").toUpperCase())} #${i + 1}</span>
           <button class="small danger" onclick="removeAct('${which}', ${i})">${escapeHtml(t("btn.remove"))}</button>
         </div>
-        <div class="row row-2">
+        <div class="row ${aIsType ? "" : "row-2"}">
           <div>
             <label>${escapeHtml(t("label.blocktype"))}</label>
             <select onchange="updateAct('${which}', ${i}, 'blockType', this.value)">${blockTypeOptions('actions')}</select>
           </div>
+          ${aIsType ? "" : `
           <div>
-            <label>${escapeHtml(t(a.useGroup ? "group.name" : "block.name"))}</label>
+            <label>${escapeHtml(t(aNameLabel))}</label>
             ${_blockNameInputHtml(
               a.blockName,
               `updateAct('${which}', ${i}, 'blockName', this.value)`,
-              t(a.useGroup ? "group.name_ph" : "block.name_ph")
+              t(aIsGroup ? "group.name_ph" : "block.name_ph")
             )}
-          </div>
+          </div>`}
         </div>
-        <label class="group-toggle">
-          <input type="checkbox" ${a.useGroup ? "checked" : ""} onchange="updateAct('${which}', ${i}, 'useGroup', this.checked)">
-          ${escapeHtml(t("group.act"))}
-        </label>
+        <div class="block-source-row">
+          <label class="bsource-label">${escapeHtml(t("source.label"))}</label>
+          <div class="bsource-pills">
+            <button class="small${asrc === "single" ? " active" : ""}" onclick="updateAct('${which}', ${i}, 'blockSource', 'single')">${escapeHtml(t("source.single"))}</button>
+            <button class="small${asrc === "group"  ? " active" : ""}" onclick="updateAct('${which}', ${i}, 'blockSource', 'group')">${escapeHtml(t("source.group"))}</button>
+            <button class="small${asrc === "type"   ? " active" : ""}" onclick="updateAct('${which}', ${i}, 'blockSource', 'type')">${escapeHtml(t("source.type"))}</button>
+          </div>
+          ${aIsType ? `
+          <label class="same-construct-toggle">
+            <input type="checkbox" ${a.sameConstruct !== false ? "checked" : ""} onchange="updateAct('${which}', ${i}, 'sameConstruct', this.checked)">
+            ${escapeHtml(t("source.same_construct"))}
+          </label>` : ""}
+        </div>
         <div class="row ${rowClass}">
           <div>
             <label>${escapeHtml(t("label.action"))} ${tooltipBadge(a.blockType, a.actId, 'actions')}</label>

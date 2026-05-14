@@ -32,6 +32,45 @@ function condExpr(c, varName) {
   return expr;
 }
 
+// v3.0.0 — Extrahiert nur den Property-Teil aus einer Condition-expr,
+// also alles VOR dem Vergleichsoperator. Wird für Aggregator-Modi
+// Sum/Avg/Min/Max benötigt (für Any/All/Count nehmen wir die volle expr).
+// Wenn der Catalog-Eintrag ein explizites `prop`-Feld hat, nimm das.
+// Sonst Heuristik: finde den ersten Vergleichsoperator und nimm alles davor.
+function condPropExpr(cond, varName) {
+  if (!cond) return varName;
+  let propRaw = cond.prop;
+  if (!propRaw) {
+    const raw = cond.expr || varName;
+    // Multi-Char-Operatoren zuerst! (>=, <=, ==, !=)
+    const ops = [" >= ", " <= ", " == ", " != ", " > ", " < "];
+    let idx = -1, opLen = 0;
+    for (const op of ops) {
+      const i = raw.indexOf(op);
+      if (i !== -1 && (idx === -1 || i < idx)) { idx = i; opLen = op.length; }
+    }
+    propRaw = (idx === -1) ? raw : raw.slice(0, idx);
+  }
+  return propRaw.replace(/\{v\}/g, varName);
+}
+
+// Erzeugt eine C#-Lambda-Expression für eine Condition mit dem
+// internen Block-Variablennamen "_b" (für .Any()/.All()/.Count()/.Sum()/etc.).
+function condLambda(c, isPropOnly) {
+  const cond = findCond(c.blockType, c.condId);
+  if (!cond) return "true";
+  if (isPropOnly) {
+    return condPropExpr(cond, "_b");
+  }
+  return condExpr(c, "_b");
+}
+
+// Map "any"/"all"/... → LINQ-Methodenname
+const _AGG_METHOD = {
+  any: "Any", all: "All", count: "Count",
+  sum: "Sum", avg: "Average", min: "Min", max: "Max"
+};
+
 function actCode(a, varName) {
   const act = findAct(a.blockType, a.actId);
   if (!act) return "// (keine Aktion)";
@@ -76,25 +115,50 @@ function actCode(a, varName) {
 
 function generateCode() {
   // Block-Sammlung — eindeutige Einträge in blockMap.
+  // v3.0.0 — drei Modi: "single" / "group" / "type".
+  // Für "type" ist blockName nicht relevant; wir keyen über Block-Typ + sameConstruct,
+  // damit zwei Conditions auf demselben Type+sameConstruct dieselbe Liste teilen.
   const blockMap = new Map();
-  const ensureBlock = (blockType, blockName, useGroup) => {
-    if (!blockName || !blockName.trim()) return null;
-    const key = blockName + "::" + blockType + "::" + (useGroup ? "g" : "s");
+  const _resolveSource = (item) => {
+    // Neue Form bevorzugen, sonst aus useGroup ableiten
+    if (item.blockSource) return item.blockSource;
+    if (item.useGroup) return "group";
+    return "single";
+  };
+  const ensureBlock = (blockType, blockName, blockSourceArg, sameConstruct) => {
+    const src = (typeof blockSourceArg === "boolean")
+      ? (blockSourceArg ? "group" : "single")    // alte Aufrufer übergeben useGroup als Boolean
+      : (blockSourceArg || "single");
+    if (src !== "type" && (!blockName || !blockName.trim())) return null;
+    const sameC = (sameConstruct !== false);   // default true
+    const key = (src === "type")
+      ? "__type::" + blockType + "::" + (sameC ? "sc" : "all")
+      : blockName + "::" + blockType + "::" + (src === "group" ? "g" : "s");
     if (blockMap.has(key)) return blockMap.get(key);
     const def = BLOCKS[blockType];
+    let varName;
+    if (src === "type") {
+      // _allDoor_0, _allSolarPanel_1 …
+      const ifaceShort = (def.interface || "Block").replace(/^IMy/, "");
+      varName = "_all" + ifaceShort + "_" + blockMap.size;
+    } else {
+      varName = safeVar(blockName, "_" + blockMap.size);
+    }
     const entry = {
-      varName: safeVar(blockName, "_" + blockMap.size),
+      varName,
       blockType, blockName,
       interface: def.interface,
-      isGroup: !!useGroup
+      blockSource: src,
+      sameConstruct: sameC,
+      isGroup: (src === "group")    // Backwards-Compat
     };
     blockMap.set(key, entry);
     return entry;
   };
 
-  state.conditions.forEach(c => ensureBlock(c.blockType, c.blockName, c.useGroup));
-  state.actionsThen.forEach(a => ensureBlock(a.blockType, a.blockName, a.useGroup));
-  state.actionsElse.forEach(a => ensureBlock(a.blockType, a.blockName, a.useGroup));
+  state.conditions.forEach(c => ensureBlock(c.blockType, c.blockName, _resolveSource(c), c.sameConstruct));
+  state.actionsThen.forEach(a => ensureBlock(a.blockType, a.blockName, _resolveSource(a), a.sameConstruct));
+  state.actionsElse.forEach(a => ensureBlock(a.blockType, a.blockName, _resolveSource(a), a.sameConstruct));
 
   // LCD-Composer-Code vorab bauen, damit Source-Blöcke + composer-Felder
   // in den Cache fließen.
@@ -179,8 +243,11 @@ function generateCode() {
     code += `// ${_t("gen.cmt.no_blocks")}\n`;
   }
   for (const e of blockMap.values()) {
-    if (e.isGroup) {
+    if (e.blockSource === "group") {
       code += `IMyBlockGroup ${e.varName}_grp;\n`;
+      code += `List<${e.interface}> ${e.varName};\n`;
+    } else if (e.blockSource === "type") {
+      // v3.0.0 — alle Blöcke des Interface-Typs
       code += `List<${e.interface}> ${e.varName};\n`;
     } else {
       code += `${e.interface} ${e.varName};\n`;
@@ -229,13 +296,21 @@ function generateCode() {
     code += "{\n";
     code += "    _initFailed = false;\n";
     for (const e of blockMap.values()) {
-      if (e.isGroup) {
+      if (e.blockSource === "group") {
         code += `    ${e.varName}_grp = GridTerminalSystem.GetBlockGroupWithName("${escapeCs(e.blockName)}");\n`;
         code += `    if (${e.varName}_grp == null) { Echo("${escapeCs(_t("gen.err.group", e.blockName))}"); _initFailed = true; }\n`;
         code += `    else {\n`;
         code += `        ${e.varName} = new List<${e.interface}>();\n`;
         code += `        ${e.varName}_grp.GetBlocksOfType(${e.varName});\n`;
         code += `    }\n`;
+      } else if (e.blockSource === "type") {
+        // v3.0.0 — alle Blöcke des Interface-Typs, optional IsSameConstructAs(Me)
+        code += `    ${e.varName} = new List<${e.interface}>();\n`;
+        if (e.sameConstruct) {
+          code += `    GridTerminalSystem.GetBlocksOfType(${e.varName}, _b => _b.IsSameConstructAs(Me));\n`;
+        } else {
+          code += `    GridTerminalSystem.GetBlocksOfType(${e.varName});\n`;
+        }
       } else {
         code += `    ${e.varName} = GridTerminalSystem.GetBlockWithName("${escapeCs(e.blockName)}") as ${e.interface};\n`;
         code += `    if (${e.varName} == null) { Echo("${escapeCs(_t("gen.err.block", e.blockName))}"); _initFailed = true; }\n`;
@@ -249,12 +324,12 @@ function generateCode() {
     code += "}\n\n";
   }
 
-  // ---------- v2.11.0: RefreshBlocks (pro Tick — Gruppen-Refresh + opt. Closed-Rechecks) ----------
-  // Wird nur emittiert wenn nötig: Gruppen (immer refresh), autoRecover (closed-rechecks),
-  // oder Composer-Refresh/ClosedRecheck.
-  const groupCount = Array.from(blockMap.values()).filter(e => e.isGroup).length;
-  const singleCount = blockMap.size - groupCount;
+  // ---------- v2.11.0/v3.0.0: RefreshBlocks (pro Tick) ----------
+  const groupCount = Array.from(blockMap.values()).filter(e => e.blockSource === "group").length;
+  const typeCount  = Array.from(blockMap.values()).filter(e => e.blockSource === "type").length;
+  const singleCount = blockMap.size - groupCount - typeCount;
   const needsRefresh = groupCount > 0
+                    || typeCount > 0
                     || !!composerRefresh
                     || (autoRecover && (singleCount > 0 || lcdStatusEnabled || !!composerClosedRecheck));
   if (needsRefresh) {
@@ -264,7 +339,7 @@ function generateCode() {
     // Single-Block-Closed-Rechecks (nur bei autoRecover)
     if (autoRecover) {
       for (const e of blockMap.values()) {
-        if (e.isGroup) continue;
+        if (e.blockSource !== "single") continue;
         code += `    if (${e.varName} == null || ${e.varName}.Closed)\n`;
         code += `        ${e.varName} = GridTerminalSystem.GetBlockWithName("${escapeCs(e.blockName)}") as ${e.interface};\n`;
       }
@@ -275,11 +350,21 @@ function generateCode() {
     }
     // Gruppen-Listen IMMER refreshen (Mitglieder können sich ändern)
     for (const e of blockMap.values()) {
-      if (!e.isGroup) continue;
+      if (e.blockSource !== "group") continue;
       code += `    if (${e.varName}_grp != null && ${e.varName} != null) {\n`;
       code += `        ${e.varName}.Clear();\n`;
       code += `        ${e.varName}_grp.GetBlocksOfType(${e.varName});\n`;
       code += `    }\n`;
+    }
+    // Type-Listen IMMER refreshen (neue Blöcke vom Typ können hinzukommen)
+    for (const e of blockMap.values()) {
+      if (e.blockSource !== "type") continue;
+      code += `    ${e.varName}.Clear();\n`;
+      if (e.sameConstruct) {
+        code += `    GridTerminalSystem.GetBlocksOfType(${e.varName}, _b => _b.IsSameConstructAs(Me));\n`;
+      } else {
+        code += `    GridTerminalSystem.GetBlocksOfType(${e.varName});\n`;
+      }
     }
     // Composer-Refresh (Aggregator-Listen — immer)
     if (composerRefresh) code += composerRefresh;
@@ -311,20 +396,40 @@ function generateCode() {
   if (state.conditions.length > 0) {
     const parts = [];
     state.conditions.forEach((c, i) => {
-      const blockEntry = ensureBlock(c.blockType, c.blockName, c.useGroup);
+      const src = _resolveSource(c);
+      const blockEntry = ensureBlock(c.blockType, c.blockName, src, c.sameConstruct);
       if (!blockEntry) return;
-      // Gruppen-Bedingung: any / all / count(>= X), sonst direkter Ausdruck
+      // v3.0.0 — Aggregator-Suite wirkt auf Group und Type. Single = direkter Ausdruck.
       let e;
-      if (blockEntry.isGroup) {
-        const inner = condExpr(c, "_b");
-        const sem = c.groupSemantic || "any";
-        if (sem === "all") {
-          e = `${blockEntry.varName}.All(_b => ${inner})`;
-        } else if (sem === "count") {
-          const n = Math.max(1, parseInt(c.groupCount, 10) || 1);
-          e = `${blockEntry.varName}.Count(_b => ${inner}) >= ${n}`;
+      if (blockEntry.blockSource === "group" || blockEntry.blockSource === "type") {
+        const mode = (c.aggregateMode || c.groupSemantic || "any").toLowerCase();
+        const op   = c.aggregateOp || ">=";
+        const thr  = (typeof c.aggregateThreshold === "number")
+          ? c.aggregateThreshold
+          : (parseFloat(c.aggregateThreshold) || (c.groupCount || 1));
+        const list = blockEntry.varName;
+        if (mode === "all") {
+          e = `${list}.All(_b => ${condExpr(c, "_b")})`;
+        } else if (mode === "count") {
+          e = `${list}.Count(_b => ${condExpr(c, "_b")}) ${op} ${thr}`;
+        } else if (mode === "sum" || mode === "avg" || mode === "min" || mode === "max") {
+          const method = _AGG_METHOD[mode];
+          const prop = condLambda(c, true);
+          const thrLit = (mode === "min" || mode === "max" || mode === "avg" || mode === "sum")
+            ? (Number.isInteger(thr) ? thr + "f" : thr + "f")
+            : thr;
+          // Schutz vor leeren Listen bei Min/Max: wir wrappen in Count > 0
+          if (mode === "min" || mode === "max") {
+            e = `(${list}.Count > 0 && ${list}.${method}(_b => ${prop}) ${op} ${thrLit})`;
+          } else if (mode === "avg") {
+            e = `(${list}.Count > 0 && ${list}.${method}(_b => ${prop}) ${op} ${thrLit})`;
+          } else {
+            // sum: leere Liste = 0
+            e = `(${list}.${method}(_b => ${prop}) ${op} ${thrLit})`;
+          }
         } else {
-          e = `${blockEntry.varName}.Any(_b => ${inner})`;
+          // any (default)
+          e = `${list}.Any(_b => ${condExpr(c, "_b")})`;
         }
       } else {
         e = condExpr(c, blockEntry.varName);
@@ -346,12 +451,14 @@ function generateCode() {
   code += "    {\n";
 
   const emitAction = (a, prefix) => {
-    const blockEntry = ensureBlock(a.blockType, a.blockName, a.useGroup);
+    const src = _resolveSource(a);
+    const blockEntry = ensureBlock(a.blockType, a.blockName, src, a.sameConstruct);
     if (!blockEntry) {
       code += `        // ${_t("gen.cmt.no_act")}\n`;
       return;
     }
-    if (blockEntry.isGroup) {
+    // v3.0.0 — group + type laufen beide als foreach
+    if (blockEntry.blockSource === "group" || blockEntry.blockSource === "type") {
       const inner = actCode(a, "_b");
       code += `        foreach (var _b in ${blockEntry.varName}) { ${inner} }\n`;
     } else {

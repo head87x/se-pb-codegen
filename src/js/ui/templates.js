@@ -43,12 +43,33 @@ function loadTemplate(i) {
   // v2.11.0: autoRecoverBlocks-Toggle defensiv defaulten
   if (typeof state.autoRecoverBlocks !== "boolean") state.autoRecoverBlocks = false;
   // v2.4.0: Gruppen-Semantik defaulten (alte Vorlagen kannten nur "any")
+  // v3.0.0: zusätzlich blockSource/sameConstruct/aggregateMode/aggregateThreshold/aggregateOp
+  // migrieren — aus useGroup/groupSemantic/groupCount ableiten.
   if (Array.isArray(state.conditions)) {
     for (const c of state.conditions) {
       if (typeof c.groupSemantic !== "string") c.groupSemantic = "any";
       if (typeof c.groupCount !== "number") c.groupCount = 1;
+      if (typeof c.blockSource !== "string") {
+        c.blockSource = c.useGroup ? "group" : "single";
+      }
+      if (typeof c.sameConstruct !== "boolean") c.sameConstruct = true;
+      if (typeof c.aggregateMode !== "string") c.aggregateMode = c.groupSemantic || "any";
+      if (typeof c.aggregateThreshold !== "number") c.aggregateThreshold = c.groupCount || 1;
+      if (typeof c.aggregateOp !== "string") c.aggregateOp = ">=";
     }
   }
+  // Actions bekommen blockSource/sameConstruct analog (kein Aggregator)
+  const _migrateActs = (arr) => {
+    if (!Array.isArray(arr)) return;
+    for (const a of arr) {
+      if (typeof a.blockSource !== "string") {
+        a.blockSource = a.useGroup ? "group" : "single";
+      }
+      if (typeof a.sameConstruct !== "boolean") a.sameConstruct = true;
+    }
+  };
+  _migrateActs(state.actionsThen);
+  _migrateActs(state.actionsElse);
   // v2.8.0: scriptInfo defaulten (alte Vorlagen haben das Feld nicht)
   if (!state.scriptInfo) {
     state.scriptInfo = { enabled: false, name: "", author: "", version: "", description: "", tags: "" };

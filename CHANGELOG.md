@@ -7,6 +7,109 @@ das Projekt folgt [Semantic Versioning](https://semver.org/lang/de/).
 
 ## [Unreleased]
 
+## [3.0.0] — 2026-05-14
+
+### Hinzugefügt (Etappe 3/3 aus Expert-Feedback — die größte)
+
+**Block-Quelle: 3-Wege-Auswahl pro Bedingung/Aktion**
+
+Bisher gab's zwei Modi pro Bedingung: Einzelblock (Name) oder
+Block-Gruppe (Gruppen-Name). Jetzt drei:
+
+- **Einzelblock** — wie bisher.
+- **Block-Gruppe** — wie bisher.
+- **Alle Blöcke vom Typ** — neu! Erfasst automatisch ALLE Blöcke
+  eines Interface-Typs auf dem Grid (z. B. „alle Solarpanels",
+  „alle Türen") **ohne** dass man eine benannte Gruppe anlegen
+  muss. Im Code: `GridTerminalSystem.GetBlocksOfType<IMy...>()`.
+
+**`IsSameConstructAs(Me)`-Filter**
+
+Bei „Alle Blöcke vom Typ" steht eine zusätzliche Checkbox
+**„Nur dieser Construct (kein Subgrid)"** (Default an). Wenn an,
+werden Subgrid-Blöcke (an Rotor-Köpfen, Pisten, Hangars) **nicht**
+mitgezählt. Wichtig bei Bohrgrids, Geschützen, beweglichen Teilen.
+Wenn aus: alle Subgrids inklusive.
+
+**Aggregator-Suite — 7 Modi für Gruppen UND Typen**
+
+Bisher konnten Gruppen nur Any/All/Count. Jetzt sieben Modi für
+Gruppen UND für „Alle Blöcke vom Typ":
+
+- **Any** — mindestens ein Block erfüllt die Bedingung.
+- **All** — alle erfüllen.
+- **Count** — wieviele erfüllen, vergleichen gegen Schwellwert
+  (z. B. „mindestens 3 Akkus unter 20 %").
+- **Sum** — Summe einer numerischen Property, vergleichen
+  (z. B. „Summe aller Solar-Outputs > 50 kW" — genau der Use-Case
+  aus dem Reviewer-Feedback).
+- **Avg** — Durchschnitt.
+- **Min** — kleinster Wert.
+- **Max** — größter Wert.
+
+Für Sum/Avg/Min/Max wird die numerische Property automatisch aus
+der gewählten Bedingung extrahiert (Heuristik: alles vor dem
+Vergleichsoperator). Plus Operator-Auswahl (>, ≥, <, ≤, =, ≠) und
+Schwellwert-Feld.
+
+**Beispiele aus dem Reviewer-Feedback funktionieren jetzt:**
+
+```cs
+// "Wenn Summe Solar-Output > 50 kW dann Türen schließen"
+List<IMySolarPanel> _allSolarPanel_0;
+List<IMyDoor> _allDoor_1;
+
+void InitBlocks()
+{
+    _allSolarPanel_0 = new List<IMySolarPanel>();
+    GridTerminalSystem.GetBlocksOfType(_allSolarPanel_0, _b => _b.IsSameConstructAs(Me));
+    _allDoor_1 = new List<IMyDoor>();
+    GridTerminalSystem.GetBlocksOfType(_allDoor_1, _b => _b.IsSameConstructAs(Me));
+}
+
+public void Main(...)
+{
+    bool conditionMet = ((_allSolarPanel_0.Sum(_b => _b.CurrentOutput * 1000f) > 50f));
+    if (conditionMet)
+    {
+        foreach (var _b in _allDoor_1) { _b.CloseDoor(); }
+    }
+}
+```
+
+### Geändert (UI)
+
+- Der bisherige Toggle „Auf Block-Gruppe anwenden" ist ersetzt
+  durch eine **3-Wege-Pill-Auswahl** „Block-Quelle: Einzelblock /
+  Block-Gruppe / Alle Blöcke vom Typ".
+- Bei Gruppe oder Typ erscheint die **Aggregator-Auswahl** mit
+  allen 7 Modi. Bei Sum/Avg/Min/Max/Count zusätzlich Operator-
+  und Schwellwert-Felder.
+- Bei „Alle Blöcke vom Typ" entfällt das Block-Name-Feld (gibt's
+  ja keinen Namen), dafür kommt die `IsSameConstructAs`-Checkbox.
+
+### Migration (kompatibel mit allen alten Vorlagen)
+
+Alte Vorlagen und Share-Token mit `useGroup`/`groupSemantic`/
+`groupCount` werden defensiv migriert:
+- `useGroup: true` → `blockSource: "group"`
+- `groupSemantic` → `aggregateMode` (1:1)
+- `groupCount` → `aggregateThreshold`
+- `sameConstruct` defaultet auf `true`
+
+Der generierte Output für migrierte Vorlagen ist **identisch** zur
+v2.x-Ausgabe — keine Brüche.
+
+### Hinweise
+
+- **Operator-Default ist `≥`** bei Count/Sum/Avg/Min/Max. Bei
+  Migration aus altem `groupSemantic: count` wird die Semantik
+  korrekt erhalten (war vorher fest `>= X`).
+- **Aktionen** auf „Alle Blöcke vom Typ" laufen als `foreach` über
+  die Liste — also „mache X mit allen Solarpanels" funktioniert.
+- Property-Extraktion für Sum/Avg/Min/Max funktioniert mit allen
+  bestehenden numerischen Conditions. Catalog bleibt unverändert.
+
 ## [2.11.0] — 2026-05-14
 
 ### Geändert (Block-Initialisierung im Constructor — Etappe 2/3 aus Expert-Feedback)
