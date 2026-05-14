@@ -7,6 +7,30 @@ das Projekt folgt [Semantic Versioning](https://semver.org/lang/de/).
 
 ## [Unreleased]
 
+## [3.2.1] — 2026-05-14
+
+### Geändert (Erklärung als Fließtext statt Stichpunkte)
+- Die Plain-Language-Beschreibung im rechten Panel ist jetzt
+  zusammenhängender Fließtext statt einer Stichpunkt-Liste.
+- Beispiel-Output (DE):
+  > Etwa 6 mal pro Sekunde prüft das Skript, ob am Sensor
+  > „Sensor 1" die Bedingung „Etwas erkannt" zutrifft. Wenn
+  > ja, wird die Aktion „Öffnen" an Tür „Schleuse" ausgeführt.
+  > Andernfalls wird die Aktion „Schließen" an Tür „Schleuse"
+  > ausgeführt.
+- Mit Type/Group + Aggregator:
+  > Etwa alle 1,6 Sekunden prüft das Skript, ob die Summe der
+  > Werte aller Solarpanel-Blöcken auf diesem Construct (Bedingung
+  > „Output > X (kW)") größer als 50 ist. Wenn ja, wird die
+  > Aktion „Schließen" an Tür-Blöcken auf diesem Construct
+  > ausgeführt.
+- Komplett zweisprachig DE+EN, Verb-Anpassung Singular/Plural
+  („wird"/„werden", „is"/„are"), Listen-Verbindung mit
+  Komma + „und".
+- Catalog-Block-Typ-Labels werden vor der Einbettung gesäubert
+  (Klammern wie „(Door)" entfernt) damit der Satz nicht
+  zerhackt wirkt.
+
 ## [3.2.0] — 2026-05-14
 
 ### Hinzugefügt (Plain-Language-Beschreibung der Konfiguration)
