@@ -7,6 +7,17 @@ das Projekt folgt [Semantic Versioning](https://semver.org/lang/de/).
 
 ## [Unreleased]
 
+## [3.0.1] — 2026-05-14
+
+### Behoben (Aggregator-Dropdowns blieben leer)
+- In v3.0.0 wurden zwischen dem Block-Typ-Select und dem Bedingungs-
+  Select neue Dropdowns eingeschoben (Aggregator, Operator). Ein
+  alter Renderer-Code überschrieb deren Werte am Ende des Renderns
+  mit den Werten von Block-Typ und Bedingung — die Aggregator-Felder
+  zeigten dadurch keine Auswahl (Dropdown wirkte schwarz/leer).
+- Selects identifizieren sich jetzt über `data-role`-Attribute,
+  der Setter trifft nur noch die richtigen.
+
 ## [3.0.0] — 2026-05-14
 
 ### Hinzugefügt (Etappe 3/3 aus Expert-Feedback — die größte)

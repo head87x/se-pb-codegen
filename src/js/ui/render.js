@@ -160,7 +160,7 @@ function renderConditions() {
         <div class="row ${isType ? "" : "row-2"}">
           <div>
             <label>${escapeHtml(t("label.blocktype"))}</label>
-            <select onchange="updateCond(${i}, 'blockType', this.value)">${blockTypeOptions('conditions')}</select>
+            <select data-role="blockType" onchange="updateCond(${i}, 'blockType', this.value)">${blockTypeOptions('conditions')}</select>
           </div>
           ${isType ? "" : `
           <div>
@@ -189,7 +189,7 @@ function renderConditions() {
         <div class="row ${showThreshold ? "row-3" : ""}" style="margin-bottom:6px;">
           <div>
             <label>${escapeHtml(t("agg.mode.label"))}</label>
-            <select onchange="updateCond(${i}, 'aggregateMode', this.value)">
+            <select data-role="aggregateMode" onchange="updateCond(${i}, 'aggregateMode', this.value)">
               <option value="any"   ${aggMode === "any"   ? "selected" : ""}>${escapeHtml(t("agg.mode.any"))}</option>
               <option value="all"   ${aggMode === "all"   ? "selected" : ""}>${escapeHtml(t("agg.mode.all"))}</option>
               <option value="count" ${aggMode === "count" ? "selected" : ""}>${escapeHtml(t("agg.mode.count"))}</option>
@@ -202,7 +202,7 @@ function renderConditions() {
           ${showThreshold ? `
           <div>
             <label>${escapeHtml(t("agg.op.label"))}</label>
-            <select onchange="updateCond(${i}, 'aggregateOp', this.value)">
+            <select data-role="aggregateOp" onchange="updateCond(${i}, 'aggregateOp', this.value)">
               <option value=">"  ${(c.aggregateOp || ">=") === ">"  ? "selected" : ""}>${escapeHtml(t("agg.op.gt"))}</option>
               <option value=">=" ${(c.aggregateOp || ">=") === ">=" ? "selected" : ""}>${escapeHtml(t("agg.op.gte"))}</option>
               <option value="<"  ${(c.aggregateOp || ">=") === "<"  ? "selected" : ""}>${escapeHtml(t("agg.op.lt"))}</option>
@@ -219,7 +219,7 @@ function renderConditions() {
         <div class="row ${rowClass}">
           <div>
             <label>${escapeHtml(t("label.check"))} ${tooltipBadge(c.blockType, c.condId, 'conditions')}</label>
-            <select onchange="updateCond(${i}, 'condId', this.value)">${condOptions(c.blockType)}</select>
+            <select data-role="condId" onchange="updateCond(${i}, 'condId', this.value)">${condOptions(c.blockType)}</select>
           </div>
           ${argHtml}${arg2Html}
         </div>
@@ -228,13 +228,16 @@ function renderConditions() {
   }).join("");
 
   // Restore <select> values that depend on options (set after innerHTML write).
+  // v3.0.0 — gezielt via data-role, da zwischen blockType und condId neue
+  // Selects (Aggregator, Operator) eingeschoben werden können.
   state.conditions.forEach((c, i) => {
     const blocks = root.querySelectorAll(".condition-block");
     const blk = blocks[i];
     if (!blk) return;
-    const selects = blk.querySelectorAll("select");
-    if (selects[0]) selects[0].value = c.blockType;
-    if (selects[1]) selects[1].value = c.condId;
+    const bt = blk.querySelector('select[data-role="blockType"]');
+    const cd = blk.querySelector('select[data-role="condId"]');
+    if (bt) bt.value = c.blockType;
+    if (cd) cd.value = c.condId;
   });
 }
 
@@ -273,7 +276,7 @@ function renderActions(which) {
         <div class="row ${aIsType ? "" : "row-2"}">
           <div>
             <label>${escapeHtml(t("label.blocktype"))}</label>
-            <select onchange="updateAct('${which}', ${i}, 'blockType', this.value)">${blockTypeOptions('actions')}</select>
+            <select data-role="blockType" onchange="updateAct('${which}', ${i}, 'blockType', this.value)">${blockTypeOptions('actions')}</select>
           </div>
           ${aIsType ? "" : `
           <div>
@@ -301,21 +304,23 @@ function renderActions(which) {
         <div class="row ${rowClass}">
           <div>
             <label>${escapeHtml(t("label.action"))} ${tooltipBadge(a.blockType, a.actId, 'actions')}</label>
-            <select onchange="updateAct('${which}', ${i}, 'actId', this.value)">${actOptions(a.blockType)}</select>
+            <select data-role="actId" onchange="updateAct('${which}', ${i}, 'actId', this.value)">${actOptions(a.blockType)}</select>
           </div>
           ${argHtml}${arg2Html}
         </div>
       </div>
     `;
   }).join("");
-  // restore selects
+  // v3.0.0 — restore selects gezielt via data-role (zwischen blockType
+  // und actId sitzen jetzt evtl. die Block-Source-Pills + sameConstruct).
   list.forEach((a, i) => {
     const blocks = root.querySelectorAll(".action-block");
     const blk = blocks[i];
     if (!blk) return;
-    const selects = blk.querySelectorAll("select");
-    if (selects[0]) selects[0].value = a.blockType;
-    if (selects[1]) selects[1].value = a.actId;
+    const bt = blk.querySelector('select[data-role="blockType"]');
+    const ac = blk.querySelector('select[data-role="actId"]');
+    if (bt) bt.value = a.blockType;
+    if (ac) ac.value = a.actId;
   });
 }
 
