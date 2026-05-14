@@ -18,7 +18,7 @@
       <span class="theme-picker-label" data-i18n="header.theme">THEME</span>
       <select id="tool-theme-select" onchange="setToolTheme(this.value)"></select>
     </label>
-    <span class="tag">v<span id="version-tag">2.8.0</span> :: <span data-i18n="header.subtitle">SPACE ENGINEERS PROGRAMMABLE BLOCK</span></span>
+    <span class="tag">v<span id="version-tag">2.9.0</span> :: <span data-i18n="header.subtitle">SPACE ENGINEERS PROGRAMMABLE BLOCK</span></span>
   </div>
 </header>
 
@@ -55,6 +55,8 @@
           <div class="btn-row">
             <button class="small" onclick="saveTemplate()" data-i18n="templates.save">+ Speichern</button>
             <button class="small" onclick="newProject()" data-i18n="templates.new">⟲ Neu</button>
+            <button class="small" onclick="exportTemplates()" data-i18n="templates.export">⤴ Export</button>
+            <button class="small" onclick="importTemplates()" data-i18n="templates.import">⤵ Import</button>
           </div>
         </div>
         <div class="section-content">

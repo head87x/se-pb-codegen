@@ -7,6 +7,28 @@ das Projekt folgt [Semantic Versioning](https://semver.org/lang/de/).
 
 ## [Unreleased]
 
+## [2.9.0] — 2026-05-14
+
+### Hinzugefügt (Vorlagen-Datei-Export / -Import)
+- **„⤴ Export"-Button** in der Vorlagen-Sektion — lädt alle
+  gespeicherten Vorlagen als `se-pb-templates-YYYY-MM-DD.json`
+  Datei herunter. Datei enthält Format-Marker, Schema-Version,
+  Tool-Version und Export-Datum.
+- **„⤵ Import"-Button** — File-Picker für `.json`, parst die
+  Datei und hängt enthaltene Vorlagen an die bestehende Liste an
+  (Bestätigungs-Dialog vorab).
+- **Konflikt-Resolution**: Existiert der Vorlagen-Name bereits,
+  bekommt der importierte Eintrag einen Suffix `(2)`, `(3)`, …
+  Bestehende Vorlagen werden **nie** überschrieben.
+- **Format-Check**: Datei ohne `_format: "se-pb-codegen-templates"`
+  wird abgelehnt. Bei höherer Schema-Version als der Tool-Version
+  bekannt: Warnung, Import wird trotzdem versucht.
+- Vorlagen-Format ist offline-tauglich und plattform-unabhängig —
+  ermöglicht Teilen zwischen Browsern/Geräten ohne Server.
+
+### Geändert
+- `TOOL_VERSION` von `2.8.0` auf `2.9.0`.
+
 ## [2.8.0] — 2026-05-14
 
 ### Hinzugefügt (Steam-Workshop-Export — Attribution + Metadaten)

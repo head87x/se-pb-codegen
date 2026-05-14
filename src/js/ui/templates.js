@@ -150,3 +150,101 @@ async function newProject() {
     _refreshBlockNameValidation(document.getElementById("lcd-composer-name"));
   }
 }
+
+// ============================================================
+// v2.9.0 — Vorlagen-Datei-Export / -Import als .json
+// ============================================================
+
+const TEMPLATES_FILE_FORMAT  = "se-pb-codegen-templates";
+const TEMPLATES_FILE_VERSION = 1;
+
+function exportTemplates() {
+  if (!templates || templates.length === 0) {
+    showToast(t("templates.export_empty"));
+    return;
+  }
+  const payload = {
+    _format:     TEMPLATES_FILE_FORMAT,
+    _version:    TEMPLATES_FILE_VERSION,
+    exportedAt:  (new Date()).toISOString().slice(0, 10),
+    toolVersion: (typeof TOOL_VERSION === "string") ? TOOL_VERSION : "?",
+    templates:   templates
+  };
+  const json = JSON.stringify(payload, null, 2);
+  const blob = new Blob([json], { type: "application/json" });
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement("a");
+  a.href     = url;
+  a.download = "se-pb-templates-" + payload.exportedAt + ".json";
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+  showToast(t("templates.export_ok", templates.length));
+}
+
+function importTemplates() {
+  const input = document.createElement("input");
+  input.type = "file";
+  input.accept = ".json,application/json";
+  input.onchange = (e) => {
+    const file = e.target.files && e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      try {
+        const data = JSON.parse(ev.target.result);
+        _processImportedTemplates(data);
+      } catch (err) {
+        showToast(t("templates.import_err_parse"));
+      }
+    };
+    reader.readAsText(file);
+  };
+  input.click();
+}
+
+// Eindeutigen Namen erzeugen, indem " (2)", " (3)", … angehängt wird,
+// bis der Name in der aktuellen `templates`-Liste nicht mehr vorkommt.
+function _uniqueTemplateName(base) {
+  const existing = new Set(templates.map(x => x.name));
+  if (!existing.has(base)) return base;
+  let n = 2;
+  while (existing.has(base + " (" + n + ")")) n++;
+  return base + " (" + n + ")";
+}
+
+async function _processImportedTemplates(data) {
+  if (!data || data._format !== TEMPLATES_FILE_FORMAT) {
+    showToast(t("templates.import_err_format"));
+    return;
+  }
+  if (!Array.isArray(data.templates) || data.templates.length === 0) {
+    showToast(t("templates.import_err_empty"));
+    return;
+  }
+  // Token-Schema-Versions-Check (analog share.js): nur warnen, nicht
+  // blockieren — Migration läuft beim Laden der Vorlage selbst.
+  if (typeof data._version === "number" && data._version > TEMPLATES_FILE_VERSION) {
+    showToast(t("templates.import_warn_version", data._version));
+  }
+
+  // Bestätigung beim User holen — Import erweitert die Liste, keine
+  // bestehenden Einträge werden überschrieben (Konflikt = umbenennen).
+  const ok = await showConfirm(
+    t("templates.import_confirm", data.templates.length),
+    { confirmLabel: t("templates.import_btn") }
+  );
+  if (!ok) return;
+
+  let added = 0;
+  for (const incoming of data.templates) {
+    if (!incoming || typeof incoming.name !== "string" || !incoming.state) continue;
+    const uniqueName = _uniqueTemplateName(incoming.name);
+    templates.push({ name: uniqueName, state: incoming.state });
+    added++;
+  }
+  localStorage.setItem("se_pb_templates", JSON.stringify(templates));
+  render();
+  showToast(t("templates.import_ok", added));
+}

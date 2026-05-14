@@ -143,9 +143,21 @@ als Class-Feld. Sinnvoll bei Skripten mit hoher Update-Frequenz
 und vielen Blöcken.
 
 ### Vorlagen-Export / -Import als JSON-Datei
-Aktuell liegen Vorlagen nur im LocalStorage des Browsers. Datei-
-basierter Export (Download als `.json`) + Import (File-Picker) würde
-Teilen zwischen Geräten/Browsern ermöglichen.
+**Erledigt in v2.9.0**: Export-Button lädt alle Vorlagen als
+`se-pb-templates-YYYY-MM-DD.json` herunter (mit Format-Marker,
+Schema-Version, Tool-Version). Import-Button öffnet File-Picker,
+parst die Datei, hängt enthaltene Vorlagen an die Liste an.
+Konflikt-Resolution per Suffix `(2)`, `(3)`, … — bestehende
+Einträge werden nie überschrieben.
+
+Mögliche Erweiterungen:
+- **Per-Vorlage-Export**: kleines Download-Icon an jeder Chip-Karte,
+  um nur eine Vorlage zu exportieren statt alle. Heute löst der
+  globale Export schon den 95%-Use-Case ab.
+- **Drag-&-Drop** der JSON-Datei direkt aufs Tool — statt
+  File-Picker zu öffnen.
+- **Server-Sync** (optional, opt-in) — würde aber „komplett offline"
+  brechen.
 
 ## Kleinere Verbesserungen
 
