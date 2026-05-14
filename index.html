@@ -22,7 +22,7 @@
       <span class="theme-picker-label" data-i18n="header.theme">THEME</span>
       <select id="tool-theme-select" onchange="setToolTheme(this.value)"></select>
     </label>
-    <span class="tag">v<span id="version-tag">3.1.1</span> :: <span data-i18n="header.subtitle">SPACE ENGINEERS PROGRAMMABLE BLOCK</span></span>
+    <span class="tag">v<span id="version-tag">3.2.0</span> :: <span data-i18n="header.subtitle">SPACE ENGINEERS PROGRAMMABLE BLOCK</span></span>
   </div>
 </header>
 
@@ -312,6 +312,14 @@
       </div>
     </div>
     <div class="panel-body">
+      <!-- v3.2.0 — Plain-Language Erklärung über dem Code -->
+      <div class="explanation-box" id="explanation-box">
+        <div class="explanation-header" onclick="toggleExplanation()" data-i18n-title="explanation.hint" title="Klicke zum Ein-/Ausklappen">
+          <span class="explanation-toggle">▶</span>
+          <span data-i18n="explanation.title">📖 Was macht dieses Skript?</span>
+        </div>
+        <div class="explanation-content" id="explanation-content"></div>
+      </div>
       <pre class="code-output" id="output"></pre>
     </div>
   </div>
@@ -345,6 +353,7 @@
 <script src="src/js/lcd/composer.js"></script>
 <script src="src/js/generator/highlight.js"></script>
 <script src="src/js/generator/codegen.js"></script>
+<script src="src/js/generator/describe.js"></script>
 <script src="src/js/ui/icons.js"></script>
 <script src="src/js/ui/themes.js"></script>
 <script src="src/js/ui/i18n.js"></script>
@@ -365,6 +374,7 @@
   initPalette();
   initLcdComposerSelects();
   initLcdDragHandlers();
+  if (typeof initExplanationState === "function") initExplanationState();
   render();
   // Block-Namen-Validierung initial scharfstellen (statische Inputs in
   // index.html werden nicht von render() angefasst).

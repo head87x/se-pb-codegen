@@ -539,6 +539,8 @@ function generateCode() {
 
   document.getElementById("output").innerHTML = highlightCs(code);
   window._rawCode = code;
+  // v3.2.0 — Plain-Language-Beschreibung mit jedem Codegen-Lauf aktualisieren
+  if (typeof updateExplanation === "function") updateExplanation();
 }
 
 // Erkennt, ob Inventory-Helper benötigt werden, und ersetzt den Marker

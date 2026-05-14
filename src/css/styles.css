@@ -1011,27 +1011,127 @@ button.small {
   font-size: 13px;
 }
 
-/* Kleine ❓-Buttons in Section-Titeln */
+/* Kleine ❓-Buttons in Section-Titeln — dezentes Inline-Icon */
 .section-help-btn {
   background: transparent;
-  border: 1px solid rgba(var(--shadow-rgb, 0,0,0), 0.5);
+  border: none;
   color: var(--muted);
-  width: 22px;
-  height: 22px;
-  padding: 0;
-  font-size: 12px;
-  cursor: pointer;
-  border-radius: 50%;
-  margin-left: 6px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
+  padding: 0 2px;
+  margin-left: 4px;
+  margin-right: auto;
+  font-size: 11px;
+  cursor: help;
+  opacity: 0.4;
+  vertical-align: baseline;
   line-height: 1;
+  transition: opacity 0.15s ease, color 0.15s ease, transform 0.15s ease;
 }
 .section-help-btn:hover {
-  border-color: var(--accent);
+  opacity: 1;
   color: var(--accent);
-  background: rgba(var(--shadow-rgb, 0,0,0), 0.2);
+  transform: scale(1.15);
+}
+.section-help-btn:focus {
+  outline: none;
+  opacity: 1;
+}
+
+/* v3.2.0 — Plain-Language Erklärungs-Box im rechten Panel */
+.explanation-box {
+  background: rgba(var(--shadow-rgb, 0,0,0), 0.18);
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--accent-2, var(--accent));
+  border-radius: 3px;
+  margin-bottom: 10px;
+  overflow: hidden;
+}
+.explanation-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  cursor: pointer;
+  font-family: 'Consolas', monospace;
+  font-size: 12px;
+  letter-spacing: 0.5px;
+  color: var(--accent-2, var(--accent));
+  user-select: none;
+  background: rgba(var(--shadow-rgb, 0,0,0), 0.25);
+  transition: background 0.15s ease;
+}
+.explanation-header:hover {
+  background: rgba(var(--shadow-rgb, 0,0,0), 0.4);
+}
+.explanation-toggle {
+  font-size: 10px;
+  width: 12px;
+  display: inline-block;
+  text-align: center;
+  transition: transform 0.15s ease;
+}
+.explanation-box.open .explanation-toggle {
+  transform: rotate(90deg);
+}
+.explanation-content {
+  display: none;
+  padding: 10px 14px 12px;
+  font-family: 'Segoe UI', system-ui, sans-serif;
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--text);
+  max-height: 50vh;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+.explanation-box.open .explanation-content {
+  display: block;
+}
+.explanation-empty,
+.explanation-info {
+  color: var(--muted);
+  font-style: italic;
+  margin: 4px 0;
+}
+.explanation-exec {
+  margin: 0 0 10px 0;
+  padding: 6px 10px;
+  background: rgba(var(--shadow-rgb, 0,0,0), 0.25);
+  border-left: 2px solid var(--accent);
+  font-size: 12px;
+}
+.explanation-label {
+  margin: 10px 0 4px;
+  font-family: 'Consolas', monospace;
+  font-size: 11px;
+  letter-spacing: 0.5px;
+  color: var(--accent-2, var(--accent));
+  text-transform: uppercase;
+}
+.explanation-list {
+  margin: 0;
+  padding-left: 22px;
+}
+.explanation-list li {
+  margin: 4px 0;
+}
+.explanation-list-if li {
+  list-style-type: "▸ ";
+  padding-left: 2px;
+}
+.explanation-list-then li {
+  list-style-type: "→ ";
+  color: var(--text);
+}
+.explanation-list-else li {
+  list-style-type: "↪ ";
+  color: var(--muted);
+}
+.explanation-flags {
+  margin-top: 10px;
+  padding-top: 8px;
+  border-top: 1px dashed rgba(var(--shadow-rgb, 0,0,0), 0.4);
+  font-size: 11px;
+  color: var(--muted);
 }
 
 .code-output .kw   { color: var(--syn-kw); }

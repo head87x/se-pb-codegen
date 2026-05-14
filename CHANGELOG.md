@@ -7,6 +7,39 @@ das Projekt folgt [Semantic Versioning](https://semver.org/lang/de/).
 
 ## [Unreleased]
 
+## [3.2.0] — 2026-05-14
+
+### Hinzugefügt (Plain-Language-Beschreibung der Konfiguration)
+- Neue Box **„📖 Was macht dieses Skript?"** im rechten Panel über
+  dem generierten Code. Beschreibt die aktuelle Konfiguration in
+  natürlicher Sprache — für Einsteiger ohne C#-Kenntnisse.
+- Beispiel-Output:
+  ```
+  ⚙ Das Skript läuft etwa 6 mal pro Sekunde (alle 10 Ticks).
+
+  WENN FOLGENDES ZUTRIFFT:
+  ▸ Sensor „Sensor 1" — Etwas erkannt
+  ▸ UND Akku „Hauptakku" — Ladung > X % (Wert: 50)
+
+  … DANN WERDEN FOLGENDE AKTIONEN AUSGEFÜHRT:
+  → Tür „Schleuse" — Öffnen
+  → alle Lampen auf diesem Construct — Einschalten (für jeden Block)
+  ```
+- Box ist **ein-/ausklappbar** (Klick auf Header). Zustand
+  persistiert in localStorage — Wahl bleibt zwischen Sessions.
+- Aktualisiert sich automatisch bei jeder Änderung der Konfiguration
+  (Bedingung hinzufügen, Aktion ändern, …).
+- Auch Coroutines- und Auto-Recovery-Status werden als Hinweis-Zeile
+  am Ende eingeblendet, wenn aktiv.
+- Komplett zweisprachig (DE + EN) — Sprachwechsel im Header
+  greift sofort.
+
+### Geändert (UI-Politur)
+- Die kleinen ❓-Buttons in den Sektion-Überschriften sind jetzt
+  dezent gestaltet (kein runder Border-Button mehr, sondern leicht
+  transparentes Inline-Icon mit Hover-Effekt). Sitzen direkt neben
+  dem Sektions-Titel.
+
 ## [3.1.1] — 2026-05-14
 
 ### Behoben (Hilfe-Modal: Scroll ging zur Seite, nicht zum Modal)

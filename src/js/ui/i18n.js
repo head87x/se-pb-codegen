@@ -28,6 +28,53 @@ const I18N = {
     "help.title":            "Hilfe & Erklärungen",
     "help.close":            "Schließen",
     "help.notfound":         "Abschnitt nicht gefunden.",
+    // v3.2.0 — Plain-Language Description (rechts oberhalb Code)
+    "explanation.title":     "📖 Was macht dieses Skript?",
+    "explanation.hint":      "Klicke zum Ein-/Ausklappen",
+    "desc.empty":            "Noch keine Konfiguration — füge Bedingungen oder Aktionen hinzu.",
+    "desc.no_conditions":    "Es gibt keine Bedingungen — die Aktionen laufen immer.",
+    "desc.unnamed":          "(noch unbenannt)",
+    "desc.label.if":         "Wenn folgendes zutrifft:",
+    "desc.label.then":       "… dann werden folgende Aktionen ausgeführt:",
+    "desc.label.else":       "… sonst werden folgende Aktionen ausgeführt:",
+    "desc.and":              "und",
+    "desc.or":               "oder",
+    // Block-Quellen-Phrasen — {0}=Block-Typ-Name, {1}=Block-/Gruppen-Name
+    "desc.block.single":     "{0} „{1}\"",
+    "desc.block.group":      "Blöcke der Gruppe „{1}\" (Typ: {0})",
+    "desc.block.type_sc":    "alle {0} auf diesem Construct",
+    "desc.block.type_any":   "alle {0} (inkl. Subgrids)",
+    // Condition-Sätze — {0}=BlockPhrase, {1}=AggPhrase oder CondLabel, {2}=CondLabel
+    "desc.cond.single":      "{0} — {1}",
+    "desc.cond.multi":       "{0}: {1} — {2}",
+    // Aggregator-Phrasen — {0}=Operator-Wort, {1}=Schwellwert
+    "desc.agg.any":          "mindestens einer erfüllt",
+    "desc.agg.all":          "alle erfüllen",
+    "desc.agg.count":        "Anzahl der erfüllenden {0} {1}",
+    "desc.agg.sum":          "Summe {0} {1}",
+    "desc.agg.avg":          "Durchschnitt {0} {1}",
+    "desc.agg.min":          "schwächster Wert {0} {1}",
+    "desc.agg.max":          "stärkster Wert {0} {1}",
+    // Operator-Wörter
+    "desc.op.gt":            "größer als",
+    "desc.op.gte":           "mindestens",
+    "desc.op.lt":            "kleiner als",
+    "desc.op.lte":           "höchstens",
+    "desc.op.eq":            "gleich",
+    "desc.op.neq":           "ungleich",
+    // Action-Sätze
+    "desc.act.single":       "{0} — {1}",
+    "desc.act.multi":        "{0} — {1} (für jeden Block)",
+    "desc.arg_suffix":       " (Wert: {0})",
+    // Execution-Modus
+    "desc.exec.argument":    "Das Skript läuft, wenn du es manuell auslöst (Argument oder Toolbar-Button).",
+    "desc.exec.timer100":    "Das Skript läuft etwa alle 1,6 Sekunden (alle 100 Ticks).",
+    "desc.exec.timer10":     "Das Skript läuft etwa 6 mal pro Sekunde (alle 10 Ticks).",
+    "desc.exec.timer1":      "Das Skript läuft etwa einmal pro Sekunde (Update100).",
+    "desc.exec.continuous":  "⚠ Das Skript läuft 60 mal pro Sekunde (kontinuierlich).",
+    // Flag-Zeile
+    "desc.flag.coroutines":  "🔄 Coroutines aktiv (LCD-Updates über mehrere Ticks verteilt)",
+    "desc.flag.auto_recover":"🛡 Auto-Recovery aktiv (zerstörte Blöcke werden pro Tick neu gesucht)",
     // Palette
     "palette.title":         "▶ BLÖCKE",
     "palette.tag":           "[ DRAG ]",
@@ -312,6 +359,47 @@ const I18N = {
     "help.title":            "Help & Explanations",
     "help.close":            "Close",
     "help.notfound":         "Section not found.",
+    // v3.2.0 — plain-language description (right panel, above code)
+    "explanation.title":     "📖 What does this script do?",
+    "explanation.hint":      "Click to expand/collapse",
+    "desc.empty":             "No configuration yet — add conditions or actions.",
+    "desc.no_conditions":     "There are no conditions — actions always run.",
+    "desc.unnamed":           "(not named yet)",
+    "desc.label.if":          "If the following is true:",
+    "desc.label.then":        "… then run these actions:",
+    "desc.label.else":        "… otherwise run these actions:",
+    "desc.and":               "and",
+    "desc.or":                "or",
+    // {0}=block-type label, {1}=block/group name
+    "desc.block.single":      "the {0} \"{1}\"",
+    "desc.block.group":       "blocks in group \"{1}\" ({0})",
+    "desc.block.type_sc":     "all {0} on this construct",
+    "desc.block.type_any":    "all {0} (including subgrids)",
+    "desc.cond.single":       "{0} — {1}",
+    "desc.cond.multi":        "{0}: {1} — {2}",
+    "desc.agg.any":           "at least one meets it",
+    "desc.agg.all":           "all meet it",
+    "desc.agg.count":         "number of matches {0} {1}",
+    "desc.agg.sum":           "sum is {0} {1}",
+    "desc.agg.avg":           "average is {0} {1}",
+    "desc.agg.min":           "minimum value is {0} {1}",
+    "desc.agg.max":           "maximum value is {0} {1}",
+    "desc.op.gt":             "greater than",
+    "desc.op.gte":            "at least",
+    "desc.op.lt":             "less than",
+    "desc.op.lte":            "at most",
+    "desc.op.eq":             "equal to",
+    "desc.op.neq":            "not equal to",
+    "desc.act.single":        "{0} — {1}",
+    "desc.act.multi":         "{0} — {1} (for each block)",
+    "desc.arg_suffix":        " (value: {0})",
+    "desc.exec.argument":     "The script runs when you trigger it manually (argument or toolbar button).",
+    "desc.exec.timer100":     "The script runs about every 1.6 seconds (every 100 ticks).",
+    "desc.exec.timer10":      "The script runs about 6 times per second (every 10 ticks).",
+    "desc.exec.timer1":       "The script runs about once per second (Update100).",
+    "desc.exec.continuous":   "⚠ The script runs 60 times per second (continuous).",
+    "desc.flag.coroutines":   "🔄 Coroutines active (LCD updates spread across multiple ticks)",
+    "desc.flag.auto_recover": "🛡 Auto-recovery active (destroyed blocks are re-fetched each tick)",
     "palette.title":         "▶ BLOCKS",
     "palette.tag":           "[ DRAG ]",
     "palette.search":        "Search…",
@@ -595,6 +683,8 @@ function setLang(lang) {
     themeSel.innerHTML = toolThemeOptions();
   }
   if (typeof render === "function") render();
+  // v3.2.0 — Plain-Language-Erklärung neu rendern (nutzt eigene i18n-Keys)
+  if (typeof updateExplanation === "function") updateExplanation();
 }
 
 // t(key, ...args) — Substitution: {0}, {1}, … durch args ersetzen.
