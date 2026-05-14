@@ -62,6 +62,16 @@ const I18N = {
     "lcd.select.delete_q":   "{0} ausgewählte Widget(s) wirklich löschen?",
     "lcd.select.delete_btn": "Löschen",
     "lcd.select.deleted":    "{0} Widget(s) gelöscht",
+    // Tool-Theme-Labels (Dropdown oben rechts)
+    "tool.theme.default":    "Sci-Fi (Standard)",
+    "tool.theme.dark":       "Dark (neutral)",
+    "tool.theme.light":      "Light",
+    "tool.theme.cyberpunk":  "Cyberpunk",
+    "tool.theme.matrix":     "Matrix",
+    "tool.theme.hero":       "Hero (Sci-Fi sauber)",
+    "tool.theme.hologram":   "Hologram (Türkis)",
+    "tool.theme.industrial": "Industrial (Werkstatt)",
+    "tool.theme.auto":       "Auto (folgt OS)",
     // Share-Token
     "share.title":           "::: SHARE-TOKEN",
     "share.export":          "💾 Token erzeugen",
@@ -299,6 +309,16 @@ const I18N = {
     "lcd.select.delete_q":   "Really delete {0} selected widget(s)?",
     "lcd.select.delete_btn": "Delete",
     "lcd.select.deleted":    "{0} widget(s) deleted",
+    // Tool theme labels (dropdown top right)
+    "tool.theme.default":    "Sci-Fi (default)",
+    "tool.theme.dark":       "Dark (neutral)",
+    "tool.theme.light":      "Light",
+    "tool.theme.cyberpunk":  "Cyberpunk",
+    "tool.theme.matrix":     "Matrix",
+    "tool.theme.hero":       "Hero (clean sci-fi)",
+    "tool.theme.hologram":   "Hologram (teal)",
+    "tool.theme.industrial": "Industrial (workshop)",
+    "tool.theme.auto":       "Auto (follows OS)",
     "share.title":           "::: SHARE-TOKEN",
     "share.export":          "💾 Generate token",
     "share.import":          "📥 Load token",
@@ -500,6 +520,12 @@ function setLang(lang) {
   if (typeof renderPalette === "function") renderPalette();
   // LCD-Format-/Preset-Dropdown neu rendern (haben statische <option>-Texte)
   if (typeof initLcdComposerSelects === "function") initLcdComposerSelects();
+  // Theme-Dropdown hat ebenfalls statische <option>-Texte aus
+  // TOOL_THEMES — neu rendern damit Sprachwechsel greift.
+  const themeSel = document.getElementById("tool-theme-select");
+  if (themeSel && typeof toolThemeOptions === "function") {
+    themeSel.innerHTML = toolThemeOptions();
+  }
   if (typeof render === "function") render();
 }
 

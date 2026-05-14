@@ -7,6 +7,19 @@ das Projekt folgt [Semantic Versioning](https://semver.org/lang/de/).
 
 ## [Unreleased]
 
+## [2.10.1] — 2026-05-14
+
+### Behoben (Theme-Dropdown teilweise deutsch im EN-Modus)
+- Die Tool-Theme-Auswahl oben rechts zeigte einige Theme-Namen
+  noch mit deutschen Klammern (z. B. „Sci-Fi (Standard)",
+  „Hero (Sci-Fi-Sauber)", „Hologram (Türkis)", „Auto (folgt OS)"),
+  selbst wenn die Sprache auf Englisch stand.
+- Theme-Labels werden jetzt über `tool.theme.<value>`-i18n-Keys
+  gezogen (DE + EN-Fassungen ergänzt).
+- Beim Sprachwechsel rendert `setLang()` das Theme-Dropdown neu,
+  sodass die Übersetzung sofort greift — analog zur LCD-Format-
+  und Preset-Auswahl.
+
 ## [2.10.0] — 2026-05-14
 
 ### Hinzugefügt (Multi-Widget-Auswahl im LCD-Composer)
