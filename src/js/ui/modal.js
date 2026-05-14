@@ -139,6 +139,78 @@ function showAlert(message, options) {
   });
 }
 
+// ============================================================
+// v3.1.0 — Hilfe-Modal mit Sidebar (Inhaltsverzeichnis) + Content
+// ============================================================
+function showHelp(sectionId) {
+  const initial = sectionId || "overview";
+  const ov = _modalEnsure();
+  // Layout des Help-Modals selbst zusammenbauen: Sidebar + Content
+  ov.querySelector("#modal-title").textContent = _i18n("help.title", "Hilfe");
+  const msgEl = ov.querySelector("#modal-message");
+  msgEl.innerHTML = "";
+
+  const wrap = document.createElement("div");
+  wrap.className = "help-modal-wrap";
+
+  const sidebar = document.createElement("div");
+  sidebar.className = "help-modal-sidebar";
+  const content = document.createElement("div");
+  content.className = "help-modal-content";
+
+  const sections = (typeof getHelpSections === "function") ? getHelpSections() : [];
+  const renderContent = (id) => {
+    const sec = (typeof getHelpSection === "function") ? getHelpSection(id) : null;
+    if (!sec) {
+      content.innerHTML = `<p><em>${_i18n("help.notfound", "Abschnitt nicht gefunden.")}</em></p>`;
+      return;
+    }
+    content.innerHTML = `<h2>${sec.title}</h2>${sec.body}`;
+    content.scrollTop = 0;
+    sidebar.querySelectorAll(".help-sidebar-item").forEach(el => {
+      el.classList.toggle("active", el.dataset.section === id);
+    });
+  };
+
+  sidebar.innerHTML = sections.map(s => `
+    <div class="help-sidebar-item" data-section="${s.id}">
+      <span class="help-sidebar-icon">${s.icon}</span>
+      <span class="help-sidebar-title">${s.title}</span>
+    </div>
+  `).join("");
+  sidebar.querySelectorAll(".help-sidebar-item").forEach(el => {
+    el.addEventListener("click", () => renderContent(el.dataset.section));
+  });
+
+  wrap.appendChild(sidebar);
+  wrap.appendChild(content);
+  msgEl.appendChild(wrap);
+  msgEl.classList.add("help-modal-message");
+
+  // Eingabe-Feld verstecken, Cancel-Button raus, Confirm = Schliessen
+  const inp = ov.querySelector("#modal-input");
+  inp.style.display = "none";
+  const cancel = ov.querySelector("#modal-cancel");
+  cancel.style.display = "none";
+  ov.querySelector("#modal-confirm").textContent = _i18n("help.close", "Schließen");
+
+  renderContent(initial);
+
+  return new Promise(resolve => {
+    _modalResolve = () => {
+      // Aufräumen: help-spezifische Markup-Reste entfernen
+      msgEl.classList.remove("help-modal-message");
+      resolve();
+    };
+    ov.classList.add("show");
+
+    _modalKeyHandler = (e) => {
+      if (e.key === "Escape") { e.preventDefault(); _modalClose(false); }
+    };
+    document.addEventListener("keydown", _modalKeyHandler);
+  });
+}
+
 // Zeigt den reinen Code in einem themed Modal mit selektierbarem
 // Container. Wird vom „Klartext"-Button im Output-Bereich aufgerufen.
 function showCodeView(code) {

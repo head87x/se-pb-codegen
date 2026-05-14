@@ -10,6 +10,10 @@
 <header>
   <h1>// SE.PB <span class="accent">CODE</span> GENERATOR</h1>
   <div class="header-meta">
+    <button class="header-help-btn" onclick="showHelp()" data-i18n-title="header.help" title="Hilfe">
+      <span class="help-btn-icon">❓</span>
+      <span data-i18n="header.help">Hilfe</span>
+    </button>
     <label class="theme-picker">
       <span class="theme-picker-label" data-i18n="header.lang">SPRACHE</span>
       <select id="lang-select" onchange="setLang(this.value)"></select>
@@ -18,7 +22,7 @@
       <span class="theme-picker-label" data-i18n="header.theme">THEME</span>
       <select id="tool-theme-select" onchange="setToolTheme(this.value)"></select>
     </label>
-    <span class="tag">v<span id="version-tag">3.0.1</span> :: <span data-i18n="header.subtitle">SPACE ENGINEERS PROGRAMMABLE BLOCK</span></span>
+    <span class="tag">v<span id="version-tag">3.1.0</span> :: <span data-i18n="header.subtitle">SPACE ENGINEERS PROGRAMMABLE BLOCK</span></span>
   </div>
 </header>
 
@@ -52,6 +56,7 @@
       <div class="section">
         <div class="section-title">
           <span data-i18n="templates.title">::: VORLAGEN</span>
+          <button class="section-help-btn" onclick="showHelp('templates')" data-i18n-title="header.help" title="Hilfe">❓</button>
           <div class="btn-row">
             <button class="small" onclick="saveTemplate()" data-i18n="templates.save">+ Speichern</button>
             <button class="small" onclick="newProject()" data-i18n="templates.new">⟲ Neu</button>
@@ -70,6 +75,7 @@
       <div class="section">
         <div class="section-title">
           <span data-i18n="share.title">::: SHARE-TOKEN</span>
+          <button class="section-help-btn" onclick="showHelp('share')" data-i18n-title="header.help" title="Hilfe">❓</button>
           <div class="btn-row">
             <button class="small primary" onclick="exportShareToken()" data-i18n="share.export">💾 Token erzeugen</button>
             <button class="small" onclick="importShareToken()" data-i18n="share.import">📥 Token laden</button>
@@ -84,7 +90,10 @@
 
       <!-- SCRIPT INFO / WORKSHOP-METADATEN (v2.8.0) -->
       <div class="section">
-        <div class="section-title"><span data-i18n="info.title">::: SKRIPT-INFO (Workshop)</span></div>
+        <div class="section-title">
+          <span data-i18n="info.title">::: SKRIPT-INFO (Workshop)</span>
+          <button class="section-help-btn" onclick="showHelp('info')" data-i18n-title="header.help" title="Hilfe">❓</button>
+        </div>
         <div class="section-content">
           <div class="help-text" data-i18n="info.help" style="margin-bottom:6px;">
             Optional: trägt Workshop-Metadaten in den Header des generierten Codes ein. Der Attribution-Hinweis auf das Tool bleibt immer erhalten — diese Felder sind zusätzlich.
@@ -123,7 +132,10 @@
 
       <!-- EXECUTION MODE -->
       <div class="section">
-        <div class="section-title"><span data-i18n="exec.title">::: AUSFÜHRUNG</span></div>
+        <div class="section-title">
+          <span data-i18n="exec.title">::: AUSFÜHRUNG</span>
+          <button class="section-help-btn" onclick="showHelp('exec')" data-i18n-title="header.help" title="Hilfe">❓</button>
+        </div>
         <div class="section-content">
           <label data-i18n="exec.mode">Modus</label>
           <select id="exec-mode" onchange="onExecModeChange(this.value)">
@@ -160,6 +172,7 @@
       <div class="section">
         <div class="section-title">
           <span data-i18n="cond.title">::: WENN (Bedingungen)</span>
+          <button class="section-help-btn" onclick="showHelp('conditions')" data-i18n-title="header.help" title="Hilfe">❓</button>
           <button class="small" onclick="addCondition()" data-i18n="cond.add">+ Bedingung</button>
         </div>
         <div class="section-content drop-target" id="conditions">
@@ -171,6 +184,7 @@
       <div class="section">
         <div class="section-title">
           <span data-i18n="act.title">::: DANN (Aktionen)</span>
+          <button class="section-help-btn" onclick="showHelp('actions')" data-i18n-title="header.help" title="Hilfe">❓</button>
           <button class="small" onclick="addAction('then')" data-i18n="act.add">+ Aktion</button>
         </div>
         <div class="section-content drop-target" id="actions-then">
@@ -182,6 +196,7 @@
       <div class="section">
         <div class="section-title">
           <span data-i18n="else.title">::: SONST (optional)</span>
+          <button class="section-help-btn" onclick="showHelp('actions')" data-i18n-title="header.help" title="Hilfe">❓</button>
           <button class="small" onclick="addAction('else')" data-i18n="act.add">+ Aktion</button>
         </div>
         <div class="section-content drop-target" id="actions-else">
@@ -191,7 +206,10 @@
 
       <!-- LCD OUTPUT (alt — einfache Status-Ausgabe, Text-Modus) -->
       <div class="section">
-        <div class="section-title"><span data-i18n="lcdtext.title">::: LCD STATUS-AUSGABE (Text)</span></div>
+        <div class="section-title">
+          <span data-i18n="lcdtext.title">::: LCD STATUS-AUSGABE (Text)</span>
+          <button class="section-help-btn" onclick="showHelp('lcdtext')" data-i18n-title="header.help" title="Hilfe">❓</button>
+        </div>
         <div class="section-content">
           <div class="toggle-row">
             <label><input type="checkbox" id="lcd-enable" onchange="onLcdEnableChange(this.checked)"> <span data-i18n="lcdtext.enable">Aktivieren</span></label>
@@ -208,7 +226,10 @@
 
       <!-- LCD BAUKASTEN (Phase 4a — Sprite-API, grafische Widgets) -->
       <div class="section">
-        <div class="section-title"><span data-i18n="lcd.title">::: LCD BAUKASTEN (Grafik)</span></div>
+        <div class="section-title">
+          <span data-i18n="lcd.title">::: LCD BAUKASTEN (Grafik)</span>
+          <button class="section-help-btn" onclick="showHelp('lcdcomposer')" data-i18n-title="header.help" title="Hilfe">❓</button>
+        </div>
         <div class="section-content">
           <div class="toggle-row">
             <label><input type="checkbox" id="lcd-composer-enable" onchange="onLcdComposerEnable(this.checked)"> <span data-i18n="lcd.enable">Aktivieren</span></label>
@@ -328,6 +349,7 @@
 <script src="src/js/ui/themes.js"></script>
 <script src="src/js/ui/i18n.js"></script>
 <script src="src/js/ui/modal.js"></script>
+<script src="src/js/ui/help.js"></script>
 <script src="src/js/ui/tooltips.js"></script>
 <script src="src/js/ui/dnd.js"></script>
 <script src="src/js/ui/lcd-dnd.js"></script>

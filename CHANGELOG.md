@@ -7,6 +7,35 @@ das Projekt folgt [Semantic Versioning](https://semver.org/lang/de/).
 
 ## [Unreleased]
 
+## [3.1.0] — 2026-05-14
+
+### Hinzugefügt (Hilfe-System — DE + EN)
+- **Großer „❓ Hilfe"-Button** im Header öffnet ein zweispaltiges
+  Modal: Inhaltsverzeichnis (Sidebar links) + Erklärungs-Bereich
+  (rechts). 16 Themen-Sektionen, alle zweisprachig (DE + EN).
+- **Kleine ❓-Knöpfe** in jeder Builder-Sektion-Überschrift
+  (Vorlagen, Share-Token, Skript-Info, Ausführung, WENN, DANN,
+  SONST, LCD-Text, LCD-Baukasten) öffnen das Hilfe-Modal direkt
+  am passenden Abschnitt.
+- Inhalts-Sektionen im Workshop-/Tutorial-Stil mit ausführlichen
+  Erklärungen, Beispielen, Tipps:
+  - Was ist das Tool? / Erste Schritte (Quickstart)
+  - Vorlagen / Share-Token / Skript-Info (Workshop-Metadaten)
+  - Ausführung (Modi, Coroutines, Auto-Recovery)
+  - WENN-Bedingungen / Block-Quellen (Single/Group/Type) / Aggregator
+  - DANN- und SONST-Aktionen
+  - LCD-Text-Ausgabe / LCD-Baukasten / Widgets im Detail / Multi-LCD
+  - Code-Output (Copy, Download, Klartext)
+  - Im Spiel nutzen (Recompile, Workshop-Upload, Troubleshooting)
+- Hilfe-Modal nutzt das bestehende Theme-System: Akzentfarbe,
+  Schriftart und Hintergrund passen sich dem aktiven Theme an.
+- Sprachwechsel im Hilfe-Modal greift automatisch — beim
+  erneuten Öffnen erscheint der Inhalt in der gewählten Sprache.
+
+### Geändert
+- `TOOL_VERSION` von `3.0.1` auf `3.1.0` (Minor-Bump: neue
+  Hilfe-Doku, keine API/State-Änderungen).
+
 ## [3.0.1] — 2026-05-14
 
 ### Behoben (Aggregator-Dropdowns blieben leer)
