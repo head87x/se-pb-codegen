@@ -25,6 +25,7 @@ const I18N = {
     "header.lang":           "SPRACHE",
     "header.subtitle":       "SPACE ENGINEERS PROGRAMMABLE BLOCK",
     "header.help":           "Hilfe",
+    "header.effects":        "Effekte",
     "help.title":            "Hilfe & Erklärungen",
     "help.close":            "Schließen",
     "help.notfound":         "Abschnitt nicht gefunden.",
@@ -390,6 +391,7 @@ const I18N = {
     "header.lang":           "LANGUAGE",
     "header.subtitle":       "SPACE ENGINEERS PROGRAMMABLE BLOCK",
     "header.help":           "Help",
+    "header.effects":        "Effects",
     "help.title":            "Help & Explanations",
     "help.close":            "Close",
     "help.notfound":         "Section not found.",
@@ -744,6 +746,8 @@ function setLang(lang) {
   if (typeof initLcdComposerSelects === "function") initLcdComposerSelects();
   // Theme-Dropdown hat ebenfalls statische <option>-Texte aus
   // TOOL_THEMES — neu rendern damit Sprachwechsel greift.
+  // v4.2.0 — Custom-Theme-Dropdown neu rendern
+  if (typeof renderThemeDropdown === "function") renderThemeDropdown();
   const themeSel = document.getElementById("tool-theme-select");
   if (themeSel && typeof toolThemeOptions === "function") {
     themeSel.innerHTML = toolThemeOptions();

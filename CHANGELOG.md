@@ -7,6 +7,36 @@ das Projekt folgt [Semantic Versioning](https://semver.org/lang/de/).
 
 ## [Unreleased]
 
+## [4.2.0] — 2026-05-15
+
+### Hinzugefügt (Cosmetic / Theme-Politur)
+
+**Effekte-Toggle**
+- Neuer Button **„✨ Effekte"** im Header. Wenn aktiv:
+  - **Matrix-Theme** bekommt zusätzliche CRT-Scanline-Overlay
+    (feine horizontale Linien als `repeating-linear-gradient`,
+    `mix-blend-mode: screen`).
+  - **Cyberpunk-Theme** bekommt Neon-Glow um Akzent-Elemente
+    (`text-shadow` + `box-shadow` mit Accent-RGB).
+- Zustand persistiert in localStorage (`se_pb_effects`).
+- Greift nur bei Matrix/Cyberpunk — andere Themes bleiben
+  unverändert.
+
+**Theme-Preview-Thumbnails (Custom-Dropdown)**
+- Das Theme-Dropdown im Header wurde von nativem `<select>`
+  auf ein eigenes themed Dropdown umgestellt.
+- Pro Theme zeigt jetzt ein kleiner Farb-Splitter (3 Striche:
+  Accent / Panel / Text) plus das Label.
+- Im Trigger-Button ist der Splitter des aktuell gewählten
+  Themes sichtbar. Beim Aufklappen sieht man alle Themes mit
+  Splittern nebeneinander.
+- Outside-Click schließt das Dropdown.
+
+### Geändert
+- `TOOL_VERSION` von `4.1.1` auf `4.2.0`.
+- `setLang()` aktualisiert beim Sprachwechsel zusätzlich das
+  Custom-Theme-Dropdown.
+
 ## [4.1.1] — 2026-05-15
 
 ### Behoben (Widget springt zur Ecke beim ersten Drag)

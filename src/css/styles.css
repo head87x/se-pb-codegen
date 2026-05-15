@@ -1646,6 +1646,138 @@ footer .accent { color: var(--accent); }
   pointer-events: none;
   z-index: 8;
 }
+
+/* ============================================================
+   v4.2.0 — Effekte-Toggle: Matrix-Scanlines + Cyberpunk-Glow
+   ============================================================ */
+/* Effekte-Button: active-State zeigt dass Toggle an ist */
+#effects-toggle-btn.active {
+  background: var(--accent);
+  color: var(--panel);
+}
+/* Matrix-Scanline-Overlay als fixed pseudoelement auf html */
+html.effects-on[data-theme="matrix"]::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background: repeating-linear-gradient(
+    to bottom,
+    transparent 0,
+    transparent 2px,
+    rgba(0, 255, 80, 0.06) 2px,
+    rgba(0, 255, 80, 0.06) 3px
+  );
+  pointer-events: none;
+  z-index: 9998;
+  mix-blend-mode: screen;
+}
+/* Cyberpunk-Glow auf Akzent-Elementen */
+html.effects-on[data-theme="cyberpunk"] .accent,
+html.effects-on[data-theme="cyberpunk"] .section-title,
+html.effects-on[data-theme="cyberpunk"] .panel-header,
+html.effects-on[data-theme="cyberpunk"] .tag,
+html.effects-on[data-theme="cyberpunk"] button.small.primary {
+  text-shadow: 0 0 6px rgba(var(--accent-rgb), 0.7),
+               0 0 12px rgba(var(--accent-rgb), 0.4);
+}
+html.effects-on[data-theme="cyberpunk"] button.small.primary,
+html.effects-on[data-theme="cyberpunk"] .header-help-btn.active {
+  box-shadow: 0 0 8px rgba(var(--accent-rgb), 0.6),
+              0 0 18px rgba(var(--accent-rgb), 0.3);
+}
+
+/* ============================================================
+   v4.2.0 — Custom-Theme-Dropdown mit Farb-Splittern
+   ============================================================ */
+.theme-dropdown {
+  position: relative;
+  display: inline-block;
+}
+.theme-dropdown-trigger {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--panel-2);
+  border: 1px solid var(--border);
+  color: var(--text);
+  padding: 4px 8px;
+  font-family: 'Consolas', monospace;
+  font-size: 11px;
+  cursor: pointer;
+  border-radius: 2px;
+  min-width: 140px;
+}
+.theme-dropdown-trigger:hover {
+  border-color: var(--accent);
+}
+.theme-dropdown-arrow {
+  margin-left: auto;
+  opacity: 0.6;
+  font-size: 10px;
+}
+.theme-dropdown-list {
+  display: none;
+  position: absolute;
+  top: 100%;
+  right: 0;
+  margin-top: 2px;
+  min-width: 180px;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-top: 2px solid var(--accent);
+  box-shadow: 0 8px 24px rgba(var(--shadow-rgb), 0.55);
+  z-index: 5000;
+  border-radius: 2px;
+  padding: 4px;
+}
+.theme-dropdown-list.open {
+  display: block;
+}
+.theme-dropdown-opt {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  background: transparent;
+  border: 1px solid transparent;
+  color: var(--text);
+  padding: 4px 8px;
+  font-family: 'Consolas', monospace;
+  font-size: 11px;
+  text-align: left;
+  cursor: pointer;
+  border-radius: 2px;
+}
+.theme-dropdown-opt:hover {
+  background: rgba(var(--shadow-rgb), 0.3);
+  border-color: var(--accent);
+}
+.theme-dropdown-opt.active {
+  background: rgba(var(--shadow-rgb), 0.4);
+  border-color: var(--accent-2, var(--accent));
+}
+.theme-dropdown-label {
+  flex: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+/* Farb-Splitter: 3 winzige Striche vertikal stacked */
+.theme-swatch {
+  display: inline-flex;
+  flex-direction: column;
+  gap: 1px;
+  width: 14px;
+  height: 14px;
+  border: 1px solid rgba(var(--shadow-rgb), 0.6);
+  border-radius: 1px;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+.theme-swatch-stripe {
+  flex: 1;
+  display: block;
+}
 .lcd-layer-eye {
   background: transparent;
   border: 1px solid transparent;

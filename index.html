@@ -14,15 +14,19 @@
       <span class="help-btn-icon">❓</span>
       <span data-i18n="header.help">Hilfe</span>
     </button>
+    <button class="header-help-btn" id="effects-toggle-btn" onclick="toggleEffects()" data-i18n-title="header.effects" title="Effekte">
+      <span class="help-btn-icon">✨</span>
+      <span data-i18n="header.effects">Effekte</span>
+    </button>
     <label class="theme-picker">
       <span class="theme-picker-label" data-i18n="header.lang">SPRACHE</span>
       <select id="lang-select" onchange="setLang(this.value)"></select>
     </label>
     <label class="theme-picker">
       <span class="theme-picker-label" data-i18n="header.theme">THEME</span>
-      <select id="tool-theme-select" onchange="setToolTheme(this.value)"></select>
+      <div id="tool-theme-dropdown" class="theme-dropdown"></div>
     </label>
-    <span class="tag">v<span id="version-tag">4.1.1</span> :: <span data-i18n="header.subtitle">SPACE ENGINEERS PROGRAMMABLE BLOCK</span></span>
+    <span class="tag">v<span id="version-tag">4.2.0</span> :: <span data-i18n="header.subtitle">SPACE ENGINEERS PROGRAMMABLE BLOCK</span></span>
   </div>
 </header>
 
@@ -380,7 +384,9 @@
 <script src="src/js/ui/render.js"></script>
 <script>
   initToolTheme();
-  document.getElementById("tool-theme-select").innerHTML = toolThemeOptions();
+  // v4.2.0 — Custom-Dropdown statt nativem <select>
+  if (typeof renderThemeDropdown === "function") renderThemeDropdown();
+  if (typeof initEffects === "function") initEffects();
   document.getElementById("lang-select").innerHTML = langOptions();
   initI18n();
   initPalette();

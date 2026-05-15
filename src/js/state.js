@@ -6,7 +6,7 @@
 
 // Single source of truth — wird im Header-Tag und im generierten
 // Code-Attribution-Header verwendet.
-const TOOL_VERSION = "4.1.1";
+const TOOL_VERSION = "4.2.0";
 
 var state = {
   conditions: [],   // { blockType, blockName, condId, arg, arg2, logicOp ('AND'|'OR') }
