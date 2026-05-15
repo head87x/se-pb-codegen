@@ -6,7 +6,7 @@
 
 // Single source of truth — wird im Header-Tag und im generierten
 // Code-Attribution-Header verwendet.
-const TOOL_VERSION = "4.2.0";
+const TOOL_VERSION = "4.3.0";
 
 var state = {
   conditions: [],   // { blockType, blockName, condId, arg, arg2, logicOp ('AND'|'OR') }
@@ -14,7 +14,9 @@ var state = {
   actionsElse: [],
   execMode: "argument",
   useCoroutines: false,  // v2.2.0 — verteilt LCD-Drawing über mehrere Ticks
+  coroutineChunkSize: 50, // v4.3.0 — Blöcke pro Tick im Aggregator-Coroutine-Modus
   autoRecoverBlocks: false, // v2.11.0 — Default: Init in Program(), kein Closed-Recheck pro Tick
+  aggRefreshInterval: 1,  // v4.3.0 — Aggregator-Listen alle N Ticks refreshen (Expert)
   lcdEnable: false,  // alte einfache Status-Ausgabe
   lcdName: "",       // LCD-Block-Name für die alte Status-Ausgabe
   lcdComposer: {     // Phase 4a — LCD-Baukasten (Sprite-API)

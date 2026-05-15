@@ -721,10 +721,12 @@ function _emitWidget(w, idx, ensureBlock, ctx) {
         if (mode === "min") ctx.fields.push(`float _agg${idx}_min = float.MaxValue;`);
         if (mode === "max") ctx.fields.push(`float _agg${idx}_max = float.MinValue;`);
 
-        // Precompute: chunked Schleife (50 pro Tick) — wird in DrawAllLcds Phase 1 emittiert
-        ctx.precompute.push(`    // Aggregator #${idx + 1}: ${agg} (${mode}) — 50 Blöcke pro Tick`);
+        // Precompute: chunked Schleife — Chunk-Größe aus State (v4.3.0).
+        // Default 50 wenn coroutineChunkSize nicht gesetzt.
+        const chunkSize = Math.max(1, parseInt(state.coroutineChunkSize, 10) || 50);
+        ctx.precompute.push(`    // Aggregator #${idx + 1}: ${agg} (${mode}) — ${chunkSize} Blöcke pro Tick`);
         ctx.precompute.push(`    while (_agg${idx}_i < ${listVar}.Count) {`);
-        ctx.precompute.push(`        int _end = Math.Min(_agg${idx}_i + 50, ${listVar}.Count);`);
+        ctx.precompute.push(`        int _end = Math.Min(_agg${idx}_i + ${chunkSize}, ${listVar}.Count);`);
         ctx.precompute.push(`        for (; _agg${idx}_i < _end; _agg${idx}_i++) {`);
         ctx.precompute.push(`            var b = ${listVar}[_agg${idx}_i];`);
         ctx.precompute.push(`            float v = ${expr};`);

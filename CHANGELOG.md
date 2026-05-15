@@ -7,6 +7,47 @@ das Projekt folgt [Semantic Versioning](https://semver.org/lang/de/).
 
 ## [Unreleased]
 
+## [4.3.0] — 2026-05-15
+
+### Hinzugefügt (Power-Features / Expert-Mode)
+
+**Expert-Mode-Toggle**
+- Neuer Button **„🛠 Experten"** im Header (neben Effekte/Hilfe).
+  Zustand in localStorage. CSS-Klasse `html.expert-mode`
+  steuert die Sichtbarkeit aller `.expert-only`-Felder.
+
+**Operator-Präzedenz mit Klammern** (Expert)
+- In Bedingungen erscheint eine zusätzliche Reihe mit Buttons
+  „+ (" / „−" für öffnende Klammern und „+ )" / „−" für
+  schließende Klammern. Anzahl wird als Counter direkt in
+  C#-Syntax sichtbar gezeigt (z. B. `(((`).
+- Codegen emittiert die Klammern um den Atom-Ausdruck herum.
+  Damit lässt sich `(A oder B) und (C oder D)` bauen.
+
+**Aggregator-Refresh-Intervall** (Expert)
+- Slider in der AUSFÜHRUNG-Sektion: alle N Ticks (1–200).
+  Default 1 (= jeden Tick, aktuelles Verhalten). Höher =
+  sparsamer. Wenn N > 1: Codegen emittiert ein `int
+  _tickCounter`-Field und wrappt Gruppen-/Type-/Aggregator-
+  Refreshes in `if ((_tickCounter++ % N) == 0) { ... }`.
+
+**Coroutine-Chunk-Größe-Slider** (immer sichtbar wenn Coroutines an)
+- Slider „Blöcke pro Tick: 10–500", erscheint sobald
+  Coroutines aktiviert sind (KEIN Expert-Mode nötig).
+  Default 50 wie bisher.
+- Codegen ersetzt das hardcoded `50` in der Aggregator-
+  Coroutine-Schleife durch den State-Wert.
+
+### Geändert
+- `TOOL_VERSION` von `4.2.0` auf `4.3.0`.
+- `state.coroutineChunkSize` (Default 50) und
+  `state.aggRefreshInterval` (Default 1) neu im State.
+- Pro Condition zwei neue Felder: `openParens`, `closeParens`
+  (beide Default 0). Defensive Migration in templates.js +
+  share.js.
+- `onUseCoroutinesChange()` ruft jetzt `render()` (statt
+  `generateCode()`), damit der Chunk-Slider erscheint/verschwindet.
+
 ## [4.2.0] — 2026-05-15
 
 ### Hinzugefügt (Cosmetic / Theme-Politur)

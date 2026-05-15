@@ -307,6 +307,20 @@ function renderConditions() {
     const aggMode = c.aggregateMode || c.groupSemantic || "any";
     const showThreshold = (aggMode === "count" || aggMode === "sum" || aggMode === "avg" || aggMode === "min" || aggMode === "max");
     const nameLabel = isType ? null : (isGroup ? "group.name" : "block.name");
+    // v4.3.0 — Klammer-Buttons (Expert-Mode): „( öffnen" vor und ")
+    // schließen" nach dieser Bedingung. Anzahl als Counter sichtbar.
+    const op = c.openParens || 0;
+    const cp = c.closeParens || 0;
+    const parenRow = `
+        <div class="paren-row expert-only flex" title="${escapeAttr(t("cond.paren_open.title"))}">
+          <button class="small" onclick="adjustCondParens(${i}, 'open', 1)">+ (</button>
+          <button class="small" onclick="adjustCondParens(${i}, 'open', -1)" ${op === 0 ? "disabled" : ""}>−</button>
+          <span class="paren-count">${"(".repeat(op)}</span>
+          <span style="flex:1;"></span>
+          <span class="paren-count">${")".repeat(cp)}</span>
+          <button class="small" onclick="adjustCondParens(${i}, 'close', -1)" ${cp === 0 ? "disabled" : ""}>−</button>
+          <button class="small" onclick="adjustCondParens(${i}, 'close', 1)">+ )</button>
+        </div>`;
     return `
       ${logicSelect}
       <div class="condition-block">
@@ -314,6 +328,7 @@ function renderConditions() {
           <span>${escapeHtml(t("cond.add").replace(/^\+\s*/, "").toUpperCase())} #${i + 1}</span>
           <button class="small danger" onclick="removeCond(${i})">${escapeHtml(t("btn.remove"))}</button>
         </div>
+        ${parenRow}
         <div class="row ${isType ? "" : "row-2"}">
           <div>
             <label>${escapeHtml(t("label.blocktype"))}</label>
@@ -522,6 +537,22 @@ function render() {
 // Schätzt grob: 1 Tick pro LCD + 1 Tick pro Aggregator-Widget
 // (bei ≤50 Blöcken pro Aggregator). Bei vielen Blöcken kommt mehr dazu.
 function renderCoroutineStats() {
+  // v4.3.0 — Chunk-Slider parallel zur Coroutine-Statistik ein-/ausblenden
+  const chunkWrap = document.getElementById("coroutine-chunk-wrap");
+  if (chunkWrap) chunkWrap.style.display = state.useCoroutines ? "block" : "none";
+  const chunkSlider = document.getElementById("coroutine-chunk-slider");
+  const chunkVal    = document.getElementById("coroutine-chunk-value");
+  if (chunkSlider && typeof state.coroutineChunkSize === "number") {
+    chunkSlider.value = state.coroutineChunkSize;
+    if (chunkVal) chunkVal.textContent = state.coroutineChunkSize;
+  }
+  const aggSlider = document.getElementById("agg-refresh-slider");
+  const aggVal    = document.getElementById("agg-refresh-value");
+  if (aggSlider && typeof state.aggRefreshInterval === "number") {
+    aggSlider.value = state.aggRefreshInterval;
+    if (aggVal) aggVal.textContent = state.aggRefreshInterval;
+  }
+
   const el = document.getElementById("exec-coroutines-stats");
   if (!el) return;
   const active = !!state.useCoroutines;

@@ -64,6 +64,37 @@ function toolThemeOptions() {
 }
 
 // ============================================================
+// v4.3.0 — Expert-Mode
+// ============================================================
+// Bietet Power-Usern zusätzliche Felder (Klammerung, Aggregator-
+// Refresh-Intervall). Sichtbarkeit wird per CSS-Klasse
+// `html.expert-mode` gesteuert; die zugehörigen Felder haben
+// die Klasse `.expert-only`.
+const EXPERT_MODE_KEY = "se_pb_expert_mode";
+
+function getExpertMode() {
+  try { return localStorage.getItem(EXPERT_MODE_KEY) === "true"; }
+  catch (_) { return false; }
+}
+
+function setExpertMode(on) {
+  try { localStorage.setItem(EXPERT_MODE_KEY, on ? "true" : "false"); } catch (_) {}
+  document.documentElement.classList.toggle("expert-mode", !!on);
+  const btn = document.getElementById("expert-toggle-btn");
+  if (btn) btn.classList.toggle("active", !!on);
+  // Re-render damit conditional emittierte Expert-Felder erscheinen/verschwinden
+  if (typeof render === "function") render();
+}
+
+function toggleExpertMode() {
+  setExpertMode(!getExpertMode());
+}
+
+function initExpertMode() {
+  setExpertMode(getExpertMode());
+}
+
+// ============================================================
 // v4.2.0 — Effekte-Toggle (Matrix-Scanlines + Cyberpunk-Glow)
 // ============================================================
 const EFFECTS_KEY = "se_pb_effects";

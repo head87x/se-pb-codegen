@@ -1651,9 +1651,62 @@ footer .accent { color: var(--accent); }
    v4.2.0 — Effekte-Toggle: Matrix-Scanlines + Cyberpunk-Glow
    ============================================================ */
 /* Effekte-Button: active-State zeigt dass Toggle an ist */
-#effects-toggle-btn.active {
+#effects-toggle-btn.active,
+#expert-toggle-btn.active {
   background: var(--accent);
   color: var(--panel);
+}
+
+/* v4.3.0 — Expert-Mode: Felder mit .expert-only sind nur sichtbar
+   wenn html.expert-mode gesetzt ist. */
+.expert-only { display: none; }
+html.expert-mode .expert-only { display: block; }
+html.expert-mode .expert-only.inline-flex { display: inline-flex; }
+html.expert-mode .expert-only.flex { display: flex; }
+
+/* Expert-Felder bekommen einen dezenten Hinweis-Border-Akzent */
+.expert-only.expert-field {
+  border-left: 2px solid var(--accent-2, var(--accent));
+  padding-left: 8px;
+  margin: 6px 0;
+}
+.expert-field-label {
+  display: inline-block;
+  font-family: 'Consolas', monospace;
+  font-size: 10px;
+  letter-spacing: 0.5px;
+  color: var(--accent-2, var(--accent));
+  text-transform: uppercase;
+  margin-right: 6px;
+}
+.expert-field-label::before {
+  content: "🛠 ";
+}
+
+/* v4.3.0 — Klammern-Buttons in Conditions */
+.paren-row {
+  display: flex;
+  gap: 4px;
+  align-items: center;
+  margin: 2px 0;
+  font-size: 11px;
+}
+.paren-row button.small {
+  padding: 2px 6px;
+  font-family: 'Consolas', monospace;
+  min-width: 28px;
+}
+.paren-row button.small.active {
+  background: var(--accent-2, var(--accent));
+  color: var(--panel);
+  border-color: var(--accent-2, var(--accent));
+}
+.paren-row .paren-count {
+  color: var(--accent-2, var(--accent));
+  font-family: 'Consolas', monospace;
+  font-size: 11px;
+  min-width: 14px;
+  text-align: center;
 }
 /* Matrix-Scanline-Overlay als fixed pseudoelement auf html */
 html.effects-on[data-theme="matrix"]::before {

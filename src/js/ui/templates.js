@@ -45,6 +45,9 @@ function loadTemplate(i) {
   if (typeof state.useCoroutines !== "boolean") state.useCoroutines = false;
   // v2.11.0: autoRecoverBlocks-Toggle defensiv defaulten
   if (typeof state.autoRecoverBlocks !== "boolean") state.autoRecoverBlocks = false;
+  // v4.3.0 — Coroutine-Chunk + Refresh-Intervall defensiv defaulten
+  if (typeof state.coroutineChunkSize !== "number") state.coroutineChunkSize = 50;
+  if (typeof state.aggRefreshInterval !== "number") state.aggRefreshInterval = 1;
   // v2.4.0: Gruppen-Semantik defaulten (alte Vorlagen kannten nur "any")
   // v3.0.0: zusätzlich blockSource/sameConstruct/aggregateMode/aggregateThreshold/aggregateOp
   // migrieren — aus useGroup/groupSemantic/groupCount ableiten.
@@ -59,6 +62,9 @@ function loadTemplate(i) {
       if (typeof c.aggregateMode !== "string") c.aggregateMode = c.groupSemantic || "any";
       if (typeof c.aggregateThreshold !== "number") c.aggregateThreshold = c.groupCount || 1;
       if (typeof c.aggregateOp !== "string") c.aggregateOp = ">=";
+      // v4.3.0 — Klammern-Felder defensiv defaulten
+      if (typeof c.openParens !== "number") c.openParens = 0;
+      if (typeof c.closeParens !== "number") c.closeParens = 0;
     }
   }
   // Actions bekommen blockSource/sameConstruct analog (kein Aggregator)

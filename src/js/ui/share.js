@@ -161,6 +161,8 @@ function _shareApplyDefensiveDefaults() {
   }
   if (typeof state.useCoroutines !== "boolean") state.useCoroutines = false;
   if (typeof state.autoRecoverBlocks !== "boolean") state.autoRecoverBlocks = false;
+  if (typeof state.coroutineChunkSize !== "number") state.coroutineChunkSize = 50;
+  if (typeof state.aggRefreshInterval !== "number") state.aggRefreshInterval = 1;
   // v2.4.0: Gruppen-Semantik defaulten + v3.0.0 Migration
   if (Array.isArray(state.conditions)) {
     for (const c of state.conditions) {
@@ -171,6 +173,8 @@ function _shareApplyDefensiveDefaults() {
       if (typeof c.aggregateMode !== "string") c.aggregateMode = c.groupSemantic || "any";
       if (typeof c.aggregateThreshold !== "number") c.aggregateThreshold = c.groupCount || 1;
       if (typeof c.aggregateOp !== "string") c.aggregateOp = ">=";
+      if (typeof c.openParens !== "number") c.openParens = 0;
+      if (typeof c.closeParens !== "number") c.closeParens = 0;
     }
   }
   const _shareMigActs = (arr) => {

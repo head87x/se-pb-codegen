@@ -18,6 +18,10 @@
       <span class="help-btn-icon">✨</span>
       <span data-i18n="header.effects">Effekte</span>
     </button>
+    <button class="header-help-btn" id="expert-toggle-btn" onclick="toggleExpertMode()" data-i18n-title="header.expert" title="Experten-Modus">
+      <span class="help-btn-icon">🛠</span>
+      <span data-i18n="header.expert">Experten</span>
+    </button>
     <label class="theme-picker">
       <span class="theme-picker-label" data-i18n="header.lang">SPRACHE</span>
       <select id="lang-select" onchange="setLang(this.value)"></select>
@@ -26,7 +30,7 @@
       <span class="theme-picker-label" data-i18n="header.theme">THEME</span>
       <div id="tool-theme-dropdown" class="theme-dropdown"></div>
     </label>
-    <span class="tag">v<span id="version-tag">4.2.0</span> :: <span data-i18n="header.subtitle">SPACE ENGINEERS PROGRAMMABLE BLOCK</span></span>
+    <span class="tag">v<span id="version-tag">4.3.0</span> :: <span data-i18n="header.subtitle">SPACE ENGINEERS PROGRAMMABLE BLOCK</span></span>
   </div>
 </header>
 
@@ -161,6 +165,17 @@
             Verteilt LCD-Updates über mehrere Ticks. Empfohlen ab Multi-LCD 3×3 oder vielen Aggregator-Widgets — vermeidet „Script too complex"-Fehler. Trade-off: LCDs aktualisieren nicht alle gleichzeitig, sondern ein Display pro Tick.
           </div>
           <div id="exec-coroutines-stats" class="help-text" style="margin-top:4px; display:none; color:var(--accent-2); font-weight:600;"></div>
+          <!-- v4.3.0 — Coroutine-Chunk-Slider: sichtbar wenn Coroutines an -->
+          <div id="coroutine-chunk-wrap" style="display:none; margin-top:8px;">
+            <label data-i18n="exec.chunk_size">Blöcke pro Tick (Coroutine-Chunk)</label>
+            <div style="display:flex; align-items:center; gap:8px;">
+              <input type="range" id="coroutine-chunk-slider" min="10" max="500" step="10" value="50" oninput="onCoroutineChunkSizeChange(this.value); document.getElementById('coroutine-chunk-value').textContent=this.value;">
+              <span id="coroutine-chunk-value" style="font-family:Consolas,monospace; color:var(--accent-2); min-width:32px;">50</span>
+            </div>
+            <div class="help-text" data-i18n="exec.chunk_size.help" style="margin-top:4px;">
+              Wie viele Blöcke pro Tick im Aggregator-Coroutine-Modus verarbeitet werden. Default 50.
+            </div>
+          </div>
           <div class="toggle-row" style="margin-top:10px;">
             <label>
               <input type="checkbox" id="exec-auto-recover" onchange="onAutoRecoverChange(this.checked)">
@@ -169,6 +184,17 @@
           </div>
           <div class="help-text" data-i18n="exec.auto_recover.help" style="margin-top:4px;">
             Standardmäßig holt das Skript Block-Referenzen einmalig im Constructor (Recompile-Button im Spiel). Aktivieren wenn das Skript dauerhaft laufen muss und Blöcke zur Laufzeit zerstört werden dürfen — bringt einen Tick-Overhead.
+          </div>
+          <!-- v4.3.0 — Refresh-Intervall (Expert-Mode) -->
+          <div class="expert-only expert-field" style="margin-top:10px;">
+            <span class="expert-field-label" data-i18n="exec.refresh_interval">Aggregator-Refresh alle N Ticks</span>
+            <div style="display:flex; align-items:center; gap:8px; margin-top:4px;">
+              <input type="range" id="agg-refresh-slider" min="1" max="200" step="1" value="1" oninput="onAggRefreshIntervalChange(this.value); document.getElementById('agg-refresh-value').textContent=this.value;">
+              <span id="agg-refresh-value" style="font-family:Consolas,monospace; color:var(--accent-2); min-width:32px;">1</span>
+            </div>
+            <div class="help-text" data-i18n="exec.refresh_interval.help" style="margin-top:4px;">
+              Aggregator-Listen werden normal jeden Tick neu gesucht. Höher = sparsamer.
+            </div>
           </div>
         </div>
       </div>
@@ -387,6 +413,7 @@
   // v4.2.0 — Custom-Dropdown statt nativem <select>
   if (typeof renderThemeDropdown === "function") renderThemeDropdown();
   if (typeof initEffects === "function") initEffects();
+  if (typeof initExpertMode === "function") initExpertMode();
   document.getElementById("lang-select").innerHTML = langOptions();
   initI18n();
   initPalette();

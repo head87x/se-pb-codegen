@@ -265,6 +265,10 @@ function generateCode() {
   // v2.11.0 — Init-Fehler-Flag (Block oder Gruppe nicht gefunden im Constructor)
   const hasAnyBlocks = blockMap.size > 0 || lcdStatusEnabled || !!composerInit;
   if (hasAnyBlocks) code += `bool _initFailed;\n`;
+  // v4.3.0 — Tick-Counter wenn aggRefreshInterval > 1 (Expert-Mode-Feature)
+  const aggRefreshInterval = Math.max(1, parseInt(state.aggRefreshInterval, 10) || 1);
+  const useTickCounter = aggRefreshInterval > 1;
+  if (useTickCounter) code += `int _tickCounter;\n`;
   code += "\n";
 
   // ---------- Constructor ----------
@@ -348,26 +352,45 @@ function generateCode() {
         code += `        lcd_status = GridTerminalSystem.GetBlockWithName("${escapeCs(state.lcdName)}") as IMyTextSurface;\n`;
       }
     }
-    // Gruppen-Listen IMMER refreshen (Mitglieder können sich ändern)
+    // v4.3.0 — Gruppen-/Type-Listen + Composer-Aggregator-Listen können
+    // konditional alle N Ticks refreshed werden (Performance-Tuning).
+    // Default aggRefreshInterval=1 → kein Conditional-Wrap.
+    const _refreshIndent = useTickCounter ? "        " : "    ";
+    if (useTickCounter) {
+      code += `    // Aggregator-Listen alle ${aggRefreshInterval} Ticks refreshen\n`;
+      code += `    if ((_tickCounter++ % ${aggRefreshInterval}) == 0)\n`;
+      code += `    {\n`;
+    }
+    // Gruppen-Listen refreshen (Mitglieder können sich ändern)
     for (const e of blockMap.values()) {
       if (e.blockSource !== "group") continue;
-      code += `    if (${e.varName}_grp != null && ${e.varName} != null) {\n`;
-      code += `        ${e.varName}.Clear();\n`;
-      code += `        ${e.varName}_grp.GetBlocksOfType(${e.varName});\n`;
-      code += `    }\n`;
+      code += `${_refreshIndent}if (${e.varName}_grp != null && ${e.varName} != null) {\n`;
+      code += `${_refreshIndent}    ${e.varName}.Clear();\n`;
+      code += `${_refreshIndent}    ${e.varName}_grp.GetBlocksOfType(${e.varName});\n`;
+      code += `${_refreshIndent}}\n`;
     }
-    // Type-Listen IMMER refreshen (neue Blöcke vom Typ können hinzukommen)
+    // Type-Listen refreshen (neue Blöcke vom Typ können hinzukommen)
     for (const e of blockMap.values()) {
       if (e.blockSource !== "type") continue;
-      code += `    ${e.varName}.Clear();\n`;
+      code += `${_refreshIndent}${e.varName}.Clear();\n`;
       if (e.sameConstruct) {
-        code += `    GridTerminalSystem.GetBlocksOfType(${e.varName}, _b => _b.IsSameConstructAs(Me));\n`;
+        code += `${_refreshIndent}GridTerminalSystem.GetBlocksOfType(${e.varName}, _b => _b.IsSameConstructAs(Me));\n`;
       } else {
-        code += `    GridTerminalSystem.GetBlocksOfType(${e.varName});\n`;
+        code += `${_refreshIndent}GridTerminalSystem.GetBlocksOfType(${e.varName});\n`;
       }
     }
-    // Composer-Refresh (Aggregator-Listen — immer)
-    if (composerRefresh) code += composerRefresh;
+    // Composer-Refresh (Aggregator-Listen) — gleiche Indentation
+    if (composerRefresh) {
+      if (useTickCounter) {
+        // composerRefresh hat schon "    "-Indentation; tiefer einrücken
+        code += composerRefresh.replace(/^(    )/gm, "        ");
+      } else {
+        code += composerRefresh;
+      }
+    }
+    if (useTickCounter) {
+      code += `    }\n`;
+    }
     // Composer-Closed-Rechecks (nur bei autoRecover)
     if (autoRecover && composerClosedRecheck) code += composerClosedRecheck;
     code += "}\n\n";
@@ -435,7 +458,11 @@ function generateCode() {
         e = condExpr(c, blockEntry.varName);
       }
       const op = i === 0 ? "" : (c.logicOp === "OR" ? " || " : " && ");
-      parts.push(op + "(" + e + ")");
+      // v4.3.0 — extra Klammern aus dem Expert-Mode (open vor, close nach
+      // dem geklammerten Atom-Ausdruck)
+      const opAdd = "(".repeat(Math.max(0, parseInt(c.openParens, 10) || 0));
+      const cpAdd = ")".repeat(Math.max(0, parseInt(c.closeParens, 10) || 0));
+      parts.push(op + opAdd + "(" + e + ")" + cpAdd);
     });
     condExprStr = parts.join("") || "true";
   }

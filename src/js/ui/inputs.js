@@ -38,6 +38,9 @@ function addConditionOfType(blockType) {
     aggregateMode: "any",
     aggregateThreshold: 1,
     aggregateOp: ">=",           // ">" | "<" | ">=" | "<=" | "==" | "!="
+    // v4.3.0 — Operator-Klammern für komplexe AND/OR-Logik (Expert-Mode)
+    openParens: 0,               // Anzahl "(" vor dieser Bedingung
+    closeParens: 0,              // Anzahl ")" nach dieser Bedingung
     // Backwards-Compat-Felder (gelesen wenn vorhanden, aber nicht mehr neu gesetzt):
     useGroup: false,
     groupSemantic: "any",
@@ -205,12 +208,36 @@ function updateAct(which, i, field, val) {
 
 function onUseCoroutinesChange(checked) {
   state.useCoroutines = !!checked;
-  generateCode();
+  render();   // Chunk-Slider erscheint/verschwindet
 }
 
 function onAutoRecoverChange(checked) {
   state.autoRecoverBlocks = !!checked;
   generateCode();
+}
+
+// v4.3.0 — Chunk-Größe und Refresh-Intervall-Slider
+function onCoroutineChunkSizeChange(val) {
+  const n = parseInt(val, 10);
+  state.coroutineChunkSize = isNaN(n) ? 50 : Math.max(1, Math.min(1000, n));
+  generateCode();
+}
+function onAggRefreshIntervalChange(val) {
+  const n = parseInt(val, 10);
+  state.aggRefreshInterval = isNaN(n) ? 1 : Math.max(1, Math.min(1000, n));
+  generateCode();
+}
+
+// v4.3.0 — Klammern in Conditions (Expert-Mode)
+function adjustCondParens(i, side, delta) {
+  const c = state.conditions[i];
+  if (!c) return;
+  if (side === "open") {
+    c.openParens = Math.max(0, (parseInt(c.openParens, 10) || 0) + delta);
+  } else {
+    c.closeParens = Math.max(0, (parseInt(c.closeParens, 10) || 0) + delta);
+  }
+  render();
 }
 
 function onExecModeChange(val) {
