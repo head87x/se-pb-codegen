@@ -892,14 +892,34 @@ function _renderLcdLayerList(widgets) {
   }).join("");
 
   // Floating Action-Bar erscheint nur, wenn etwas selektiert ist.
+  // v4.1.0 — bei ≥2 selektierten: Ausrichten-Buttons; bei ≥3: Verteilen.
   const selCount = selectedSet.size;
+  const alignRow = selCount >= 2 ? `
+        <div class="lcd-align-row" title="${escapeAttr(t("lcd.align.tooltip"))}">
+          <span class="lcd-align-label">${escapeHtml(t("lcd.align.label"))}</span>
+          <button class="small" title="${escapeAttr(t("lcd.align.left"))}"    onclick="alignSelectedLcdWidgets('left')">⊢</button>
+          <button class="small" title="${escapeAttr(t("lcd.align.hcenter"))}" onclick="alignSelectedLcdWidgets('hcenter')">⊟</button>
+          <button class="small" title="${escapeAttr(t("lcd.align.right"))}"   onclick="alignSelectedLcdWidgets('right')">⊣</button>
+          <span class="lcd-align-sep">·</span>
+          <button class="small" title="${escapeAttr(t("lcd.align.top"))}"     onclick="alignSelectedLcdWidgets('top')">⊤</button>
+          <button class="small" title="${escapeAttr(t("lcd.align.vcenter"))}" onclick="alignSelectedLcdWidgets('vcenter')">⊠</button>
+          <button class="small" title="${escapeAttr(t("lcd.align.bottom"))}"  onclick="alignSelectedLcdWidgets('bottom')">⊥</button>
+          ${selCount >= 3 ? `
+          <span class="lcd-align-sep">·</span>
+          <button class="small" title="${escapeAttr(t("lcd.dist.h"))}" onclick="distributeSelectedLcdWidgets('h')">↔</button>
+          <button class="small" title="${escapeAttr(t("lcd.dist.v"))}" onclick="distributeSelectedLcdWidgets('v')">↕</button>
+          ` : ""}
+        </div>` : "";
   const actionBar = selCount > 0 ? `
       <div class="lcd-select-bar">
-        <span class="lcd-select-count">${escapeHtml(t("lcd.select.count", selCount))}</span>
-        <div class="btn-row">
-          <button class="small danger" onclick="deleteSelectedLcdWidgets()">${escapeHtml(t("lcd.select.delete"))}</button>
-          <button class="small" onclick="clearLcdSelection()">${escapeHtml(t("lcd.select.clear"))}</button>
+        <div class="lcd-select-row1">
+          <span class="lcd-select-count">${escapeHtml(t("lcd.select.count", selCount))}</span>
+          <div class="btn-row">
+            <button class="small danger" onclick="deleteSelectedLcdWidgets()">${escapeHtml(t("lcd.select.delete"))}</button>
+            <button class="small" onclick="clearLcdSelection()">${escapeHtml(t("lcd.select.clear"))}</button>
+          </div>
         </div>
+        ${alignRow}
       </div>` : "";
 
   return `

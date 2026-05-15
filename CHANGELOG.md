@@ -7,6 +7,47 @@ das Projekt folgt [Semantic Versioning](https://semver.org/lang/de/).
 
 ## [Unreleased]
 
+## [4.1.0] — 2026-05-15
+
+### Hinzugefügt (LCD-Composer Multi-Widget-Erweiterungen)
+
+**Strg+A — alle Widgets selektieren**
+- Tastenkürzel im LCD-Composer (außerhalb von Eingabefeldern).
+  Funktion `selectAllLcdWidgets()` in inputs.js.
+
+**Ausrichten-Buttons in der Action-Bar**
+- Erscheinen sobald ≥2 Widgets selektiert sind, unter dem
+  bestehenden „Löschen / Abwählen"-Bereich.
+- Sechs Modi: Links / Mitte horizontal / Rechts /
+  Oben / Mitte vertikal / Unten.
+- Referenz ist die **Bounding-Box** aller selektierten Widgets
+  (nicht das erste).
+
+**Verteilen — gleiche Abstände**
+- Zusätzlich bei ≥3 Widgets: Buttons für horizontale und
+  vertikale Verteilung. Endpunkte (erstes + letztes) bleiben,
+  mittlere Widgets bekommen gleichmäßige Gaps.
+
+**Lasso-Select**
+- Maus-Drag auf dem LCD-Vorschau-Hintergrund (nicht auf einem
+  Widget) zieht ein gestricheltes Auswahl-Rechteck.
+- Beim Loslassen werden alle Widgets selektiert, deren
+  Bounding-Box den Rahmen schneidet.
+- **Shift-Drag** erweitert die bestehende Selektion (statt zu
+  ersetzen).
+- Reines Klicken auf Hintergrund (ohne Bewegung) bleibt
+  Selektion-leeren wie bisher.
+
+**„Gleiche Größe wie Nachbar"-Snap beim Resize**
+- Beim Größenändern eines Widgets snappt es an die Breite
+  bzw. Höhe anderer Widgets auf dem Canvas (Threshold 8 LCD-px,
+  wie das bestehende Smart-Snap).
+
+### Geändert
+- `TOOL_VERSION` von `4.0.2` auf `4.1.0`.
+- Action-Bar bei selektierten Widgets ist jetzt zweizeilig
+  (Zähler+Löschen oben, Ausrichten+Verteilen unten).
+
 ## [4.0.2] — 2026-05-15
 
 ### Behoben (Autocomplete-Klick übernahm den Wert nicht)

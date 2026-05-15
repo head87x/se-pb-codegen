@@ -516,6 +516,100 @@ function clearLcdSelection() {
   render();
 }
 
+// v4.1.0 — Strg+A: alle Widgets selektieren (auch versteckte zählen mit).
+function selectAllLcdWidgets() {
+  if (!state.lcdComposer || !state.lcdComposer.widgets) return;
+  const n = state.lcdComposer.widgets.length;
+  if (n === 0) return;
+  const sel = _lcdEnsureSelection();
+  sel.length = 0;
+  for (let i = 0; i < n; i++) sel.push(i);
+  render();
+}
+
+// v4.1.0 — Hilfsfunktion: liefert die aktuell selektierten Widgets als
+// Array von {idx, w, x, y, w, h}-Records mit numerischen Positions-Werten.
+function _getSelectedLcdWidgetInfos() {
+  if (!state.lcdComposer || !state.lcdComposer.widgets) return [];
+  const sel = state.lcdComposer.selectedIndices || [];
+  return sel
+    .map(idx => {
+      const w = state.lcdComposer.widgets[idx];
+      if (!w) return null;
+      return {
+        idx,
+        w,
+        x: parseFloat(w.manualX) || 0,
+        y: parseFloat(w.manualY) || 0,
+        ww: parseFloat(w.manualW) || 100,
+        hh: parseFloat(w.manualH) || 40
+      };
+    })
+    .filter(x => x !== null);
+}
+
+// v4.1.0 — Ausrichten: mode = "left" | "right" | "hcenter" | "top" | "bottom" | "vcenter"
+// Bezug = Bounding-Box aller selektierten Widgets (nicht das erste).
+function alignSelectedLcdWidgets(mode) {
+  const items = _getSelectedLcdWidgetInfos();
+  if (items.length < 2) return;
+  const minX = Math.min(...items.map(i => i.x));
+  const maxX = Math.max(...items.map(i => i.x + i.ww));
+  const minY = Math.min(...items.map(i => i.y));
+  const maxY = Math.max(...items.map(i => i.y + i.hh));
+  const cx = (minX + maxX) / 2;
+  const cy = (minY + maxY) / 2;
+  for (const it of items) {
+    switch (mode) {
+      case "left":    it.w.manualX = minX; break;
+      case "right":   it.w.manualX = maxX - it.ww; break;
+      case "hcenter": it.w.manualX = Math.round(cx - it.ww / 2); break;
+      case "top":     it.w.manualY = minY; break;
+      case "bottom":  it.w.manualY = maxY - it.hh; break;
+      case "vcenter": it.w.manualY = Math.round(cy - it.hh / 2); break;
+    }
+  }
+  render();
+}
+
+// v4.1.0 — Verteilen: gleiche Abstände zwischen ≥3 selektierten Widgets.
+// dir = "h" | "v". Endpunkte (erstes und letztes) bleiben stehen, mittlere
+// werden umverteilt.
+function distributeSelectedLcdWidgets(dir) {
+  const items = _getSelectedLcdWidgetInfos();
+  if (items.length < 3) return;
+  if (dir === "h") {
+    items.sort((a, b) => a.x - b.x);
+    const first = items[0];
+    const last  = items[items.length - 1];
+    // Verfügbarer "Gap-Raum" = Distanz von rechter Kante des ersten zur
+    // linken Kante des letzten, minus Breite aller mittleren.
+    const totalSpan = last.x - (first.x + first.ww);
+    const innerWidth = items.slice(1, -1).reduce((sum, it) => sum + it.ww, 0);
+    const gapCount = items.length - 1;
+    const gap = (totalSpan - innerWidth) / gapCount;
+    let cursor = first.x + first.ww + gap;
+    for (let i = 1; i < items.length - 1; i++) {
+      items[i].w.manualX = Math.round(cursor);
+      cursor += items[i].ww + gap;
+    }
+  } else {
+    items.sort((a, b) => a.y - b.y);
+    const first = items[0];
+    const last  = items[items.length - 1];
+    const totalSpan = last.y - (first.y + first.hh);
+    const innerHeight = items.slice(1, -1).reduce((sum, it) => sum + it.hh, 0);
+    const gapCount = items.length - 1;
+    const gap = (totalSpan - innerHeight) / gapCount;
+    let cursor = first.y + first.hh + gap;
+    for (let i = 1; i < items.length - 1; i++) {
+      items[i].w.manualY = Math.round(cursor);
+      cursor += items[i].hh + gap;
+    }
+  }
+  render();
+}
+
 function _lcdRemapSelectionAfterDelete(deletedIdx) {
   const sel = _lcdEnsureSelection();
   for (let i = sel.length - 1; i >= 0; i--) {

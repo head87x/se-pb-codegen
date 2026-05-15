@@ -39,8 +39,13 @@ function _lcdSnapCandidates(virt, excludeIdx) {
   // Multi-LCD interior boundaries
   for (let c = 1; c < (virt.cols || 1); c++) xs.push(c * virt.lcdW);
   for (let r = 1; r < (virt.rows || 1); r++) ys.push(r * virt.lcdH);
-  // Andere Widgets
+  // Andere Widgets — Position-Kanten und Mitten
   const widgets = state.lcdComposer.widgets || [];
+  // v4.1.0 — zusätzlich Größen (Breite, Höhe) für „Gleiche Größe"-Snap
+  // beim Resize. Im Resize-Code werden xs/ys nicht direkt für Größen
+  // verwendet; daher liefern wir Größen separat.
+  const widths  = [];
+  const heights = [];
   widgets.forEach((w, i) => {
     if (i === excludeIdx) return;
     if (w.hidden) return;
@@ -50,8 +55,10 @@ function _lcdSnapCandidates(virt, excludeIdx) {
     const wh = parseFloat(w.manualH) || 40;
     xs.push(wx, wx + ww, wx + ww / 2);
     ys.push(wy, wy + wh, wy + wh / 2);
+    widths.push(ww);
+    heights.push(wh);
   });
-  return { xs, ys };
+  return { xs, ys, widths, heights };
 }
 
 // Findet den besten Snap für die übergebenen Anker-Positionen.
@@ -125,6 +132,18 @@ function initLcdDragHandlers() {
 function _lcdKeyDown(e) {
   if (!state || !state.lcdComposer || !state.lcdComposer.enabled) return;
   const sel = state.lcdComposer.selectedIndices || [];
+  // v4.1.0 — Strg+A: alle Widgets selektieren.
+  // Nur wenn der Fokus NICHT in einem Eingabefeld ist (sonst kollidiert
+  // mit „alles markieren" in Text-Inputs).
+  if ((e.ctrlKey || e.metaKey) && (e.key === "a" || e.key === "A")) {
+    const tag = (document.activeElement && document.activeElement.tagName) || "";
+    if (tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT") return;
+    if (typeof selectAllLcdWidgets === "function") {
+      selectAllLcdWidgets();
+      e.preventDefault();
+    }
+    return;
+  }
   if (e.key === "Escape") {
     if (sel.length > 0 && typeof clearLcdSelection === "function") {
       clearLcdSelection();
@@ -145,10 +164,12 @@ function _lcdKeyDown(e) {
 }
 
 function _lcdMouseDown(e) {
-  // Klick auf den Preview-Hintergrund (nicht auf eine Cell) → Selektion leeren
+  // Klick auf den Preview-Hintergrund (nicht auf eine Cell) → Lasso-Select starten
+  // (vorher: nur Selektion leeren — jetzt: Drag zieht Lasso-Rechteck auf).
   if (!e.target.closest(".lcd-cell-manual")) {
-    if (e.target.closest(".lcd-full-preview")) {
-      if (typeof clearLcdSelection === "function") clearLcdSelection();
+    const container = e.target.closest(".lcd-full-preview");
+    if (container && e.button === 0) {
+      _lcdStartLasso(e, container);
     }
     return;
   }
@@ -276,6 +297,16 @@ function _lcdMouseMove(e) {
         newW = Math.max(LCD_MIN_SIZE, newW + snap.delta);
         guideX = snap.guide;
       }
+      // v4.1.0 — „Gleiche Breite wie Nachbar"-Snap. Wenn newW nahe an
+      // einer Breite eines anderen Widgets liegt, dort einrasten.
+      const widthSnap = _lcdBestSnap(
+        [{ pos: newW }],
+        s.candidates.widths || [],
+        LCD_SMART_SNAP
+      );
+      if (widthSnap.guide !== null) {
+        newW = Math.max(LCD_MIN_SIZE, newW + widthSnap.delta);
+      }
       newH = _snap(Math.max(LCD_MIN_SIZE, newW / aspect));
     } else {
       newH = _snap(Math.max(LCD_MIN_SIZE, s.origH + dy));
@@ -287,6 +318,15 @@ function _lcdMouseMove(e) {
       if (snap.guide !== null) {
         newH = Math.max(LCD_MIN_SIZE, newH + snap.delta);
         guideY = snap.guide;
+      }
+      // v4.1.0 — „Gleiche Höhe wie Nachbar"-Snap
+      const heightSnap = _lcdBestSnap(
+        [{ pos: newH }],
+        s.candidates.heights || [],
+        LCD_SMART_SNAP
+      );
+      if (heightSnap.guide !== null) {
+        newH = Math.max(LCD_MIN_SIZE, newH + heightSnap.delta);
       }
       newW = _snap(Math.max(LCD_MIN_SIZE, newH * aspect));
     }
@@ -401,4 +441,116 @@ function _lcdUpdateCellGeometry(idx) {
   cell.style.top    = Math.round((parseFloat(w.manualY) || 0) * scale) + "px";
   cell.style.width  = Math.round((parseFloat(w.manualW) || 100) * scale) + "px";
   cell.style.height = Math.round((parseFloat(w.manualH) || 40) * scale) + "px";
+}
+
+// ============================================================
+// v4.1.0 — Lasso-Select
+// ============================================================
+// Drag auf den Preview-Hintergrund (nicht auf einem Widget) zieht ein
+// Auswahl-Rechteck. Beim Loslassen werden alle Widgets selektiert,
+// deren Bounding-Box den Rahmen schneidet.
+// Mit gehaltener Shift-Taste wird die bestehende Selektion erweitert,
+// sonst ersetzt.
+
+let _lcdLassoState = null;
+
+function _lcdStartLasso(e, container) {
+  const rect = container.getBoundingClientRect();
+  const virt = _lcdVirtualCanvas();
+  const scale = container.clientWidth / virt.w;
+  // Start-Position relativ zum Container in LCD-Pixeln
+  const startX = (e.clientX - rect.left) / scale;
+  const startY = (e.clientY - rect.top) / scale;
+  // Falls nicht Shift → bestehende Selektion erst beim Mouseup ersetzen
+  _lcdLassoState = {
+    container, rect, scale,
+    startX, startY,
+    currX: startX, currY: startY,
+    additive: !!e.shiftKey,
+    moved: false,
+    box: null
+  };
+  // Lasso-Box-Element erzeugen
+  const box = document.createElement("div");
+  box.className = "lcd-lasso-box";
+  container.appendChild(box);
+  _lcdLassoState.box = box;
+  _lcdUpdateLassoBox();
+  document.addEventListener("mousemove", _lcdLassoMove);
+  document.addEventListener("mouseup", _lcdLassoUp);
+  document.body.style.userSelect = "none";
+  e.preventDefault();
+}
+
+function _lcdLassoMove(e) {
+  if (!_lcdLassoState) return;
+  const s = _lcdLassoState;
+  s.currX = (e.clientX - s.rect.left) / s.scale;
+  s.currY = (e.clientY - s.rect.top)  / s.scale;
+  if (Math.abs(s.currX - s.startX) > 1 || Math.abs(s.currY - s.startY) > 1) {
+    s.moved = true;
+  }
+  _lcdUpdateLassoBox();
+}
+
+function _lcdUpdateLassoBox() {
+  const s = _lcdLassoState;
+  if (!s || !s.box) return;
+  const x = Math.min(s.startX, s.currX);
+  const y = Math.min(s.startY, s.currY);
+  const w = Math.abs(s.currX - s.startX);
+  const h = Math.abs(s.currY - s.startY);
+  s.box.style.left   = Math.round(x * s.scale) + "px";
+  s.box.style.top    = Math.round(y * s.scale) + "px";
+  s.box.style.width  = Math.round(w * s.scale) + "px";
+  s.box.style.height = Math.round(h * s.scale) + "px";
+}
+
+function _lcdLassoUp() {
+  if (!_lcdLassoState) return;
+  document.removeEventListener("mousemove", _lcdLassoMove);
+  document.removeEventListener("mouseup", _lcdLassoUp);
+  document.body.style.userSelect = "";
+  const s = _lcdLassoState;
+  const box = s.box;
+  _lcdLassoState = null;
+  if (box && box.parentNode) box.parentNode.removeChild(box);
+
+  // Wenn die Maus kaum bewegt wurde: wie ein normaler Background-Klick
+  // behandeln (Selektion leeren, außer Shift war gehalten).
+  if (!s.moved) {
+    if (!s.additive && typeof clearLcdSelection === "function") {
+      clearLcdSelection();
+    }
+    return;
+  }
+
+  // Rechteck in LCD-Koordinaten
+  const x1 = Math.min(s.startX, s.currX);
+  const y1 = Math.min(s.startY, s.currY);
+  const x2 = Math.max(s.startX, s.currX);
+  const y2 = Math.max(s.startY, s.currY);
+
+  // Alle Widgets, deren Bounding-Box den Rahmen schneidet
+  const widgets = state.lcdComposer.widgets || [];
+  const hits = [];
+  widgets.forEach((w, idx) => {
+    if (w.hidden) return;
+    const wx = parseFloat(w.manualX) || 0;
+    const wy = parseFloat(w.manualY) || 0;
+    const ww = parseFloat(w.manualW) || 100;
+    const wh = parseFloat(w.manualH) || 40;
+    const intersect = !(wx + ww < x1 || wx > x2 || wy + wh < y1 || wy > y2);
+    if (intersect) hits.push(idx);
+  });
+
+  const sel = (state.lcdComposer.selectedIndices = state.lcdComposer.selectedIndices || []);
+  if (s.additive) {
+    // Bestehende Selektion + Hits (Union)
+    for (const i of hits) if (sel.indexOf(i) === -1) sel.push(i);
+  } else {
+    sel.length = 0;
+    for (const i of hits) sel.push(i);
+  }
+  render();
 }

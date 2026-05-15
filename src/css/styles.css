@@ -1589,14 +1589,19 @@ footer .accent { color: var(--accent); }
 }
 .lcd-select-bar {
   display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 8px;
+  flex-direction: column;
+  gap: 6px;
   margin: 4px 0 6px;
-  padding: 4px 8px;
+  padding: 6px 8px;
   background: rgba(var(--shadow-rgb, 0,0,0), 0.35);
   border: 1px solid var(--accent-2, var(--accent));
   border-radius: 4px;
+}
+.lcd-select-row1 {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
 }
 .lcd-select-count {
   font-family: 'Consolas', monospace;
@@ -1604,6 +1609,42 @@ footer .accent { color: var(--accent); }
   letter-spacing: 1px;
   color: var(--accent-2, var(--accent));
   text-transform: uppercase;
+}
+/* v4.1.0 — Ausrichten / Verteilen-Reihe in der Action-Bar */
+.lcd-align-row {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex-wrap: wrap;
+  border-top: 1px dashed rgba(var(--shadow-rgb, 0,0,0), 0.4);
+  padding-top: 6px;
+}
+.lcd-align-label {
+  font-family: 'Consolas', monospace;
+  font-size: 10px;
+  letter-spacing: 0.5px;
+  color: var(--muted);
+  text-transform: uppercase;
+  margin-right: 4px;
+}
+.lcd-align-row button.small {
+  min-width: 26px;
+  padding: 2px 6px;
+  font-size: 13px;
+  line-height: 1;
+}
+.lcd-align-sep {
+  color: var(--muted);
+  opacity: 0.5;
+  padding: 0 2px;
+}
+/* v4.1.0 — Lasso-Select-Rechteck */
+.lcd-lasso-box {
+  position: absolute;
+  border: 1px dashed var(--accent-2, var(--accent));
+  background: rgba(var(--accent-2-rgb, 78,197,255), 0.08);
+  pointer-events: none;
+  z-index: 8;
 }
 .lcd-layer-eye {
   background: transparent;
