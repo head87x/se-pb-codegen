@@ -7,6 +7,18 @@ das Projekt folgt [Semantic Versioning](https://semver.org/lang/de/).
 
 ## [Unreleased]
 
+## [4.0.2] — 2026-05-15
+
+### Behoben (Autocomplete-Klick übernahm den Wert nicht)
+- Beim Klick auf einen Vorschlag im Autocomplete-Popup wurde
+  der Wert nicht ins Input übernommen. Ursache: das HTML
+  generierte `onmousedown="...; _pickBlockAutocomplete("Sensor 1")"`
+  über `JSON.stringify`, dessen doppelte Anführungszeichen die
+  HTML-Attribut-Syntax kollidieren ließen (HTML-Parser brach
+  beim ersten inneren `"` ab).
+- Fix: Block-Name landet jetzt in `data-value="..."` (sicher
+  via `escapeAttr`), Handler liest `this.dataset.value`.
+
 ## [4.0.1] — 2026-05-15
 
 ### Behoben (UX-Politur: Autocomplete + Validation-Tooltip)

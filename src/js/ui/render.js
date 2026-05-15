@@ -187,8 +187,11 @@ function _showBlockAutocomplete(inputEl) {
     _hideBlockAutocomplete();
     return;
   }
+  // data-value via escapeAttr ist sicher gegen "/'/<-Zeichen im Namen.
+  // (JSON.stringify funktionierte nicht zuverlässig in HTML-Attributen.)
   popup.innerHTML = filtered.map(n =>
-    `<div class="block-ac-item" onmousedown="event.preventDefault(); _pickBlockAutocomplete(${JSON.stringify(n)})">${escapeHtml(n)}</div>`
+    `<div class="block-ac-item" data-value="${escapeAttr(n)}"
+      onmousedown="event.preventDefault(); _pickBlockAutocomplete(this.dataset.value)">${escapeHtml(n)}</div>`
   ).join("");
   // Position unter dem Input
   const rect = inputEl.getBoundingClientRect();
