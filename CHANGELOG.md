@@ -7,6 +7,75 @@ das Projekt folgt [Semantic Versioning](https://semver.org/lang/de/).
 
 ## [Unreleased]
 
+## [4.0.0] — 2026-05-15
+
+### Hinzugefügt (Quality-of-Life-Etappe — sechs kleinere Verbesserungen)
+
+**Auto-Complete für Block-Namen**
+- Alle Block-Name-Eingaben (Bedingungen, Aktionen, LCD-Status,
+  LCD-Composer, Widget-Source-Blocks) zeigen jetzt eine
+  Vorschlags-Liste mit allen bereits anderswo verwendeten
+  Namen.
+- Implementation: HTML5 `<datalist id="available-blocks">`,
+  `_buildAvailableBlocksList()` sammelt Namen aus dem State,
+  `_refreshAvailableBlocksDatalist()` läuft pro `render()`
+  und nach jedem Tastenanschlag.
+
+**Warnung bei doppelten Block-Namen**
+- Wenn derselbe Block-Name in zwei **unterschiedlichen
+  Block-Typen** verwendet wird (z. B. „Schleuse" als Tür UND
+  als Akku), erscheint ein gelbes ⚠ am betroffenen Input mit
+  Hinweis-Tooltip — wahrscheinlich Tippfehler.
+- Mehrfach-Verwendung desselben Namens im selben Typ (z. B.
+  Tür „Schleuse" prüfen + öffnen) ist kein Konflikt → keine
+  Warnung.
+- Live-Aktualisierung beim Tippen — wenn du den Namen in
+  Input A änderst, verschwindet die Warnung auch in Input B.
+
+**Per-Vorlage-Export**
+- Kleines ⤴-Icon pro Vorlagen-Chip exportiert nur diese eine
+  Vorlage als JSON-Datei. Praktisch zum Teilen einzelner
+  Vorlagen statt der gesamten Liste.
+- Dateiname: `se-pb-template-&lt;name&gt;-YYYY-MM-DD.json`.
+
+**Drag-&-Drop von JSON-Vorlagen-Dateien**
+- Eine `.json`-Datei aufs Browser-Fenster ziehen öffnet den
+  Import-Dialog direkt — ohne File-Picker-Klick.
+- Visueller Hinweis (gestrichelter Rahmen) zeigt aktive
+  Drop-Zone.
+- Reagiert nur auf Dateien (nicht auf interne Drag-Drops
+  der Block-Palette / LCD-Composer).
+
+**Token-Kompression**
+- Share-Tokens werden jetzt mit `CompressionStream("gzip")`
+  komprimiert. Typische Größe: ~5–10 KB → ~1–2 KB.
+- Native Browser-API, kein externes Library nötig.
+- Prefix `"L:"` kennzeichnet komprimierte Tokens; alte
+  unkomprimierte Tokens bleiben vollständig lesbar.
+
+**Teilen-Link (URL-Hash-Variante)**
+- Neuer Button **„🔗 Teilen-Link"** in der Share-Token-Sektion.
+  Klick erzeugt einen Link wie
+  `…/index.html#state=&lt;token&gt;` und kopiert ihn in die
+  Zwischenablage.
+- Beim Öffnen einer solchen URL lädt das Tool den State
+  automatisch (mit Bestätigungs-Dialog falls bereits Inhalte
+  vorhanden sind, sonst ohne).
+- URL-Hash wird nach dem Laden wieder entfernt, damit Reload
+  nicht erneut fragt.
+
+### Geändert
+- `TOOL_VERSION` von `3.2.2` auf `4.0.0`.
+
+### Hinweis
+Erster Release der v4.x-Roadmap. Nächste Etappen:
+- v4.1.0 — LCD-Composer-Erweiterungen (Ausrichten, Verteilen,
+  Strg+A, Lasso-Select, „Gleiche Größe"-Resize).
+- v4.2.0 — Cosmetic (Effekte-Toggle, Theme-Thumbnails).
+- v4.3.0 — Power-Features (Expert-Mode, Klammerung,
+  Refresh-Intervall, Coroutine-Chunks).
+- v5.0.0 — MAJOR: Mehrere unabhängige WENN/DANN-Pakete.
+
 ## [3.2.2] — 2026-05-15
 
 ### Geändert (Erklärung jetzt wirklich natursprachlich)

@@ -22,7 +22,7 @@
       <span class="theme-picker-label" data-i18n="header.theme">THEME</span>
       <select id="tool-theme-select" onchange="setToolTheme(this.value)"></select>
     </label>
-    <span class="tag">v<span id="version-tag">3.2.2</span> :: <span data-i18n="header.subtitle">SPACE ENGINEERS PROGRAMMABLE BLOCK</span></span>
+    <span class="tag">v<span id="version-tag">4.0.0</span> :: <span data-i18n="header.subtitle">SPACE ENGINEERS PROGRAMMABLE BLOCK</span></span>
   </div>
 </header>
 
@@ -78,6 +78,7 @@
           <button class="section-help-btn" onclick="showHelp('share')" data-i18n-title="header.help" title="Hilfe">❓</button>
           <div class="btn-row">
             <button class="small primary" onclick="exportShareToken()" data-i18n="share.export">💾 Token erzeugen</button>
+            <button class="small" onclick="exportShareLink()" data-i18n="share.export_link">🔗 Teilen-Link</button>
             <button class="small" onclick="importShareToken()" data-i18n="share.import">📥 Token laden</button>
           </div>
         </div>
@@ -217,7 +218,7 @@
           <div id="lcd-config" style="display:none; margin-top:10px;">
             <label data-i18n="lcdtext.name">LCD Block-Name</label>
             <div class="input-with-warn">
-              <input id="lcd-name" data-i18n-placeholder="lcdtext.placeholder" placeholder="z.B. LCD Status" oninput="onLcdNameInput(this.value)">
+              <input id="lcd-name" list="available-blocks" data-i18n-placeholder="lcdtext.placeholder" placeholder="z.B. LCD Status" oninput="onLcdNameInput(this.value)">
             </div>
             <div class="help-text" data-i18n="lcdtext.help">Einfache Text-Ausgabe: schreibt Status, Bedingungen und Aktionen aufs LCD.</div>
           </div>
@@ -247,7 +248,7 @@
               <div id="lcd-composer-name-wrap">
                 <label data-i18n="lcd.name">LCD / Cockpit Block-Name</label>
                 <div class="input-with-warn">
-                  <input id="lcd-composer-name" data-i18n-placeholder="lcd.name_ph" placeholder="z.B. LCD Cockpit" oninput="onLcdComposerNameInput(this.value)">
+                  <input id="lcd-composer-name" list="available-blocks" data-i18n-placeholder="lcd.name_ph" placeholder="z.B. LCD Cockpit" oninput="onLcdComposerNameInput(this.value)">
                 </div>
               </div>
             </div>
@@ -340,6 +341,10 @@
      Alle Globals teilen sich denselben Realm — Inline-Handler
      funktionieren über alle Dateigrenzen hinweg.
 ============================================================ -->
+<!-- v4.0.0 — Globales datalist für Block-Namen-Autocomplete; wird zur
+     Laufzeit von _refreshAvailableBlocksDatalist() befüllt. -->
+<datalist id="available-blocks"></datalist>
+
 <script src="src/js/blocks/item_subtypes.js"></script>
 <script src="src/js/blocks/catalog.js"></script>
 <script src="src/js/blocks/i18n_en.js"></script>
@@ -382,6 +387,10 @@
     _refreshBlockNameValidation(document.getElementById("lcd-name"));
     _refreshBlockNameValidation(document.getElementById("lcd-composer-name"));
   }
+  // v4.0.0 — Drag-&-Drop einer .json-Datei aufs ganze Fenster
+  if (typeof initTemplateDragDrop === "function") initTemplateDragDrop();
+  // v4.0.0 — URL-Hash auswerten: ?state=... oder #state=... lädt State automatisch
+  if (typeof tryLoadStateFromUrlHash === "function") tryLoadStateFromUrlHash();
 </script>
 
 </body>

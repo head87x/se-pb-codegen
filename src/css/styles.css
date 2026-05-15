@@ -1223,6 +1223,36 @@ button.small {
   cursor: pointer;
   padding: 0 2px;
 }
+/* v4.0.0 — Per-Vorlage-Export-Icon (⤴) im Chip */
+.template-chip .chip-icon {
+  color: var(--muted);
+  cursor: pointer;
+  padding: 0 4px;
+  opacity: 0.6;
+  font-size: 12px;
+  transition: opacity 0.15s ease, color 0.15s ease;
+}
+.template-chip .chip-icon:hover {
+  opacity: 1;
+  color: var(--accent);
+}
+/* v4.0.0 — Visueller Hinweis wenn eine .json-Datei aufs Fenster gezogen wird */
+body.template-drop-active::before {
+  content: "📥 JSON-Datei ablegen, um Vorlagen zu importieren";
+  position: fixed;
+  inset: 0;
+  z-index: 10000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Consolas', monospace;
+  font-size: 18px;
+  color: var(--accent);
+  background: rgba(var(--shadow-rgb, 0,0,0), 0.55);
+  backdrop-filter: blur(2px);
+  pointer-events: none;
+  border: 4px dashed var(--accent);
+}
 
 .help-text {
   font-size: 10.5px;

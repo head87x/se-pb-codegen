@@ -16,6 +16,10 @@
 // Lade-Funktion migriert defensiv.
 
 const SHARE_TOKEN_VERSION = 1;
+// v4.0.0 — Tokens werden komprimiert ausgegeben. Prefix unterscheidet:
+//   "L:..."   → komprimiert (gzip via CompressionStream → Base64)
+//   "..."     → uncompressed Base64 (alter Stil, weiterhin lesbar)
+const SHARE_TOKEN_COMPRESSED_PREFIX = "L:";
 
 function _shareEncodeB64(str) {
   // UTF-8-sicher: erst in Bytes, dann in Latin1-Binary für btoa.
@@ -32,9 +36,42 @@ function _shareDecodeB64(b64) {
   return new TextDecoder().decode(bytes);
 }
 
+// v4.0.0 — gzip-Kompression via CompressionStream-API (modern Browser).
+// Fallback bei fehlender API: unkomprimierter Base64-Token (alte Variante).
+async function _shareEncode(str) {
+  if (typeof CompressionStream === "undefined") return _shareEncodeB64(str);
+  try {
+    const inputBytes = new TextEncoder().encode(str);
+    const stream = new Blob([inputBytes]).stream().pipeThrough(new CompressionStream("gzip"));
+    const ab = await new Response(stream).arrayBuffer();
+    const out = new Uint8Array(ab);
+    let bin = "";
+    for (let i = 0; i < out.length; i++) bin += String.fromCharCode(out[i]);
+    return SHARE_TOKEN_COMPRESSED_PREFIX + btoa(bin);
+  } catch (e) {
+    return _shareEncodeB64(str);
+  }
+}
+
+async function _shareDecode(raw) {
+  raw = (raw || "").trim();
+  if (!raw.startsWith(SHARE_TOKEN_COMPRESSED_PREFIX)) {
+    return _shareDecodeB64(raw);
+  }
+  if (typeof DecompressionStream === "undefined") {
+    throw new Error("DecompressionStream not supported");
+  }
+  const b64 = raw.slice(SHARE_TOKEN_COMPRESSED_PREFIX.length).replace(/\s+/g, "");
+  const bin = atob(b64);
+  const bytes = new Uint8Array(bin.length);
+  for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+  const stream = new Blob([bytes]).stream().pipeThrough(new DecompressionStream("gzip"));
+  return await new Response(stream).text();
+}
+
 // Token aus dem aktuellen State erzeugen, in die Textarea schreiben
 // und in die Zwischenablage kopieren.
-function exportShareToken() {
+async function exportShareToken() {
   const payload = {
     v: SHARE_TOKEN_VERSION,
     ts: new Date().toISOString(),
@@ -42,7 +79,7 @@ function exportShareToken() {
   };
   let token;
   try {
-    token = _shareEncodeB64(JSON.stringify(payload));
+    token = await _shareEncode(JSON.stringify(payload));
   } catch (e) {
     showToast("Token-Erzeugung fehlgeschlagen: " + e.message);
     return;
@@ -74,7 +111,8 @@ async function importShareToken() {
 
   let payload;
   try {
-    payload = JSON.parse(_shareDecodeB64(raw));
+    const decoded = await _shareDecode(raw);
+    payload = JSON.parse(decoded);
   } catch (e) {
     showToast(t("share.toast_bad_format"));
     return;
@@ -194,4 +232,98 @@ function _shareUpdateInfo() {
   if (!ta || !info) return;
   const len = (ta.value || "").length;
   info.textContent = len ? t("share.token_len", len) : "";
+}
+
+// ============================================================
+// v4.0.0 — URL-Hash-Sharing
+// ============================================================
+// Erzeugt einen Teilen-Link mit dem aktuellen State im URL-Hash
+// (`#state=<token>`). Wenn das Tool mit so einer URL geladen wird,
+// liest die Init-Logik den Hash aus und stellt den State automatisch
+// her — kein manuelles Einfügen mehr nötig.
+
+const SHARE_URL_HASH_PARAM = "state";
+
+// Erzeugt einen kompletten Teilen-Link und kopiert ihn in die Zwischenablage.
+async function exportShareLink() {
+  const payload = {
+    v: SHARE_TOKEN_VERSION,
+    ts: new Date().toISOString(),
+    state: state
+  };
+  let token;
+  try {
+    token = await _shareEncode(JSON.stringify(payload));
+  } catch (e) {
+    showToast(t("share.toast_link_err"));
+    return;
+  }
+  // Base-URL ohne bisherigen Hash/Suchen
+  const base = window.location.origin + window.location.pathname;
+  const url = base + "#" + SHARE_URL_HASH_PARAM + "=" + encodeURIComponent(token);
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(url).then(
+      () => showToast(t("share.toast_link_ok", url.length)),
+      () => showToast(t("share.toast_link_manual"))
+    );
+  } else {
+    showToast(t("share.toast_link_manual"));
+  }
+  // Zusätzlich in die Token-Area schreiben (User kann ihn auch dort sehen)
+  const ta = document.getElementById("share-token-area");
+  if (ta) {
+    ta.value = url;
+    _shareUpdateInfo();
+  }
+}
+
+// Beim Page-Load aufrufen: prüft #state=... im URL-Hash und lädt
+// automatisch (mit Confirm-Dialog, weil's den aktuellen Zustand
+// überschreibt — bei leerem Default-State ohne Confirm).
+async function tryLoadStateFromUrlHash() {
+  const hash = (window.location.hash || "").replace(/^#/, "");
+  if (!hash) return false;
+  const m = hash.match(new RegExp("(?:^|&)" + SHARE_URL_HASH_PARAM + "=([^&]+)"));
+  if (!m) return false;
+  let token;
+  try { token = decodeURIComponent(m[1]); }
+  catch (_) { return false; }
+  if (!token) return false;
+
+  let payload;
+  try {
+    const decoded = await _shareDecode(token);
+    payload = JSON.parse(decoded);
+  } catch (e) {
+    showToast(t("share.toast_bad_format"));
+    return false;
+  }
+  if (!payload || typeof payload !== "object" || !payload.state) return false;
+  if (payload.v > SHARE_TOKEN_VERSION) {
+    showToast(t("share.toast_new_version", payload.v));
+    return false;
+  }
+
+  // Hash sofort wegräumen damit Reload nicht wieder fragt
+  history.replaceState(null, "", window.location.pathname);
+
+  // Wenn der aktuelle State leer ist (frischer Tab), ohne Confirm laden.
+  const hasContent = (state.conditions && state.conditions.length > 0)
+                  || (state.actionsThen && state.actionsThen.length > 0)
+                  || (state.actionsElse && state.actionsElse.length > 0)
+                  || (state.lcdComposer && state.lcdComposer.widgets && state.lcdComposer.widgets.length > 0);
+  if (hasContent) {
+    const ok = await showConfirm(
+      t("share.confirm_link_replace", payload.ts || "—"),
+      { confirmLabel: t("share.replace_btn") }
+    );
+    if (!ok) return false;
+  }
+
+  state = JSON.parse(JSON.stringify(payload.state));
+  _shareApplyDefensiveDefaults();
+  _shareSyncUiFields();
+  render();
+  showToast(t("share.toast_link_loaded"));
+  return true;
 }

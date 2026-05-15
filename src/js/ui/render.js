@@ -49,6 +49,46 @@ const _CTRL_CHAR_REGEX = new RegExp(
   "[\\u0001-\\u0008\\u000B-\\u001F\\u200B-\\u200F\\u202A-\\u202E\\uFEFF]"
 );
 
+// v4.0.0 — Block-Namen die in mehr als einem Block-Typ verwendet werden
+// (= echter Konflikt: ein Block kann nicht gleichzeitig Tür und Akku sein).
+// Wird in `render()` und `_refreshBlockNameValidation()` aktualisiert.
+let _currentNameConflicts = new Set();
+
+function _refreshNameConflicts() {
+  const nameToTypes = new Map();
+  const add = (name, type) => {
+    if (!name || !type) return;
+    const n = String(name).trim();
+    if (!n) return;
+    if (!nameToTypes.has(n)) nameToTypes.set(n, new Set());
+    nameToTypes.get(n).add(type);
+  };
+  (state.conditions  || []).forEach(c => add(c.blockName, c.blockType));
+  (state.actionsThen || []).forEach(a => add(a.blockName, a.blockType));
+  (state.actionsElse || []).forEach(a => add(a.blockName, a.blockType));
+  // LCD-Widget-Source-Blocks: separater Pseudo-Typ damit Konflikt
+  // erkannt wird wenn z. B. "LCD Status" auch als Tür-Name auftaucht.
+  if (state.lcdComposer) {
+    (state.lcdComposer.widgets || []).forEach(w => {
+      add(w.sourceBlock, "__lcd_widget");
+      add(w.block1,      "__lcd_widget");
+      add(w.block2,      "__lcd_widget");
+    });
+    add(state.lcdComposer.lcdName, "__lcd_surface");
+  }
+  add(state.lcdName, "__lcd_surface");
+
+  _currentNameConflicts = new Set();
+  for (const [name, types] of nameToTypes.entries()) {
+    if (types.size > 1) _currentNameConflicts.add(name);
+  }
+}
+
+function _hasNameConflict(name) {
+  if (!name) return false;
+  return _currentNameConflicts.has(String(name).trim());
+}
+
 // Validiert einen Block-/Gruppen-Namen. Liefert { level, msgKey } —
 // level: "ok" | "warning" | "error". Wird im Render genutzt um ein
 // kleines (⚠) Badge + farbigen Border zu zeigen.
@@ -62,6 +102,9 @@ function _validateBlockName(name) {
   if (_CTRL_CHAR_REGEX.test(name)) {
     return { level: "warning", msgKey: "validate.controlchar" };
   }
+  if (_hasNameConflict(name)) {
+    return { level: "warning", msgKey: "validate.duplicate" };
+  }
   return { level: "ok" };
 }
 
@@ -70,6 +113,7 @@ function _validateBlockName(name) {
 // Der oninput-Handler ruft zusätzlich `_refreshBlockNameValidation(this)`
 // auf, sodass der Badge-Status live mit jeder Tastenanschlag aktualisiert
 // wird — ohne `render()` (sonst würde der Eingabe-Fokus verloren gehen).
+// v4.0.0 — `list="available-blocks"` aktiviert HTML5-Autocomplete via datalist.
 function _blockNameInputHtml(value, onInputCall, placeholder) {
   const v = _validateBlockName(value);
   const cls = v.level === "error" ? "input-warn-error"
@@ -80,26 +124,59 @@ function _blockNameInputHtml(value, onInputCall, placeholder) {
   // den Live-Validation-Call ans Ende des bestehenden Handlers.
   const combinedHandler = `${onInputCall}; _refreshBlockNameValidation(this)`;
   return `<div class="input-with-warn ${cls}">
-    <input value="${escapeAttr(value || "")}" oninput="${combinedHandler}" placeholder="${escapeAttr(placeholder || "")}">
+    <input list="available-blocks" value="${escapeAttr(value || "")}" oninput="${combinedHandler}" placeholder="${escapeAttr(placeholder || "")}">
     ${badge}
   </div>`;
 }
 
-// Aktualisiert Wrap-Border und Badge live (ohne Re-Render). Wird vom
-// oninput-Handler nach jeder Tasteneingabe gerufen — so reagiert die
-// Warnung sofort, statt erst beim nächsten render().
-function _refreshBlockNameValidation(inputEl) {
-  if (!inputEl) return;
-  const wrap = inputEl.parentElement;
-  if (!wrap || !wrap.classList.contains("input-with-warn")) return;
-  const v = _validateBlockName(inputEl.value);
+// v4.0.0 — Auto-Complete: sammle alle Block-Namen die bereits irgendwo
+// im State vorkommen (Conditions, Actions, LCD-Widgets) und füttere
+// das gemeinsame <datalist id="available-blocks">.
+// Wird bei jedem `render()` neu aufgerufen, damit neue Namen sofort
+// als Vorschläge erscheinen.
+function _buildAvailableBlocksList() {
+  const names = new Set();
+  const addName = (n) => {
+    if (n && typeof n === "string" && n.trim().length > 0) {
+      names.add(n.trim());
+    }
+  };
+  // Conditions + Actions (auch ELSE)
+  (state.conditions || []).forEach(c => addName(c.blockName));
+  (state.actionsThen || []).forEach(a => addName(a.blockName));
+  (state.actionsElse || []).forEach(a => addName(a.blockName));
+  // LCD-Status-Block
+  if (state.lcdName) addName(state.lcdName);
+  // LCD-Composer (Single-LCD + Widget-Source-Blocks)
+  if (state.lcdComposer) {
+    if (state.lcdComposer.lcdName) addName(state.lcdComposer.lcdName);
+    (state.lcdComposer.widgets || []).forEach(w => {
+      addName(w.sourceBlock);
+      addName(w.block1);
+      addName(w.block2);
+    });
+  }
+  return Array.from(names).sort();
+}
 
-  // Border-Klasse am Wrap aktualisieren
+// Schreibt die gesammelten Namen ins datalist-Element.
+function _refreshAvailableBlocksDatalist() {
+  const dl = document.getElementById("available-blocks");
+  if (!dl) return;
+  const names = _buildAvailableBlocksList();
+  dl.innerHTML = names.map(n => `<option value="${escapeAttr(n)}">`).join("");
+}
+
+// Helper: ein einzelnes .input-with-warn-Wrap basierend auf seinem
+// aktuellen Input-Value neu validieren (Border-Klasse + Badge).
+function _applyValidationToWrap(wrap) {
+  if (!wrap || !wrap.classList || !wrap.classList.contains("input-with-warn")) return;
+  const inp = wrap.querySelector("input");
+  if (!inp) return;
+  const v = _validateBlockName(inp.value);
   wrap.classList.remove("input-warn-error", "input-warn-warning");
   if (v.level === "error")   wrap.classList.add("input-warn-error");
   if (v.level === "warning") wrap.classList.add("input-warn-warning");
-
-  // Badge erzeugen / aktualisieren / entfernen
   let badge = wrap.querySelector(".input-warn-badge");
   if (v.level === "ok") {
     if (badge) badge.remove();
@@ -112,6 +189,22 @@ function _refreshBlockNameValidation(inputEl) {
   }
   badge.className = "input-warn-badge " + v.level;
   badge.title = t(v.msgKey);
+}
+
+// Aktualisiert Wrap-Border und Badge live (ohne Re-Render). Wird vom
+// oninput-Handler nach jeder Tasteneingabe gerufen — so reagiert die
+// Warnung sofort, statt erst beim nächsten render().
+// v4.0.0 — refresht ALLE Block-Name-Inputs, nicht nur das aktive, weil
+// ein neuer Block-Name in Input A einen Duplikat-Konflikt in Input B
+// auslösen kann.
+function _refreshBlockNameValidation(inputEl) {
+  if (!inputEl) return;
+  // Der aktive Input hat seinen DOM-Wert schon gesetzt, aber state ist
+  // synchron weil der oninput-Handler vor uns generateCode() lief.
+  _refreshNameConflicts();
+  document.querySelectorAll(".input-with-warn").forEach(_applyValidationToWrap);
+  // Auto-Complete-Vorschlagsliste mit aktualisieren
+  _refreshAvailableBlocksDatalist();
 }
 
 function renderConditions() {
@@ -345,6 +438,9 @@ function renderExecHelp() {
 // stattdessen direkt generateCode() aufgerufen — der Fokus
 // auf Eingabefeldern bleibt dadurch erhalten.
 function render() {
+  // v4.0.0 — Konflikt-Cache aktualisieren BEVOR Sektionen gerendert werden,
+  // damit die Validation den aktuellen Stand zeigt.
+  _refreshNameConflicts();
   renderConditions();
   renderActions("then");
   renderActions("else");
@@ -352,6 +448,8 @@ function render() {
   renderExecHelp();
   renderLcdComposer();
   renderCoroutineStats();
+  // v4.0.0 — datalist mit Block-Namen-Vorschlägen aktuell halten
+  _refreshAvailableBlocksDatalist();
   generateCode();
 }
 

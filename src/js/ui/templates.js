@@ -8,9 +8,12 @@ function renderTemplates() {
     root.innerHTML = `<span class="empty-hint">${escapeHtml(t("templates.empty"))}</span>`;
     return;
   }
-  root.innerHTML = templates.map((t, i) => `
+  // v4.0.0 — kleines ⤴ Export-Icon pro Chip exportiert nur diese eine Vorlage.
+  const _exportTitle = t("templates.export_one");
+  root.innerHTML = templates.map((tmpl, i) => `
     <span class="template-chip">
-      <span onclick="loadTemplate(${i})">${escapeHtml(t.name)}</span>
+      <span onclick="loadTemplate(${i})">${escapeHtml(tmpl.name)}</span>
+      <span class="chip-icon" title="${escapeAttr(_exportTitle)}" onclick="exportOneTemplate(${i})">⤴</span>
       <span class="x" onclick="deleteTemplate(${i})">✕</span>
     </span>
   `).join("");
@@ -213,6 +216,35 @@ function exportTemplates() {
   showToast(t("templates.export_ok", templates.length));
 }
 
+// v4.0.0 — exportiert genau EINE Vorlage als JSON (kleines ⤴-Icon pro Chip).
+function exportOneTemplate(i) {
+  if (!templates || !templates[i]) return;
+  const tmpl = templates[i];
+  const payload = {
+    _format:     TEMPLATES_FILE_FORMAT,
+    _version:    TEMPLATES_FILE_VERSION,
+    exportedAt:  (new Date()).toISOString().slice(0, 10),
+    toolVersion: (typeof TOOL_VERSION === "string") ? TOOL_VERSION : "?",
+    templates:   [tmpl]
+  };
+  const json = JSON.stringify(payload, null, 2);
+  const blob = new Blob([json], { type: "application/json" });
+  const url  = URL.createObjectURL(blob);
+  // Datei-Name aus Template-Name säubern (ASCII + Bindestriche, max 40 Zeichen)
+  const safeName = String(tmpl.name || "template")
+    .replace(/[^a-zA-Z0-9_\-äöüÄÖÜß ]/g, "")
+    .replace(/\s+/g, "_")
+    .slice(0, 40) || "template";
+  const a    = document.createElement("a");
+  a.href     = url;
+  a.download = "se-pb-template-" + safeName + "-" + payload.exportedAt + ".json";
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+  showToast(t("templates.export_one_ok", tmpl.name));
+}
+
 function importTemplates() {
   const input = document.createElement("input");
   input.type = "file";
@@ -220,18 +252,58 @@ function importTemplates() {
   input.onchange = (e) => {
     const file = e.target.files && e.target.files[0];
     if (!file) return;
-    const reader = new FileReader();
-    reader.onload = (ev) => {
-      try {
-        const data = JSON.parse(ev.target.result);
-        _processImportedTemplates(data);
-      } catch (err) {
-        showToast(t("templates.import_err_parse"));
-      }
-    };
-    reader.readAsText(file);
+    _readTemplateFile(file);
   };
   input.click();
+}
+
+// v4.0.0 — wird sowohl vom File-Picker als auch vom Drag-&-Drop genutzt.
+function _readTemplateFile(file) {
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = (ev) => {
+    try {
+      const data = JSON.parse(ev.target.result);
+      _processImportedTemplates(data);
+    } catch (err) {
+      showToast(t("templates.import_err_parse"));
+    }
+  };
+  reader.readAsText(file);
+}
+
+// v4.0.0 — Drag-&-Drop einer .json-Datei aufs gesamte Fenster lädt
+// sie via _readTemplateFile. dragover muss preventDefault'd werden,
+// sonst zeigt der Browser den Standard-"Datei öffnen"-Effekt.
+function initTemplateDragDrop() {
+  const isJsonFile = (f) => {
+    if (!f) return false;
+    if (f.type === "application/json") return true;
+    return /\.json$/i.test(f.name || "");
+  };
+  document.addEventListener("dragover", (e) => {
+    if (!e.dataTransfer) return;
+    // Nur reagieren wenn Files dabei sind (sonst stört's interne Drag-Drops
+    // der Block-Palette und des LCD-Composers)
+    const hasFiles = Array.from(e.dataTransfer.types || []).includes("Files");
+    if (!hasFiles) return;
+    e.preventDefault();
+    document.body.classList.add("template-drop-active");
+  });
+  document.addEventListener("dragleave", (e) => {
+    // Nur deaktivieren wenn der drag den Body wirklich verlässt
+    if (e.clientX === 0 && e.clientY === 0) {
+      document.body.classList.remove("template-drop-active");
+    }
+  });
+  document.addEventListener("drop", (e) => {
+    if (!e.dataTransfer || !e.dataTransfer.files || e.dataTransfer.files.length === 0) return;
+    const file = e.dataTransfer.files[0];
+    if (!isJsonFile(file)) return;
+    e.preventDefault();
+    document.body.classList.remove("template-drop-active");
+    _readTemplateFile(file);
+  });
 }
 
 // Eindeutigen Namen erzeugen, indem " (2)", " (3)", … angehängt wird,
