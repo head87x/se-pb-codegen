@@ -21,6 +21,7 @@ const HELP_SECTIONS = [
   { id: "info",         icon: "📋" },
   { id: "exec",         icon: "⚙" },
   { id: "expert",       icon: "🛠" },  // v4.3.0 — Expert-Mode + Klammerung + Refresh-Intervall + Effekte
+  { id: "rulesets",     icon: "📑" },  // v5.0.0 — Mehrere unabhängige WENN/DANN-Pakete
   { id: "conditions",   icon: "❓" },
   { id: "blocksource",  icon: "🧩" },
   { id: "aggregator",   icon: "Σ" },
@@ -451,6 +452,58 @@ Effekte ein:</p>
 Hintergrund, Text). Damit siehst du auf einen Blick wie ein Theme
 wirkt, ohne es erst zu aktivieren. Klick öffnet die Liste, Klick auf
 ein Theme wendet es an.</p>
+`
+  },
+
+  rulesets: {
+    title: "Regelsätze — mehrere WENN/DANN-Pakete",
+    body: `
+<p>Ein <strong>Regelsatz</strong> ist ein eigenständiges
+WENN/DANN/SONST-Paket. Bis v4.3 hatte das Tool genau einen Regelsatz —
+seit v5.0 kannst du <strong>mehrere unabhängige Regeln</strong> in
+einem einzigen Skript anlegen.</p>
+
+<h3>Wozu mehrere Regelsätze?</h3>
+<p>Beispiel: Du möchtest in einem Skript zwei verschiedene Dinge
+steuern, die nichts miteinander zu tun haben:</p>
+<ul>
+  <li><strong>Regel 1 — „Tür-Steuerung":</strong> Wenn Sensor 1 aktiv → Tür A öffnen, sonst schließen.</li>
+  <li><strong>Regel 2 — „Notstrom":</strong> Wenn Hauptakku &lt; 20 % → Reaktoren einschalten.</li>
+</ul>
+<p>Statt das in zwei Bedingungen mit komplizierten UND/ODER-Verkettungen
+zu pressen, baust du einfach zwei Regelsätze. Jeder hat eigene WENN-,
+DANN- und SONST-Listen.</p>
+
+<h3>Tab-Leiste</h3>
+<p>Oben im Bereich <strong>::: REGELSÄTZE</strong> siehst du eine
+Tab-Leiste. Jeder Tab ist ein Regelsatz. Aktionen pro Tab:</p>
+<ul>
+  <li><strong>Klick auf Tab</strong> — wechselt zu diesem Regelsatz. WENN/DANN/SONST darunter zeigen seinen Inhalt.</li>
+  <li><strong>✎ (Stift)</strong> — Regelsatz umbenennen.</li>
+  <li><strong>✕</strong> — Regelsatz löschen (mindestens einer muss übrigbleiben).</li>
+  <li><strong>+ Neue Regel</strong> — leeren Regelsatz anhängen.</li>
+</ul>
+
+<h3>Wie wird daraus C# generiert?</h3>
+<p>Im erzeugten <code>Main()</code> wird pro Regelsatz ein eigener
+<code>if</code>-Block erzeugt, der nacheinander geprüft wird:</p>
+<ul>
+  <li><code>bool rule1_met = (…Bedingungen Regel 1…);</code></li>
+  <li><code>if (rule1_met) { …DANN-Aktionen… } else { …SONST-Aktionen… }</code></li>
+  <li><code>bool rule2_met = (…Bedingungen Regel 2…);</code></li>
+  <li><code>if (rule2_met) { … } else { … }</code></li>
+</ul>
+<p>Block-Referenzen werden geteilt — wenn Regel 1 und Regel 2 dieselbe
+Tür ansprechen, wird sie nur einmal gesucht.</p>
+
+<h3>Wann lieber NICHT mehrere Regelsätze?</h3>
+<p>Wenn deine Logik eigentlich <strong>eine</strong> Bedingung ist, nur
+mit UND/ODER verkettet, bleib bei einem Regelsatz. Mehrere Regelsätze
+sind für <em>thematisch unabhängige</em> Logik gedacht.</p>
+
+<h3>Migration alter Vorlagen</h3>
+<p>Vorlagen und Share-Tokens aus v4.x werden beim Laden automatisch in
+„Regel 1" überführt. Du musst nichts manuell migrieren.</p>
 `
   },
 
@@ -1412,6 +1465,57 @@ you press "Recompile" manually on the Programmable Block.</p>
 each tick whether blocks still exist and re-fetches them if needed.
 Costs performance overhead but useful for scripts that run long-term
 and must handle block loss (defense installations, drill setups).</p>
+`
+  },
+
+  rulesets: {
+    title: "Rule sets — multiple IF/THEN packages",
+    body: `
+<p>A <strong>rule set</strong> is a self-contained IF/THEN/ELSE
+package. Up to v4.3 the tool had exactly one rule set — since v5.0
+you can build <strong>multiple independent rules</strong> inside a
+single script.</p>
+
+<h3>Why multiple rule sets?</h3>
+<p>Example: you want to control two unrelated things in one script:</p>
+<ul>
+  <li><strong>Rule 1 — "Door control":</strong> If sensor 1 is active → open door A, else close.</li>
+  <li><strong>Rule 2 — "Emergency power":</strong> If main battery &lt; 20 % → turn reactors on.</li>
+</ul>
+<p>Instead of squeezing both into one condition with complicated
+AND/OR chains, just create two rule sets. Each has its own IF, THEN
+and ELSE lists.</p>
+
+<h3>Tab bar</h3>
+<p>At the top of the <strong>::: RULE SETS</strong> section you see a
+tab bar. Each tab is a rule set. Per-tab actions:</p>
+<ul>
+  <li><strong>Click a tab</strong> — switch to that rule set. IF/THEN/ELSE below show its content.</li>
+  <li><strong>✎ (pencil)</strong> — rename the rule set.</li>
+  <li><strong>✕</strong> — delete the rule set (at least one must remain).</li>
+  <li><strong>+ New rule</strong> — append an empty rule set.</li>
+</ul>
+
+<h3>How is this turned into C#?</h3>
+<p>In the generated <code>Main()</code> one <code>if</code>-block is
+emitted per rule set, checked sequentially:</p>
+<ul>
+  <li><code>bool rule1_met = (…conditions of rule 1…);</code></li>
+  <li><code>if (rule1_met) { …THEN actions… } else { …ELSE actions… }</code></li>
+  <li><code>bool rule2_met = (…conditions of rule 2…);</code></li>
+  <li><code>if (rule2_met) { … } else { … }</code></li>
+</ul>
+<p>Block references are shared — if rule 1 and rule 2 both reference
+the same door, it's only looked up once.</p>
+
+<h3>When NOT to use multiple rule sets</h3>
+<p>If your logic is really <strong>one</strong> condition just
+combined with AND/OR, stay with a single rule set. Multiple rule sets
+are meant for <em>thematically independent</em> logic.</p>
+
+<h3>Migration of older templates</h3>
+<p>Templates and share tokens from v4.x are automatically loaded into
+"Rule 1" — nothing to migrate manually.</p>
 `
   },
 

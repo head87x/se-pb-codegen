@@ -30,7 +30,7 @@
       <span class="theme-picker-label" data-i18n="header.theme">THEME</span>
       <div id="tool-theme-dropdown" class="theme-dropdown"></div>
     </label>
-    <span class="tag">v<span id="version-tag">4.3.1</span> :: <span data-i18n="header.subtitle">SPACE ENGINEERS PROGRAMMABLE BLOCK</span></span>
+    <span class="tag">v<span id="version-tag">5.0.0</span> :: <span data-i18n="header.subtitle">SPACE ENGINEERS PROGRAMMABLE BLOCK</span></span>
   </div>
 </header>
 
@@ -195,6 +195,20 @@
             <div class="help-text" data-i18n="exec.refresh_interval.help" style="margin-top:4px;">
               Aggregator-Listen werden normal jeden Tick neu gesucht. Höher = sparsamer.
             </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- RULE SETS (v5.0.0 — mehrere unabhängige WENN/DANN-Pakete) -->
+      <div class="section">
+        <div class="section-title">
+          <span data-i18n="ruleset.title">::: REGELSÄTZE</span>
+          <button class="section-help-btn" onclick="showHelp('rulesets')" data-i18n-title="header.help" title="Hilfe">❓</button>
+        </div>
+        <div class="section-content">
+          <div id="rule-tabs" class="rule-tabs"></div>
+          <div class="help-text" data-i18n="ruleset.help" style="margin-top:6px;">
+            Jeder Regelsatz ist ein eigener WENN/DANN/SONST-Block — sie laufen alle nacheinander im Skript. Klick auf einen Tab, um ihn zu bearbeiten.
           </div>
         </div>
       </div>

@@ -147,9 +147,9 @@ async function importShareToken() {
 // Wenn der Token aus einer älteren Tool-Version stammt, könnten Felder
 // fehlen. Wir setzen sie defensiv — analog zu loadTemplate().
 function _shareApplyDefensiveDefaults() {
-  if (!state.conditions)  state.conditions = [];
-  if (!state.actionsThen) state.actionsThen = [];
-  if (!state.actionsElse) state.actionsElse = [];
+  // v5.0.0 — Multi-Ruleset-Migration: alte Top-Level conditions/actions
+  // in state.ruleSets[0] packen.
+  if (typeof ensureRuleSetState === "function") ensureRuleSetState();
   if (!state.execMode)    state.execMode = "argument";
   if (!state.lcdComposer) state.lcdComposer = { enabled: false, lcdName: "", widgets: [] };
   if (!state.lcdComposer.displayMode)  state.lcdComposer.displayMode = "external";
@@ -163,9 +163,10 @@ function _shareApplyDefensiveDefaults() {
   if (typeof state.autoRecoverBlocks !== "boolean") state.autoRecoverBlocks = false;
   if (typeof state.coroutineChunkSize !== "number") state.coroutineChunkSize = 50;
   if (typeof state.aggRefreshInterval !== "number") state.aggRefreshInterval = 1;
-  // v2.4.0: Gruppen-Semantik defaulten + v3.0.0 Migration
-  if (Array.isArray(state.conditions)) {
-    for (const c of state.conditions) {
+  // v5.0.0 — Migration auf alle RuleSets anwenden
+  const _shareMigConds = (arr) => {
+    if (!Array.isArray(arr)) return;
+    for (const c of arr) {
       if (typeof c.groupSemantic !== "string") c.groupSemantic = "any";
       if (typeof c.groupCount !== "number") c.groupCount = 1;
       if (typeof c.blockSource !== "string") c.blockSource = c.useGroup ? "group" : "single";
@@ -176,7 +177,7 @@ function _shareApplyDefensiveDefaults() {
       if (typeof c.openParens !== "number") c.openParens = 0;
       if (typeof c.closeParens !== "number") c.closeParens = 0;
     }
-  }
+  };
   const _shareMigActs = (arr) => {
     if (!Array.isArray(arr)) return;
     for (const a of arr) {
@@ -184,8 +185,11 @@ function _shareApplyDefensiveDefaults() {
       if (typeof a.sameConstruct !== "boolean") a.sameConstruct = true;
     }
   };
-  _shareMigActs(state.actionsThen);
-  _shareMigActs(state.actionsElse);
+  for (const rs of (state.ruleSets || [])) {
+    _shareMigConds(rs.conditions);
+    _shareMigActs(rs.actionsThen);
+    _shareMigActs(rs.actionsElse);
+  }
   // v2.8.0: scriptInfo defaulten
   if (!state.scriptInfo) {
     state.scriptInfo = { enabled: false, name: "", author: "", version: "", description: "", tags: "" };

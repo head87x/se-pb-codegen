@@ -381,25 +381,24 @@ function _isValid(item) {
   return src === "type" || (item.blockName && item.blockName.trim().length > 0);
 }
 
-// Hauptfunktion: liefert Beschreibung als Objekt.
-function describeConfig() {
-  const validConds = (state.conditions || []).filter(_isValid);
-  const validThen  = (state.actionsThen  || []).filter(_isValid);
-  const validElse  = (state.actionsElse  || []).filter(_isValid);
+// Beschreibung für genau einen Regelsatz (Conditions/Then/Else).
+// Trigger-Phrase wird extern vorangestellt — diese Funktion liefert nur
+// den Satz "..., dann wird X geöffnet ...".
+function _describeRuleSet(rs, trigger) {
+  const validConds = (rs.conditions  || []).filter(_isValid);
+  const validThen  = (rs.actionsThen || []).filter(_isValid);
+  const validElse  = (rs.actionsElse || []).filter(_isValid);
 
-  const isEmpty = validConds.length === 0 && validThen.length === 0 && validElse.length === 0;
-  if (isEmpty) {
-    return { isEmpty: true, fluentText: _descT("desc.empty"), flags: [] };
+  if (validConds.length === 0 && validThen.length === 0 && validElse.length === 0) {
+    return "";
   }
 
-  const trigger = _triggerPhrase(state.execMode);
   const thenClauses = validThen.map(_actionClause);
   const elseClauses = validElse.map(_actionClause);
   const thenJoined  = _joinActionClauses(thenClauses);
   const elseJoined  = _joinActionClauses(elseClauses);
 
   let text = "";
-
   if (validConds.length > 0) {
     const condJoined = _joinConditionClauses(validConds);
     text = _descT("desc.fmt.cond_open", trigger, condJoined);
@@ -415,6 +414,44 @@ function describeConfig() {
     text = _descT("desc.fmt.no_cond", trigger, thenJoined);
   } else if (elseClauses.length > 0) {
     text = _descT("desc.fmt.only_else", trigger, elseJoined);
+  }
+  return text;
+}
+
+// Liefert true, wenn der Regelsatz Inhalt hat.
+function _ruleSetHasContent(rs) {
+  const c = (rs.conditions  || []).filter(_isValid);
+  const t = (rs.actionsThen || []).filter(_isValid);
+  const e = (rs.actionsElse || []).filter(_isValid);
+  return c.length > 0 || t.length > 0 || e.length > 0;
+}
+
+// Hauptfunktion: liefert Beschreibung als Objekt.
+function describeConfig() {
+  if (typeof ensureRuleSetState === "function") ensureRuleSetState();
+  const ruleSets = state.ruleSets || [];
+
+  const nonEmpty = ruleSets.filter(_ruleSetHasContent);
+  if (nonEmpty.length === 0) {
+    return { isEmpty: true, fluentText: _descT("desc.empty"), flags: [] };
+  }
+
+  const trigger = _triggerPhrase(state.execMode);
+
+  let text;
+  if (ruleSets.length === 1) {
+    text = _describeRuleSet(ruleSets[0], trigger);
+  } else {
+    const parts = [];
+    for (let i = 0; i < ruleSets.length; i++) {
+      const rs = ruleSets[i];
+      if (!_ruleSetHasContent(rs)) continue;
+      const body = _describeRuleSet(rs, trigger);
+      if (!body) continue;
+      const name = (rs.name || _descT("ruleset.name_default", i + 1));
+      parts.push(_descT("desc.rule.prefix", name) + " " + body);
+    }
+    text = parts.join(" ");
   }
 
   const flags = [];

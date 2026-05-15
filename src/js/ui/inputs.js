@@ -24,7 +24,7 @@ function addCondition() {
 function addConditionOfType(blockType) {
   const def = BLOCKS[blockType];
   if (!def || (def.conditions || []).length === 0) return;
-  state.conditions.push({
+  currentRuleSet().conditions.push({
     blockType,
     blockName: "",
     condId: def.conditions[0].id,
@@ -50,80 +50,80 @@ function addConditionOfType(blockType) {
 }
 
 function removeCond(i) {
-  state.conditions.splice(i, 1);
+  currentRuleSet().conditions.splice(i, 1);
   render();
 }
 
 function updateCond(i, field, val) {
-  state.conditions[i][field] = val;
+  currentRuleSet().conditions[i][field] = val;
 
   if (field === "blockType") {
     // Wechsel des Block-Typs → andere Conditions verfügbar → Strukturwechsel
-    state.conditions[i].condId = BLOCKS[val].conditions[0]?.id || "";
-    state.conditions[i].arg = "";
-    state.conditions[i].arg2 = "";
+    currentRuleSet().conditions[i].condId = BLOCKS[val].conditions[0]?.id || "";
+    currentRuleSet().conditions[i].arg = "";
+    currentRuleSet().conditions[i].arg2 = "";
     render();
     return;
   }
   if (field === "condId") {
     // Andere Condition → Argument-Felder können erscheinen/verschwinden
-    state.conditions[i].arg = "";
-    state.conditions[i].arg2 = "";
+    currentRuleSet().conditions[i].arg = "";
+    currentRuleSet().conditions[i].arg2 = "";
     render();
     return;
   }
   if (field === "useGroup") {
     // Backwards-Compat: alte Vorlagen können noch direkten useGroup-Schalter haben.
-    state.conditions[i].useGroup = !!val;
-    state.conditions[i].blockSource = val ? "group" : "single";
+    currentRuleSet().conditions[i].useGroup = !!val;
+    currentRuleSet().conditions[i].blockSource = val ? "group" : "single";
     render();
     return;
   }
   if (field === "groupSemantic") {
     // Backwards-Compat — mappt auf aggregateMode
-    state.conditions[i].groupSemantic = val || "any";
-    state.conditions[i].aggregateMode = val || "any";
+    currentRuleSet().conditions[i].groupSemantic = val || "any";
+    currentRuleSet().conditions[i].aggregateMode = val || "any";
     render();
     return;
   }
   if (field === "groupCount") {
     const n = parseInt(val, 10);
     const clamped = isNaN(n) ? 1 : Math.max(1, n);
-    state.conditions[i].groupCount = clamped;
-    state.conditions[i].aggregateThreshold = clamped;
+    currentRuleSet().conditions[i].groupCount = clamped;
+    currentRuleSet().conditions[i].aggregateThreshold = clamped;
     generateCode();
     return;
   }
   // v3.0.0 — neue Felder
   if (field === "blockSource") {
     // single | group | type — Strukturwechsel: Label + Felder
-    state.conditions[i].blockSource = val || "single";
+    currentRuleSet().conditions[i].blockSource = val || "single";
     // useGroup synchronisieren für Backwards-Compat im Codegen
-    state.conditions[i].useGroup = (val === "group");
+    currentRuleSet().conditions[i].useGroup = (val === "group");
     render();
     return;
   }
   if (field === "sameConstruct") {
-    state.conditions[i].sameConstruct = !!val;
+    currentRuleSet().conditions[i].sameConstruct = !!val;
     generateCode();
     return;
   }
   if (field === "aggregateMode") {
     // Strukturwechsel: sum/avg/min/max blendet Threshold+Op ein
-    state.conditions[i].aggregateMode = val || "any";
-    state.conditions[i].groupSemantic = val || "any";  // sync
+    currentRuleSet().conditions[i].aggregateMode = val || "any";
+    currentRuleSet().conditions[i].groupSemantic = val || "any";  // sync
     render();
     return;
   }
   if (field === "aggregateThreshold") {
     const n = parseFloat(val);
-    state.conditions[i].aggregateThreshold = isNaN(n) ? 0 : n;
-    state.conditions[i].groupCount = isNaN(n) ? 1 : Math.max(1, Math.round(n));  // sync
+    currentRuleSet().conditions[i].aggregateThreshold = isNaN(n) ? 0 : n;
+    currentRuleSet().conditions[i].groupCount = isNaN(n) ? 1 : Math.max(1, Math.round(n));  // sync
     generateCode();
     return;
   }
   if (field === "aggregateOp") {
-    state.conditions[i].aggregateOp = val || ">=";
+    currentRuleSet().conditions[i].aggregateOp = val || ">=";
     generateCode();
     return;
   }
@@ -143,7 +143,7 @@ function addAction(which) {
 function addActionOfType(which, blockType) {
   const def = BLOCKS[blockType];
   if (!def || (def.actions || []).length === 0) return;
-  const list = which === "then" ? state.actionsThen : state.actionsElse;
+  const list = which === "then" ? currentRuleSet().actionsThen : currentRuleSet().actionsElse;
   list.push({
     blockType,
     blockName: "",
@@ -160,13 +160,13 @@ function addActionOfType(which, blockType) {
 }
 
 function removeAct(which, i) {
-  const list = which === "then" ? state.actionsThen : state.actionsElse;
+  const list = which === "then" ? currentRuleSet().actionsThen : currentRuleSet().actionsElse;
   list.splice(i, 1);
   render();
 }
 
 function updateAct(which, i, field, val) {
-  const list = which === "then" ? state.actionsThen : state.actionsElse;
+  const list = which === "then" ? currentRuleSet().actionsThen : currentRuleSet().actionsElse;
   list[i][field] = val;
 
   if (field === "blockType") {
@@ -230,7 +230,7 @@ function onAggRefreshIntervalChange(val) {
 
 // v4.3.0 — Klammern in Conditions (Expert-Mode)
 function adjustCondParens(i, side, delta) {
-  const c = state.conditions[i];
+  const c = currentRuleSet().conditions[i];
   if (!c) return;
   if (side === "open") {
     c.openParens = Math.max(0, (parseInt(c.openParens, 10) || 0) + delta);
@@ -279,11 +279,11 @@ function onLcdNameInput(val) {
 // damit das Custom-Mode-Text-Feld dynamisch erscheinen/verschwinden
 // kann. Beim Tippen im Text-Feld nicht verwenden (Fokus-Verlust).
 function updateCondAndRender(i, field, val) {
-  state.conditions[i][field] = val;
+  currentRuleSet().conditions[i][field] = val;
   render();
 }
 function updateActAndRender(which, i, field, val) {
-  const list = which === "then" ? state.actionsThen : state.actionsElse;
+  const list = which === "then" ? currentRuleSet().actionsThen : currentRuleSet().actionsElse;
   list[i][field] = val;
   render();
 }
@@ -782,4 +782,60 @@ function applyLcdTheme(themeName) {
   render();
   const _tlabel = (typeof getLcdThemeLabel === "function") ? getLcdThemeLabel(themeName) : newT.label;
   showToast(t("lcd.toast.theme_applied", _tlabel, changed));
+}
+
+// ============================================================
+// v5.0.0 — RuleSet-Handler
+// ============================================================
+
+function selectRuleSet(idx) {
+  ensureRuleSetState();
+  const n = state.ruleSets.length;
+  if (idx < 0 || idx >= n) return;
+  if (state.activeRuleIdx === idx) return;
+  state.activeRuleIdx = idx;
+  render();
+}
+
+function addRuleSet() {
+  ensureRuleSetState();
+  const next = state.ruleSets.length + 1;
+  state.ruleSets.push({
+    name: t("ruleset.name_default", next),
+    conditions: [],
+    actionsThen: [],
+    actionsElse: []
+  });
+  state.activeRuleIdx = state.ruleSets.length - 1;
+  render();
+}
+
+async function removeRuleSet(idx) {
+  ensureRuleSetState();
+  if (state.ruleSets.length <= 1) {
+    showToast(t("ruleset.cant_remove_last"));
+    return;
+  }
+  const rs = state.ruleSets[idx];
+  if (!rs) return;
+  const ok = await showConfirm(
+    t("ruleset.remove_q", rs.name),
+    { confirmLabel: t("ruleset.remove_btn") }
+  );
+  if (!ok) return;
+  state.ruleSets.splice(idx, 1);
+  if (state.activeRuleIdx >= state.ruleSets.length) {
+    state.activeRuleIdx = state.ruleSets.length - 1;
+  }
+  render();
+}
+
+async function renameRuleSet(idx) {
+  ensureRuleSetState();
+  const rs = state.ruleSets[idx];
+  if (!rs) return;
+  const newName = await showPrompt(t("ruleset.rename_q"), rs.name);
+  if (newName === null) return;
+  rs.name = (newName || "").trim() || rs.name;
+  render();
 }

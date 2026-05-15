@@ -7,6 +7,68 @@ das Projekt folgt [Semantic Versioning](https://semver.org/lang/de/).
 
 ## [Unreleased]
 
+## [5.0.0] — 2026-05-15
+
+### Hinzugefügt — Mehrere unabhängige WENN/DANN-Pakete pro Skript
+
+Bis v4.3 hatte das Tool genau **einen** WENN/DANN/SONST-Block. Mit
+v5.0.0 lassen sich nun **mehrere voneinander unabhängige Regelsätze**
+in einem Skript bauen. Jeder Regelsatz hat eigene Bedingungen, eigene
+DANN-Aktionen und eigene SONST-Aktionen — und alle laufen nacheinander
+im erzeugten `Main()`.
+
+**Beispiel:** in einem einzigen Skript kann jetzt sowohl die
+Tür-Logik (Sensor → Tür A) als auch die Notstrom-Logik (Akku &lt; 20 %
+→ Reaktor an) als zwei eigenständige Regeln stehen, statt sie
+mit komplizierten UND/ODER-Verkettungen zu vermischen.
+
+**UI:**
+- Neue Sektion **„::: REGELSÄTZE"** über WENN/DANN/SONST mit einer
+  **Tab-Leiste**. Jeder Tab ist ein Regelsatz.
+- Klick auf Tab → wechselt zum Regelsatz; WENN/DANN/SONST darunter
+  zeigen seinen Inhalt.
+- **✎-Icon** pro Tab → Regelsatz umbenennen.
+- **✕-Icon** pro Tab → Regelsatz löschen (mindestens einer muss
+  übrig bleiben).
+- **„+ Neue Regel"** → leeren Regelsatz anhängen.
+
+**Code-Generierung:**
+- `Main()` enthält pro Regelsatz einen eigenen `if`-Block in der Form:
+  ```cs
+  // ---------- Regel 1: <Name> ----------
+  bool rule1_met = (<Bedingungen>);
+  if (rule1_met) { /* THEN */ } else { /* ELSE */ }
+  ```
+- Block-Referenzen werden **geteilt** — wenn zwei Regelsätze
+  dieselbe Tür ansprechen, wird sie nur einmal gesucht.
+- Bei nur einem Regelsatz bleibt der erzeugte Code wie früher
+  (keine zusätzlichen Regel-Header-Kommentare).
+
+**Plain-Language-Beschreibung:**
+- Bei mehreren Regelsätzen wird jeder Regelsatz mit
+  „Regel „&lt;Name&gt;": …" einzeln beschrieben.
+
+**Migration:**
+- Vorlagen und Share-Tokens aus v4.x werden beim Laden automatisch
+  in „Regel 1" überführt — defensive Migration in
+  `ensureRuleSetState()` (state.js), `loadTemplate()` (templates.js)
+  und `_shareApplyDefensiveDefaults()` (share.js).
+- Alte Top-Level-Felder `state.conditions/actionsThen/actionsElse`
+  werden in den ersten Regelsatz übernommen und dann gelöscht.
+
+**Hilfe:**
+- Neue Hilfe-Sektion **„📑 Regelsätze"** (DE + EN) erklärt
+  Konzept, Tab-Bedienung, Code-Schema und wann mehrere Regelsätze
+  *nicht* sinnvoll sind.
+- Inhaltsverzeichnis hat jetzt 19 Sektionen.
+
+**Major-Bump** weil das State-Schema sich fundamental ändert
+(`state.ruleSets[]` statt flacher Listen) — Vorlagen aus v4.x
+werden zwar transparent migriert, aber das Speicherformat ist neu.
+
+### Geändert
+- `TOOL_VERSION` von `4.3.1` auf `5.0.0`.
+
 ## [4.3.1] — 2026-05-15
 
 ### Geändert (Hilfe-System auf aktuellen Stand gebracht)

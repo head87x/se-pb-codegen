@@ -18,10 +18,12 @@ Mögliche Erweiterungen:
   „Alle Blöcke vom Typ".
 
 ### Mehrere unabhängige WENN/DANN-Pakete pro Skript
-Aktuell gibt es genau ein WENN/DANN/SONST pro generiertem Skript.
-Erweiterung: mehrere unabhängige Regel-Blöcke (z. B. Regel 1: „wenn
-Akku < 20 % → Reaktor an", Regel 2: „wenn Sauerstoff < 30 % → Alarm")
-in einem einzigen PB-Skript. UI-mäßig wahrscheinlich Tab-/Karten-Layout.
+**Erledigt in v5.0.0.** Neue Sektion „::: REGELSÄTZE" mit Tab-Leiste
+über WENN/DANN/SONST. Jeder Regelsatz hat eigene Bedingungen + Then/Else;
+in `Main()` wird pro Regelsatz ein eigener `if`-Block emittiert
+(`rule1_met`, `rule2_met`, …). Block-Referenzen werden geteilt.
+State-Schema umgestellt auf `state.ruleSets[]`; alte Vorlagen werden
+defensiv in „Regel 1" migriert.
 
 ### Phase 5 — Multi-LCD-Anordnung
 **Erledigt in v1.3.0.** Toggle „Multi-LCD-Anordnung" mit Spalten/Reihen

@@ -63,9 +63,12 @@ function _refreshNameConflicts() {
     if (!nameToTypes.has(n)) nameToTypes.set(n, new Set());
     nameToTypes.get(n).add(type);
   };
-  (state.conditions  || []).forEach(c => add(c.blockName, c.blockType));
-  (state.actionsThen || []).forEach(a => add(a.blockName, a.blockType));
-  (state.actionsElse || []).forEach(a => add(a.blockName, a.blockType));
+  // v5.0.0 — über ALLE RuleSets sammeln, nicht nur das aktive.
+  for (const rs of (state.ruleSets || [])) {
+    (rs.conditions  || []).forEach(c => add(c.blockName, c.blockType));
+    (rs.actionsThen || []).forEach(a => add(a.blockName, a.blockType));
+    (rs.actionsElse || []).forEach(a => add(a.blockName, a.blockType));
+  }
   // LCD-Widget-Source-Blocks: separater Pseudo-Typ damit Konflikt
   // erkannt wird wenn z. B. "LCD Status" auch als Tür-Name auftaucht.
   if (state.lcdComposer) {
@@ -147,10 +150,12 @@ function _buildAvailableBlocksList() {
       names.add(n.trim());
     }
   };
-  // Conditions + Actions (auch ELSE)
-  (state.conditions || []).forEach(c => addName(c.blockName));
-  (state.actionsThen || []).forEach(a => addName(a.blockName));
-  (state.actionsElse || []).forEach(a => addName(a.blockName));
+  // v5.0.0 — Vorschläge aus ALLEN RuleSets sammeln, nicht nur dem aktiven.
+  for (const rs of (state.ruleSets || [])) {
+    (rs.conditions  || []).forEach(c => addName(c.blockName));
+    (rs.actionsThen || []).forEach(a => addName(a.blockName));
+    (rs.actionsElse || []).forEach(a => addName(a.blockName));
+  }
   // LCD-Status-Block
   if (state.lcdName) addName(state.lcdName);
   // LCD-Composer (Single-LCD + Widget-Source-Blocks)
@@ -273,11 +278,11 @@ function _refreshBlockNameValidation(inputEl) {
 
 function renderConditions() {
   const root = document.getElementById("conditions");
-  if (state.conditions.length === 0) {
+  if (currentRuleSet().conditions.length === 0) {
     root.innerHTML = `<span class="empty-hint">${escapeHtml(t("cond.empty"))}</span>`;
     return;
   }
-  root.innerHTML = state.conditions.map((c, i) => {
+  root.innerHTML = currentRuleSet().conditions.map((c, i) => {
     const cond = findCond(c.blockType, c.condId);
     const needsArg  = cond && cond.arg;
     const needsArg2 = cond && cond.arg2;
@@ -402,7 +407,7 @@ function renderConditions() {
   // Restore <select> values that depend on options (set after innerHTML write).
   // v3.0.0 — gezielt via data-role, da zwischen blockType und condId neue
   // Selects (Aggregator, Operator) eingeschoben werden können.
-  state.conditions.forEach((c, i) => {
+  currentRuleSet().conditions.forEach((c, i) => {
     const blocks = root.querySelectorAll(".condition-block");
     const blk = blocks[i];
     if (!blk) return;
@@ -414,7 +419,7 @@ function renderConditions() {
 }
 
 function renderActions(which) {
-  const list = which === "then" ? state.actionsThen : state.actionsElse;
+  const list = which === "then" ? currentRuleSet().actionsThen : currentRuleSet().actionsElse;
   const root = document.getElementById(`actions-${which}`);
   if (list.length === 0) {
     root.innerHTML = `<span class="empty-hint">${escapeHtml(t(which === "then" ? "act.empty" : "else.empty"))}</span>`;
@@ -516,10 +521,36 @@ function renderExecHelp() {
 // Bei reinen Werteänderungen (Tippen, Checkbox-Toggle) wird
 // stattdessen direkt generateCode() aufgerufen — der Fokus
 // auf Eingabefeldern bleibt dadurch erhalten.
+// v5.0.0 — RuleSet-Tab-Leiste über den WENN/DANN/SONST-Sektionen.
+// Zeigt alle Regeln als anklickbare Tabs + "+ Neue Regel"-Button.
+// Bei nur einer Regel zeigt's nur den Tab und den Plus-Button.
+function renderRuleSetTabs() {
+  ensureRuleSetState();
+  const root = document.getElementById("rule-tabs");
+  if (!root) return;
+  const sets = state.ruleSets || [];
+  const active = state.activeRuleIdx || 0;
+  const tabs = sets.map((rs, i) => {
+    const isActive = i === active ? " active" : "";
+    const canRemove = sets.length > 1;
+    return `<div class="rule-tab${isActive}" onclick="selectRuleSet(${i})" data-idx="${i}">
+      <span class="rule-tab-name">${escapeHtml(rs.name || "Regel " + (i + 1))}</span>
+      <button class="rule-tab-rename" title="${escapeAttr(t("ruleset.rename_title"))}" onclick="event.stopPropagation(); renameRuleSet(${i})">✎</button>
+      ${canRemove ? `<button class="rule-tab-remove" title="${escapeAttr(t("ruleset.remove_title"))}" onclick="event.stopPropagation(); removeRuleSet(${i})">✕</button>` : ""}
+    </div>`;
+  }).join("");
+  root.innerHTML = `
+    ${tabs}
+    <button class="rule-tab-add" onclick="addRuleSet()" title="${escapeAttr(t("ruleset.add_title"))}">${escapeHtml(t("ruleset.add"))}</button>
+  `;
+}
+
 function render() {
   // v4.0.0 — Konflikt-Cache aktualisieren BEVOR Sektionen gerendert werden,
   // damit die Validation den aktuellen Stand zeigt.
   _refreshNameConflicts();
+  // v5.0.0 — Tab-Leiste über den WENN/DANN/SONST-Sektionen
+  renderRuleSetTabs();
   renderConditions();
   renderActions("then");
   renderActions("else");

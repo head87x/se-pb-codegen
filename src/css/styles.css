@@ -1236,6 +1236,82 @@ button.small {
   opacity: 1;
   color: var(--accent);
 }
+
+/* v5.0.0 — Regelsatz-Tabs (mehrere unabhängige WENN/DANN-Pakete) */
+.rule-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  align-items: center;
+}
+.rule-tab {
+  background: var(--panel-2);
+  border: 1px solid var(--border);
+  border-bottom: 2px solid var(--border);
+  padding: 6px 10px;
+  font-size: 12px;
+  font-family: 'Consolas', monospace;
+  color: var(--muted);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border-radius: 3px 3px 0 0;
+  transition: color 0.15s ease, border-color 0.15s ease, background 0.15s ease;
+}
+.rule-tab:hover {
+  color: var(--accent-2);
+  border-color: var(--accent-2);
+}
+.rule-tab.active {
+  background: var(--panel);
+  border-color: var(--accent);
+  border-bottom-color: var(--accent);
+  color: var(--accent);
+  font-weight: 600;
+}
+.rule-tab-name {
+  white-space: nowrap;
+  max-width: 200px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.rule-tab-rename,
+.rule-tab-remove {
+  background: transparent;
+  border: 0;
+  color: var(--muted);
+  cursor: pointer;
+  font-size: 11px;
+  padding: 0 2px;
+  line-height: 1;
+  opacity: 0.6;
+  transition: opacity 0.15s ease, color 0.15s ease;
+}
+.rule-tab-rename:hover {
+  opacity: 1;
+  color: var(--accent-2);
+}
+.rule-tab-remove:hover {
+  opacity: 1;
+  color: var(--warn);
+}
+.rule-tab-add {
+  background: transparent;
+  border: 1px dashed var(--border);
+  color: var(--muted);
+  padding: 6px 10px;
+  font-size: 12px;
+  font-family: 'Consolas', monospace;
+  cursor: pointer;
+  border-radius: 3px;
+  transition: color 0.15s ease, border-color 0.15s ease;
+}
+.rule-tab-add:hover {
+  color: var(--accent);
+  border-color: var(--accent);
+}
+
 /* v4.0.0 — Visueller Hinweis wenn eine .json-Datei aufs Fenster gezogen wird */
 body.template-drop-active::before {
   content: "📥 JSON-Datei ablegen, um Vorlagen zu importieren";

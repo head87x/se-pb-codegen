@@ -156,9 +156,13 @@ function generateCode() {
     return entry;
   };
 
-  state.conditions.forEach(c => ensureBlock(c.blockType, c.blockName, _resolveSource(c), c.sameConstruct));
-  state.actionsThen.forEach(a => ensureBlock(a.blockType, a.blockName, _resolveSource(a), a.sameConstruct));
-  state.actionsElse.forEach(a => ensureBlock(a.blockType, a.blockName, _resolveSource(a), a.sameConstruct));
+  // v5.0.0 — Block-Sammlung über ALLE RuleSets
+  if (typeof ensureRuleSetState === "function") ensureRuleSetState();
+  for (const rs of (state.ruleSets || [])) {
+    (rs.conditions  || []).forEach(c => ensureBlock(c.blockType, c.blockName, _resolveSource(c), c.sameConstruct));
+    (rs.actionsThen || []).forEach(a => ensureBlock(a.blockType, a.blockName, _resolveSource(a), a.sameConstruct));
+    (rs.actionsElse || []).forEach(a => ensureBlock(a.blockType, a.blockName, _resolveSource(a), a.sameConstruct));
+  }
 
   // LCD-Composer-Code vorab bauen, damit Source-Blöcke + composer-Felder
   // in den Cache fließen.
@@ -413,16 +417,15 @@ function generateCode() {
     code += "\n";
   }
 
-  // Bedingungen
-  code += `    // ${_t("gen.cmt.check")}\n`;
-  let condExprStr = "true";
-  if (state.conditions.length > 0) {
+  // v5.0.0 — pro RuleSet einen Block emittieren.
+  // Helper-Funktion für die Bedingungs-Expression:
+  const _buildCondExprFor = (conds) => {
+    if (!Array.isArray(conds) || conds.length === 0) return "true";
     const parts = [];
-    state.conditions.forEach((c, i) => {
+    conds.forEach((c, i) => {
       const src = _resolveSource(c);
       const blockEntry = ensureBlock(c.blockType, c.blockName, src, c.sameConstruct);
       if (!blockEntry) return;
-      // v3.0.0 — Aggregator-Suite wirkt auf Group und Type. Single = direkter Ausdruck.
       let e;
       if (blockEntry.blockSource === "group" || blockEntry.blockSource === "type") {
         const mode = (c.aggregateMode || c.groupSemantic || "any").toLowerCase();
@@ -438,45 +441,25 @@ function generateCode() {
         } else if (mode === "sum" || mode === "avg" || mode === "min" || mode === "max") {
           const method = _AGG_METHOD[mode];
           const prop = condLambda(c, true);
-          const thrLit = (mode === "min" || mode === "max" || mode === "avg" || mode === "sum")
-            ? (Number.isInteger(thr) ? thr + "f" : thr + "f")
-            : thr;
-          // Schutz vor leeren Listen bei Min/Max: wir wrappen in Count > 0
-          if (mode === "min" || mode === "max") {
-            e = `(${list}.Count > 0 && ${list}.${method}(_b => ${prop}) ${op} ${thrLit})`;
-          } else if (mode === "avg") {
+          const thrLit = (Number.isInteger(thr) ? thr + "f" : thr + "f");
+          if (mode === "min" || mode === "max" || mode === "avg") {
             e = `(${list}.Count > 0 && ${list}.${method}(_b => ${prop}) ${op} ${thrLit})`;
           } else {
-            // sum: leere Liste = 0
             e = `(${list}.${method}(_b => ${prop}) ${op} ${thrLit})`;
           }
         } else {
-          // any (default)
           e = `${list}.Any(_b => ${condExpr(c, "_b")})`;
         }
       } else {
         e = condExpr(c, blockEntry.varName);
       }
-      const op = i === 0 ? "" : (c.logicOp === "OR" ? " || " : " && ");
-      // v4.3.0 — extra Klammern aus dem Expert-Mode (open vor, close nach
-      // dem geklammerten Atom-Ausdruck)
+      const opStr = i === 0 ? "" : (c.logicOp === "OR" ? " || " : " && ");
       const opAdd = "(".repeat(Math.max(0, parseInt(c.openParens, 10) || 0));
       const cpAdd = ")".repeat(Math.max(0, parseInt(c.closeParens, 10) || 0));
-      parts.push(op + opAdd + "(" + e + ")" + cpAdd);
+      parts.push(opStr + opAdd + "(" + e + ")" + cpAdd);
     });
-    condExprStr = parts.join("") || "true";
-  }
-  code += `    bool conditionMet = ${condExprStr};\n\n`;
-
-  if (lcdStatusEnabled) {
-    code += `    _sb.AppendLine("${_t("gen.lcd.cond_line")}" + (conditionMet ? "${_t("gen.lcd.cond_yes")}" : "${_t("gen.lcd.cond_no")}"));\n\n`;
-  }
-
-  // Aktionen
-  code += `    // ${_t("gen.cmt.run")}\n`;
-  code += "    if (conditionMet)\n";
-  code += "    {\n";
-
+    return parts.join("") || "true";
+  };
   const emitAction = (a, prefix) => {
     const src = _resolveSource(a);
     const blockEntry = ensureBlock(a.blockType, a.blockName, src, a.sameConstruct);
@@ -484,7 +467,6 @@ function generateCode() {
       code += `        // ${_t("gen.cmt.no_act")}\n`;
       return;
     }
-    // v3.0.0 — group + type laufen beide als foreach
     if (blockEntry.blockSource === "group" || blockEntry.blockSource === "type") {
       const inner = actCode(a, "_b");
       code += `        foreach (var _b in ${blockEntry.varName}) { ${inner} }\n`;
@@ -498,19 +480,44 @@ function generateCode() {
     }
   };
 
-  if (state.actionsThen.length === 0) {
-    code += `        // ${_t("gen.cmt.no_then")}\n`;
-  } else {
-    state.actionsThen.forEach(a => emitAction(a, "DO"));
-  }
-  code += "    }\n";
-  if (state.actionsElse.length > 0) {
-    code += "    else\n";
+  const ruleSets = state.ruleSets || [];
+  for (let rsIdx = 0; rsIdx < ruleSets.length; rsIdx++) {
+    const rs = ruleSets[rsIdx];
+    if (!rs) continue;
+    const rsConds = rs.conditions  || [];
+    const rsThen  = rs.actionsThen || [];
+    const rsElse  = rs.actionsElse || [];
+    if (rsConds.length === 0 && rsThen.length === 0 && rsElse.length === 0) continue;
+
+    // Pro Regel: Kommentar + Conditions + Then/Else
+    const ruleVar = `rule${rsIdx + 1}_met`;
+    if (ruleSets.length > 1) {
+      code += `    // ---------- ${_t("gen.cmt.rule_header", rsIdx + 1, rs.name)} ----------\n`;
+    } else {
+      code += `    // ${_t("gen.cmt.check")}\n`;
+    }
+    const condExprStr = _buildCondExprFor(rsConds);
+    code += `    bool ${ruleVar} = ${condExprStr};\n`;
+    if (lcdStatusEnabled) {
+      const ruleLabel = ruleSets.length > 1 ? `${rs.name}: ` : `${_t("gen.lcd.cond_line")}`;
+      code += `    _sb.AppendLine("${escapeCs(ruleLabel)}" + (${ruleVar} ? "${_t("gen.lcd.cond_yes")}" : "${_t("gen.lcd.cond_no")}"));\n`;
+    }
+    code += `    if (${ruleVar})\n`;
     code += "    {\n";
-    state.actionsElse.forEach(a => emitAction(a, "ELSE"));
+    if (rsThen.length === 0) {
+      code += `        // ${_t("gen.cmt.no_then")}\n`;
+    } else {
+      rsThen.forEach(a => emitAction(a, "DO"));
+    }
     code += "    }\n";
+    if (rsElse.length > 0) {
+      code += "    else\n";
+      code += "    {\n";
+      rsElse.forEach(a => emitAction(a, "ELSE"));
+      code += "    }\n";
+    }
+    code += "\n";
   }
-  code += "\n";
 
   // LCD-Output (alt)
   if (lcdStatusEnabled) {

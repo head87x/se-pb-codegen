@@ -48,37 +48,37 @@ function loadTemplate(i) {
   // v4.3.0 — Coroutine-Chunk + Refresh-Intervall defensiv defaulten
   if (typeof state.coroutineChunkSize !== "number") state.coroutineChunkSize = 50;
   if (typeof state.aggRefreshInterval !== "number") state.aggRefreshInterval = 1;
-  // v2.4.0: Gruppen-Semantik defaulten (alte Vorlagen kannten nur "any")
-  // v3.0.0: zusätzlich blockSource/sameConstruct/aggregateMode/aggregateThreshold/aggregateOp
-  // migrieren — aus useGroup/groupSemantic/groupCount ableiten.
-  if (Array.isArray(state.conditions)) {
-    for (const c of state.conditions) {
+  // v5.0.0 — Multi-Ruleset-Migration: alte Top-Level-Felder
+  // (state.conditions/actionsThen/actionsElse) in state.ruleSets[0] packen.
+  if (typeof ensureRuleSetState === "function") ensureRuleSetState();
+
+  // v2.4.0 + v3.0.0 + v4.3.0 — pro Condition: Defaults für ältere Vorlagen
+  const _migrateCondsArr = (arr) => {
+    if (!Array.isArray(arr)) return;
+    for (const c of arr) {
       if (typeof c.groupSemantic !== "string") c.groupSemantic = "any";
       if (typeof c.groupCount !== "number") c.groupCount = 1;
-      if (typeof c.blockSource !== "string") {
-        c.blockSource = c.useGroup ? "group" : "single";
-      }
+      if (typeof c.blockSource !== "string") c.blockSource = c.useGroup ? "group" : "single";
       if (typeof c.sameConstruct !== "boolean") c.sameConstruct = true;
       if (typeof c.aggregateMode !== "string") c.aggregateMode = c.groupSemantic || "any";
       if (typeof c.aggregateThreshold !== "number") c.aggregateThreshold = c.groupCount || 1;
       if (typeof c.aggregateOp !== "string") c.aggregateOp = ">=";
-      // v4.3.0 — Klammern-Felder defensiv defaulten
       if (typeof c.openParens !== "number") c.openParens = 0;
       if (typeof c.closeParens !== "number") c.closeParens = 0;
     }
-  }
-  // Actions bekommen blockSource/sameConstruct analog (kein Aggregator)
-  const _migrateActs = (arr) => {
+  };
+  const _migrateActsArr = (arr) => {
     if (!Array.isArray(arr)) return;
     for (const a of arr) {
-      if (typeof a.blockSource !== "string") {
-        a.blockSource = a.useGroup ? "group" : "single";
-      }
+      if (typeof a.blockSource !== "string") a.blockSource = a.useGroup ? "group" : "single";
       if (typeof a.sameConstruct !== "boolean") a.sameConstruct = true;
     }
   };
-  _migrateActs(state.actionsThen);
-  _migrateActs(state.actionsElse);
+  for (const rs of (state.ruleSets || [])) {
+    _migrateCondsArr(rs.conditions);
+    _migrateActsArr(rs.actionsThen);
+    _migrateActsArr(rs.actionsElse);
+  }
   // v2.8.0: scriptInfo defaulten (alte Vorlagen haben das Feld nicht)
   if (!state.scriptInfo) {
     state.scriptInfo = { enabled: false, name: "", author: "", version: "", description: "", tags: "" };
@@ -150,7 +150,8 @@ async function deleteTemplate(i) {
 async function newProject() {
   if (!await showConfirm(t("templates.new_q"), { confirmLabel: t("templates.new_btn") })) return;
   state = {
-    conditions: [], actionsThen: [], actionsElse: [],
+    ruleSets: [{ name: "Regel 1", conditions: [], actionsThen: [], actionsElse: [] }],
+    activeRuleIdx: 0,
     execMode: "argument", useCoroutines: false, lcdEnable: false, lcdName: "",
     lcdComposer: { enabled: false, displayMode: "external", lcdName: "", surfaceIndex: 0, resolution: "square", widgets: [], selectedIndices: [] },
     scriptInfo: { enabled: false, name: "", author: "", version: "", description: "", tags: "" }
