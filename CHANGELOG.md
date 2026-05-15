@@ -7,6 +7,26 @@ das Projekt folgt [Semantic Versioning](https://semver.org/lang/de/).
 
 ## [Unreleased]
 
+## [4.0.1] — 2026-05-15
+
+### Behoben (UX-Politur: Autocomplete + Validation-Tooltip)
+- **Autocomplete-Vorschläge** waren als browser-natives
+  `<datalist>` realisiert — das Dropdown ist Browser-Standard
+  und nicht stylebar (weiße Sprechblase außerhalb des Themes).
+  Ersetzt durch ein eigenes themed Popup
+  (`<div class="block-autocomplete">`): dunkler Hintergrund,
+  Akzent-Border, Hover-Highlight wie im Rest der UI.
+  Funktional gleich: zeigt bis zu 8 passende Vorschläge unter
+  dem Input, Klick auf Vorschlag setzt den Wert.
+- **⚠-Tooltip** beim Block-Namen-Validation-Badge nutzte das
+  native `title`-Attribut (auch weiße Sprechblase). Ersetzt
+  durch das bestehende themed Tooltip-System
+  (`showTooltip` / `hideTooltip`) — sieht aus wie die
+  bekannten ⓘ-Tooltips bei Bedingungs-Auswahlfeldern.
+
+### Geändert
+- `TOOL_VERSION` von `4.0.0` auf `4.0.1`.
+
 ## [4.0.0] — 2026-05-15
 
 ### Hinzugefügt (Quality-of-Life-Etappe — sechs kleinere Verbesserungen)

@@ -118,13 +118,19 @@ function _blockNameInputHtml(value, onInputCall, placeholder) {
   const v = _validateBlockName(value);
   const cls = v.level === "error" ? "input-warn-error"
             : v.level === "warning" ? "input-warn-warning" : "";
+  // v4.0.1 — Tooltip über themed showTooltip (statt browser-nativem title)
   const badge = (v.level === "ok") ? "" :
-    `<span class="input-warn-badge ${v.level}" title="${escapeAttr(t(v.msgKey))}">⚠</span>`;
+    `<span class="input-warn-badge ${v.level}" data-tip="${escapeAttr(t(v.msgKey))}"
+      onmouseenter="showTooltip(this.dataset.tip, this)"
+      onmouseleave="hideTooltip()">⚠</span>`;
   // Inline-Skript bleibt einfache String-Interpolation — wir hängen
-  // den Live-Validation-Call ans Ende des bestehenden Handlers.
-  const combinedHandler = `${onInputCall}; _refreshBlockNameValidation(this)`;
+  // den Live-Validation-Call + Autocomplete-Hooks an den oninput-Handler.
+  const combinedHandler = `${onInputCall}; _refreshBlockNameValidation(this); _showBlockAutocomplete(this)`;
   return `<div class="input-with-warn ${cls}">
-    <input list="available-blocks" value="${escapeAttr(value || "")}" oninput="${combinedHandler}" placeholder="${escapeAttr(placeholder || "")}">
+    <input value="${escapeAttr(value || "")}" oninput="${combinedHandler}"
+      onfocus="_showBlockAutocomplete(this)"
+      onblur="_hideBlockAutocompleteSoon()"
+      placeholder="${escapeAttr(placeholder || "")}">
     ${badge}
   </div>`;
 }
@@ -159,12 +165,60 @@ function _buildAvailableBlocksList() {
   return Array.from(names).sort();
 }
 
-// Schreibt die gesammelten Namen ins datalist-Element.
-function _refreshAvailableBlocksDatalist() {
-  const dl = document.getElementById("available-blocks");
-  if (!dl) return;
-  const names = _buildAvailableBlocksList();
-  dl.innerHTML = names.map(n => `<option value="${escapeAttr(n)}">`).join("");
+// v4.0.1 — Custom-Autocomplete-Popup (themed; ersetzt datalist).
+// Mausgesteuert: Klick auf Vorschlag setzt den Wert. Schließt sich
+// kurz nach blur (Delay damit der Klick durchläuft).
+let _acTargetInput = null;
+let _acHideTimer = null;
+
+function _showBlockAutocomplete(inputEl) {
+  if (!inputEl) return;
+  const popup = document.getElementById("block-autocomplete");
+  if (!popup) return;
+  const all = _buildAvailableBlocksList();
+  const query = (inputEl.value || "").trim().toLowerCase();
+  // Filter: enthält die Eingabe (case-insensitive), aber nicht
+  // exakt identisch (sonst zeigt es den Wert nur sich selbst).
+  const filtered = all.filter(n => {
+    const lower = n.toLowerCase();
+    return lower !== query && lower.indexOf(query) !== -1;
+  }).slice(0, 8);
+  if (filtered.length === 0) {
+    _hideBlockAutocomplete();
+    return;
+  }
+  popup.innerHTML = filtered.map(n =>
+    `<div class="block-ac-item" onmousedown="event.preventDefault(); _pickBlockAutocomplete(${JSON.stringify(n)})">${escapeHtml(n)}</div>`
+  ).join("");
+  // Position unter dem Input
+  const rect = inputEl.getBoundingClientRect();
+  popup.style.left  = (rect.left + window.scrollX) + "px";
+  popup.style.top   = (rect.bottom + window.scrollY + 2) + "px";
+  popup.style.minWidth = rect.width + "px";
+  popup.style.display = "block";
+  _acTargetInput = inputEl;
+  if (_acHideTimer) { clearTimeout(_acHideTimer); _acHideTimer = null; }
+}
+
+function _hideBlockAutocomplete() {
+  const popup = document.getElementById("block-autocomplete");
+  if (popup) popup.style.display = "none";
+  _acTargetInput = null;
+}
+
+// onblur kann zu früh feuern (vor dem Click auf einen Vorschlag).
+// Deshalb mit kurzer Verzögerung schließen.
+function _hideBlockAutocompleteSoon() {
+  if (_acHideTimer) clearTimeout(_acHideTimer);
+  _acHideTimer = setTimeout(_hideBlockAutocomplete, 180);
+}
+
+function _pickBlockAutocomplete(value) {
+  if (!_acTargetInput) { _hideBlockAutocomplete(); return; }
+  _acTargetInput.value = value;
+  // Trigger das oninput-Event damit State + Validation greifen
+  _acTargetInput.dispatchEvent(new Event("input", { bubbles: true }));
+  _hideBlockAutocomplete();
 }
 
 // Helper: ein einzelnes .input-with-warn-Wrap basierend auf seinem
@@ -185,10 +239,19 @@ function _applyValidationToWrap(wrap) {
   if (!badge) {
     badge = document.createElement("span");
     badge.textContent = "⚠";
+    // v4.0.1 — themed Tooltip statt browser-nativem title
+    badge.addEventListener("mouseenter", () => {
+      if (typeof showTooltip === "function") showTooltip(badge.dataset.tip || "", badge);
+    });
+    badge.addEventListener("mouseleave", () => {
+      if (typeof hideTooltip === "function") hideTooltip();
+    });
     wrap.appendChild(badge);
   }
   badge.className = "input-warn-badge " + v.level;
-  badge.title = t(v.msgKey);
+  badge.dataset.tip = t(v.msgKey);
+  // alte title-Attribute entfernen (für Migration aus älteren Versionen)
+  if (badge.hasAttribute("title")) badge.removeAttribute("title");
 }
 
 // Aktualisiert Wrap-Border und Badge live (ohne Re-Render). Wird vom
@@ -203,8 +266,6 @@ function _refreshBlockNameValidation(inputEl) {
   // synchron weil der oninput-Handler vor uns generateCode() lief.
   _refreshNameConflicts();
   document.querySelectorAll(".input-with-warn").forEach(_applyValidationToWrap);
-  // Auto-Complete-Vorschlagsliste mit aktualisieren
-  _refreshAvailableBlocksDatalist();
 }
 
 function renderConditions() {
@@ -448,8 +509,8 @@ function render() {
   renderExecHelp();
   renderLcdComposer();
   renderCoroutineStats();
-  // v4.0.0 — datalist mit Block-Namen-Vorschlägen aktuell halten
-  _refreshAvailableBlocksDatalist();
+  // v4.0.1 — kein statisches datalist mehr; Autocomplete-Popup wird
+  // on-demand bei Focus/Input mit _buildAvailableBlocksList() befüllt.
   generateCode();
 }
 

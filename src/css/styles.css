@@ -1363,6 +1363,32 @@ footer .accent { color: var(--accent); }
   opacity: 1;
 }
 
+/* v4.0.1 — Custom-Autocomplete-Popup (themed; ersetzt browser-natives datalist) */
+.block-autocomplete {
+  position: absolute;
+  z-index: 1500;
+  background: var(--panel-2);
+  border: 1px solid var(--accent);
+  border-radius: 3px;
+  max-height: 240px;
+  overflow-y: auto;
+  font-family: 'Consolas', monospace;
+  font-size: 12px;
+  box-shadow: 0 6px 18px rgba(var(--shadow-rgb), 0.55);
+}
+.block-ac-item {
+  padding: 6px 10px;
+  cursor: pointer;
+  color: var(--text);
+  border-bottom: 1px solid rgba(var(--shadow-rgb), 0.3);
+  user-select: none;
+}
+.block-ac-item:last-child { border-bottom: none; }
+.block-ac-item:hover {
+  background: var(--accent);
+  color: var(--text-on-accent);
+}
+
 /* ============================================================
    PALETTE (Phase 3 — Drag & Drop)
    ============================================================ */
