@@ -200,9 +200,16 @@ function _lcdMouseDown(e) {
       const sel = state.lcdComposer.selectedIndices || [];
       dragGroup = sel.slice();
     } else {
-      // Nur dieses Widget — Selektion zurücksetzen
+      // Nur dieses Widget — Selektion zurücksetzen.
+      // v4.1.x — KEIN render() hier, sonst zerstören wir die Cell auf
+      // der wir gerade dragenen (führt zu Sprung-Effekt). Stattdessen
+      // direkte CSS-Klassen-Manipulation, render() läuft am Drag-Ende.
       if (typeof selectLcdOnly === "function") selectLcdOnly(idx);
-      render();
+      document.querySelectorAll(".lcd-cell-manual.is-selected")
+        .forEach(el => el.classList.remove("is-selected"));
+      cell.classList.add("is-selected");
+      // Layer-Liste-Highlight wird auch nicht aktualisiert während des
+      // Drags — das ist OK, weil mouseup ein vollständiges render() macht.
     }
   }
 

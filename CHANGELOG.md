@@ -7,6 +7,22 @@ das Projekt folgt [Semantic Versioning](https://semver.org/lang/de/).
 
 ## [Unreleased]
 
+## [4.1.1] — 2026-05-15
+
+### Behoben (Widget springt zur Ecke beim ersten Drag)
+- Wenn ein noch nicht selektiertes Widget angeklickt und ohne
+  Loslassen direkt gezogen wurde, sprang es zur Canvas-Ecke
+  (in Richtung der Mausbewegung). Beim zweiten Anlauf (Klick +
+  loslassen + nochmal ziehen) lief alles normal.
+- Ursache: `_lcdMouseDown()` rief `render()` auf, sobald das
+  Widget vorher nicht selektiert war — das zerstörte das
+  DOM-Element der Cell mitten im Drag-Start. Nachfolgende
+  `cell.closest()`/`getBoundingClientRect()`-Aufrufe lieferten
+  dann falsche Koordinaten.
+- Fix: kein voller `render()` mehr im Drag-Start; stattdessen
+  direkte CSS-Klassen-Manipulation (`.is-selected` toggeln) am
+  bestehenden DOM. Volles Render läuft eh am Drag-Ende.
+
 ## [4.1.0] — 2026-05-15
 
 ### Hinzugefügt (LCD-Composer Multi-Widget-Erweiterungen)
