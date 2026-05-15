@@ -7,6 +7,36 @@ das Projekt folgt [Semantic Versioning](https://semver.org/lang/de/).
 
 ## [Unreleased]
 
+## [4.3.1] — 2026-05-15
+
+### Geändert (Hilfe-System auf aktuellen Stand gebracht)
+Hilfe-Doku war auf Stand v3.1.0 — inzwischen sind viele Features
+dazugekommen, die in der Hilfe nicht erklärt waren.
+
+**Bestehende Sektionen aktualisiert (DE + EN):**
+- `overview` — Feature-Übersicht mit allem was bis v4.3 dazukam.
+- `templates` — Per-Vorlage-Export (⤴-Icon) + Drag-&-Drop einer
+  `.json`-Datei aufs Fenster.
+- `share` — Token-Kompression (`L:`-Präfix), Teilen-Link mit
+  URL-Hash.
+- `conditions` — Auto-Complete-Vorschläge und Duplikat-Warnung
+  (Block-Name in unterschiedlichen Typen).
+- `exec` — Coroutine-Chunk-Größe-Slider (Blöcke pro Tick).
+- `lcdcomposer` — Multi-Widget-Erweiterungen: Strg+A, Lasso-Select,
+  Ausrichten-Buttons, Verteilen, „Gleiche Größe"-Resize-Snap.
+
+**Zwei neue Sektionen:**
+- `explanation` — die „📖 Was macht dieses Skript?"-Box im rechten
+  Panel mit Heuristik-Erklärung und Limitierungen.
+- `expert` — kompletter Expert-Mode-Bereich: Klammerung mit
+  konkretem Beispiel, Aggregator-Refresh-Intervall, Effekte-Toggle,
+  Theme-Preview-Thumbnails.
+
+Hilfe-Inhaltsverzeichnis hat jetzt 18 statt 16 Sektionen.
+
+### Geändert
+- `TOOL_VERSION` von `4.3.0` auf `4.3.1`.
+
 ## [4.3.0] — 2026-05-15
 
 ### Hinzugefügt (Power-Features / Expert-Mode)

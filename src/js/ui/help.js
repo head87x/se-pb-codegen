@@ -20,6 +20,7 @@ const HELP_SECTIONS = [
   { id: "share",        icon: "🔗" },
   { id: "info",         icon: "📋" },
   { id: "exec",         icon: "⚙" },
+  { id: "expert",       icon: "🛠" },  // v4.3.0 — Expert-Mode + Klammerung + Refresh-Intervall + Effekte
   { id: "conditions",   icon: "❓" },
   { id: "blocksource",  icon: "🧩" },
   { id: "aggregator",   icon: "Σ" },
@@ -29,6 +30,7 @@ const HELP_SECTIONS = [
   { id: "lcdwidgets",   icon: "📊" },
   { id: "lcdmulti",     icon: "🖥" },
   { id: "code",         icon: "</>" },
+  { id: "explanation",  icon: "📖" },  // v3.2.0 — Plain-Language-Box im rechten Panel
   { id: "ingame",       icon: "🎮" }
 ];
 
@@ -53,9 +55,29 @@ zusammenklicken kannst — <strong>ganz ohne Programmierkenntnisse</strong>.</p>
 </ul>
 
 <p>Das Tool generiert daraus den fertigen C#-Code, den du nur noch in
-den Programmable Block im Spiel kopierst. Du kannst zusätzlich grafische
-LCD-Displays gestalten, Vorlagen speichern, in andere Sprachen umschalten
-und vieles mehr.</p>
+den Programmable Block im Spiel kopierst.</p>
+
+<h3>Was alles drin ist</h3>
+<ul>
+  <li><strong>Visueller Baukasten</strong> für Bedingungen und Aktionen mit Drag &amp; Drop.</li>
+  <li><strong>Drei Block-Quellen</strong> pro Bedingung/Aktion: einzelner
+      Block, Block-Gruppe oder alle Blöcke eines Typs.</li>
+  <li><strong>Aggregator-Modi</strong>: Summe, Durchschnitt, Min, Max,
+      Count, Any, All über mehrere Blöcke.</li>
+  <li><strong>Grafischer LCD-Baukasten</strong> mit Sprite-Widgets,
+      Themes, Presets, Multi-LCD-Anordnung.</li>
+  <li><strong>Vorlagen + Share-Tokens + Teilen-Links</strong> für
+      Wiederverwendung und Austausch.</li>
+  <li><strong>Plain-Language-Beschreibung</strong> rechts neben dem Code,
+      die deine Konfiguration in natürlicher Sprache zusammenfasst.</li>
+  <li><strong>Auto-Complete</strong> für Block-Namen und Warnung bei
+      Tippfehlern.</li>
+  <li><strong>Experten-Modus</strong> mit Klammerung, Aggregator-Refresh-
+      Intervall etc. für Power-User.</li>
+  <li><strong>Themes &amp; Effekte</strong> — neun Themes, optionale
+      Matrix-Scanlines und Cyberpunk-Glow.</li>
+  <li><strong>Zweisprachig</strong> — Deutsch / Englisch live umschaltbar.</li>
+</ul>
 
 <h3>Das Tool macht NICHT</h3>
 <ul>
@@ -160,12 +182,26 @@ als <code>.json</code>-Datei runter (Dateiname:
   <li>Als Backup behalten</li>
 </ul>
 
+<h3>Per-Vorlage-Export (kleines ⤴-Icon im Chip)</h3>
+<p>Jeder Vorlagen-Chip hat ein kleines <strong>⤴</strong>-Icon
+zwischen dem Namen und dem ✕. Klick → exportiert nur diese eine
+Vorlage als eigene <code>.json</code>-Datei. Praktisch zum Teilen
+einzelner Vorlagen.</p>
+
 <h3>Import — Vorlagen aus Datei laden</h3>
-<p>Klick <strong>„⤵ Import"</strong> → wähle eine
-<code>.json</code>-Datei → bestätige. Die Vorlagen aus der Datei werden
-zu deiner Liste hinzugefügt. <strong>Bestehende Vorlagen werden nicht
-überschrieben</strong> — bei Namens-Konflikt bekommt der Import
-ein <code>(2)</code> angehängt.</p>
+<p>Zwei Wege:</p>
+<ul>
+  <li>Klick <strong>„⤵ Import"</strong> → wähle eine
+      <code>.json</code>-Datei → bestätige.</li>
+  <li>Oder einfach die <code>.json</code>-Datei mit der Maus
+      <strong>aufs Browser-Fenster ziehen</strong> (Drag &amp; Drop).
+      Während du ziehst, leuchtet ein gestrichelter Rahmen auf.
+      Beim Loslassen öffnet sich der Import-Dialog automatisch.</li>
+</ul>
+<p>Die Vorlagen aus der Datei werden zur Liste hinzugefügt.
+<strong>Bestehende Vorlagen werden nicht überschrieben</strong> —
+bei Namens-Konflikt bekommt der Import ein <code>(2)</code>
+angehängt.</p>
 
 <h3>Was, wenn ich den Browser wechsele?</h3>
 <p>Export nicht vergessen! LocalStorage ist pro Browser. In einem neuen
@@ -203,13 +239,26 @@ und kann überall hin kopiert werden.</p>
       Best zum <em>Teilen</em> (z. B. im Discord, Forum, per Mail).</li>
 </ul>
 
+<h3>🔗 Teilen-Link (URL-Hash)</h3>
+<p>Statt den Token per Hand zu kopieren, klick den Button
+<strong>„🔗 Teilen-Link"</strong>. Das Tool erzeugt eine fertige
+URL der Form <code>…/index.html#state=&lt;token&gt;</code> und kopiert
+sie in die Zwischenablage. Wer den Link öffnet, sieht die Konfiguration
+direkt geladen — kein Token-Einfügen mehr nötig.</p>
+<p>Praktisch zum Posten in Discord / Forum / Mail. Wenn du den Link
+in einem anderen Tab öffnest, fragt das Tool ggf. nach Bestätigung
+(falls dort schon eine Konfiguration läuft).</p>
+
 <h3>Tipps</h3>
 <ul>
+  <li><strong>Komprimierung</strong>: seit v4.0 werden Tokens automatisch
+      mit gzip komprimiert. Du erkennst sie am Präfix <code>L:</code>.
+      Alte unkomprimierte Tokens bleiben weiterhin lesbar.
+      Typische Größe sank von 5–10 KB auf 1–2 KB.</li>
   <li>Tokens sind Versions-getaggt. Wenn jemand einen Token aus einer
       neueren Tool-Version schickt, kommt eine Warnung — Import wird
       trotzdem versucht (Felder, die das ältere Tool nicht kennt, werden
       ignoriert).</li>
-  <li>Token-Länge: ca. 1–10 KB je nach Konfigurations-Größe.</li>
 </ul>
 `
   },
@@ -301,6 +350,20 @@ nach dem anderen.</p>
 <p><strong>Wann aktivieren?</strong> Bei Multi-LCD 3×3 oder mehr, oder wenn
 du den „too complex"-Fehler bekommst.</p>
 
+<h3>Blöcke pro Tick (Coroutine-Chunk-Größe)</h3>
+<p>Sobald Coroutines aktiv sind, erscheint ein Slider <strong>„Blöcke
+pro Tick"</strong> (10–500, Default 50). Damit stellst du ein, wie viele
+Blöcke pro Tick in der Aggregator-Berechnung abgearbeitet werden.</p>
+<ul>
+  <li>Kleiner Wert (10–25): geringere Last pro Tick, aber Aggregator-
+      Berechnung braucht mehr Ticks bis sie fertig ist.</li>
+  <li>Default 50: gute Balance für die meisten Skripte.</li>
+  <li>Größer (100–500): schneller fertig, mehr Last pro Tick.</li>
+</ul>
+<p>Wenn du auch mit aktiven Coroutines „Script too complex" siehst,
+runter mit dem Wert. Wenn die Aggregator-Werte zu „träge" wirken,
+hoch.</p>
+
 <h3>🛡 Auto-Recovery zerstörter Blöcke</h3>
 <p>Standard-Verhalten seit v2.11.0: Das Skript holt sich die Block-Referenzen
 einmalig beim Start (oder bei „Recompile" im Spiel). Wenn ein Block dann
@@ -310,6 +373,84 @@ Fehler werfen — du drückst dann manuell „Recompile" am Programmable Block.<
 Durchlauf, ob Blöcke noch existieren, und holt sie ggf. neu. Bringt einen
 Performance-Overhead, ist aber sinnvoll für Skripte die dauerhaft laufen
 und mit Block-Verlust umgehen müssen (Verteidigungsanlagen, Bohrer-Setups).</p>
+`
+  },
+
+  expert: {
+    title: "🛠 Experten-Modus",
+    body: `
+<p>Der Experten-Modus blendet zusätzliche Felder ein, die für die
+meisten Skripte nicht nötig sind, Power-Usern aber Feintuning
+ermöglichen. Aktivierung über den Button <strong>„🛠 Experten"</strong>
+oben rechts im Header (leuchtet Akzent-farbig wenn aktiv).</p>
+<p>Zustand wird in LocalStorage gespeichert. Bei deaktiviertem Modus
+sind die Expert-Felder einfach unsichtbar — ihre Werte bleiben aber
+im State erhalten, falls du den Modus später wieder aktivierst.</p>
+
+<h3>Operator-Klammern in Bedingungen</h3>
+<p>In C# (und Mathematik) gilt: <strong>UND vor ODER</strong>. Bei
+gemischter Logik werden deine Bedingungen also automatisch geklammert:
+<code>A oder B und C oder D</code> wird zu <code>A oder (B und C) oder D</code>.</p>
+<p>Wenn du das anders willst (z. B. <code>(A oder B) und (C oder D)</code>),
+brauchst du explizite Klammern. Im Experten-Modus erscheint dafür pro
+Bedingung eine kleine Klammer-Reihe:</p>
+<ul>
+  <li><strong>„+ ("</strong> = „hier (also vor mir) öffnet eine Gruppe"</li>
+  <li><strong>„+ )"</strong> = „hier (also nach mir) schließt eine Gruppe"</li>
+  <li><strong>„−"</strong> daneben = letzte Klammer auf dieser Seite entfernen</li>
+</ul>
+<p>Die Klammern stehen also <em>zwischen</em> Bedingungen, nicht
+<em>in</em> ihnen — pro Bedingung gibt's den „Anker" links (Gruppenanfang)
+und rechts (Gruppenende). Beispiel für „(A oder B) und (C oder D)":</p>
+<ul>
+  <li>Bedingung A: vorne „+ (" → Counter zeigt <code>(</code></li>
+  <li>Bedingung B (mit ODER): hinten „+ )" → Counter zeigt <code>)</code></li>
+  <li>Bedingung C (mit UND): vorne „+ ("</li>
+  <li>Bedingung D (mit ODER): hinten „+ )"</li>
+</ul>
+<p>Generierter Code: <code>((A) || (B)) && ((C) || (D))</code>.</p>
+<p>Die inneren <code>(A)</code> / <code>(B)</code> setzt das Tool immer
+automatisch um jede Bedingung — die siehst du in jedem Output. Die
+äußeren Klammern (die Gruppen) sind das was du mit den Buttons
+steuerst.</p>
+
+<h3>Aggregator-Refresh-Intervall</h3>
+<p>In der AUSFÜHRUNG-Sektion erscheint im Experten-Modus ein Slider
+<strong>„Aggregator-Refresh alle N Ticks"</strong> (1–200, Default 1).</p>
+<p>Bedeutung: Aggregator-Listen (für „Alle Blöcke vom Typ" und LCD-
+Aggregator-Widgets) werden normalerweise <strong>jeden Tick</strong> neu
+gesucht. Bei großen Grids mit vielen Aggregator-Bedingungen kann das
+Performance kosten.</p>
+<ul>
+  <li><strong>1 (Default)</strong>: jeden Tick frisch — gleiches Verhalten
+      wie vor v4.3.0.</li>
+  <li><strong>10–100</strong>: Performance-Gewinn, neue Blöcke werden
+      aber bis zu N Ticks später erkannt.</li>
+  <li>SE-Wiki empfiehlt <strong>100+</strong> als guten Tuning-Punkt.</li>
+</ul>
+<p>Im Output emittiert das Tool dann ein <code>int _tickCounter</code>-
+Feld und wrappt die Refresh-Logik in
+<code>if ((_tickCounter++ % N) == 0) { … }</code>.</p>
+
+<h3>Effekte-Toggle (Matrix-Scanlines + Cyberpunk-Glow)</h3>
+<p>Neben den anderen Header-Buttons gibt's <strong>„✨ Effekte"</strong>
+(kein Experten-Modus nötig). Schaltet themespezifische optische
+Effekte ein:</p>
+<ul>
+  <li><strong>Matrix-Theme</strong>: feines CRT-Scanline-Overlay über
+      die ganze Seite — gibt's nostalgisches Röhrenmonitor-Feeling.</li>
+  <li><strong>Cyberpunk-Theme</strong>: Neon-Glow um Akzent-Elemente
+      (Section-Titel, Buttons, Tag).</li>
+  <li>Andere Themes: keine sichtbaren Effekte (gewollt).</li>
+</ul>
+<p>Zustand persistiert in LocalStorage.</p>
+
+<h3>Theme-Preview-Thumbnails</h3>
+<p>Das Theme-Dropdown oben rechts zeigt seit v4.2.0 pro Theme einen
+<strong>kleinen Farb-Splitter</strong> (3 Streifen: Akzentfarbe,
+Hintergrund, Text). Damit siehst du auf einen Blick wie ein Theme
+wirkt, ohne es erst zu aktivieren. Klick öffnet die Liste, Klick auf
+ein Theme wendet es an.</p>
 `
   },
 
@@ -356,7 +497,20 @@ Wenn du anders klammern willst, brauchst du aktuell den Custom-Modus
   <li>Leer (rot, ⚠) — wird ignoriert beim Generieren</li>
   <li>Leerzeichen am Anfang/Ende (gelb, ⚠) — meist Tippfehler</li>
   <li>Unsichtbare Steuerzeichen (gelb, ⚠) — passiert beim Kopieren aus Discord</li>
+  <li><strong>Duplikat-Warnung</strong> (gelb, ⚠): wenn derselbe Block-Name
+      in unterschiedlichen Block-Typen verwendet wird (z. B. einmal als Tür,
+      einmal als Akku). Das ist ein eindeutiger Konflikt — ein Block kann
+      nicht zwei Typen sein. Wenn du denselben Namen mehrfach für denselben
+      Typ verwendest (Tür „X" prüfen + öffnen), ist das KEIN Konflikt
+      und löst keine Warnung aus.</li>
 </ul>
+
+<h3>Auto-Complete für Block-Namen</h3>
+<p>Sobald du in einem Block-Name-Feld tippst, schlägt das Tool dir
+<strong>alle Block-Namen vor</strong>, die du irgendwo anders schon
+eingegeben hast (in Bedingungen, Aktionen, LCD-Composer). Klick auf
+einen Vorschlag → wird übernommen. Verhindert Tippfehler bei
+wiederverwendeten Namen.</p>
 
 <h3>Tooltip am ⓘ-Symbol</h3>
 <p>Neben dem <strong>Prüfung</strong>-Dropdown gibt's ein ⓘ — Maus drüber
@@ -622,7 +776,28 @@ Live-Vorschau. Verschiedene Widgets stehen zur Wahl (siehe nächste Sektion
       klappt auf.</li>
   <li><strong>Shift+Klick</strong> → Multi-Auswahl (mehrere Widgets gleichzeitig
       verschieben/löschen).</li>
-  <li>Smart-Snap: Widgets rasten an Kanten / Mitten / anderen Widgets ein.</li>
+  <li>Smart-Snap: Widgets rasten an Kanten / Mitten / anderen Widgets ein.
+      Beim Resize snappt das Widget zusätzlich an die <strong>Breite/Höhe
+      anderer Widgets</strong> — praktisch für „gleich groß wie der Nachbar".</li>
+</ul>
+
+<h3>Mehrere Widgets gleichzeitig bearbeiten</h3>
+<ul>
+  <li><strong>Strg+A</strong>: alle Widgets auf einmal selektieren.</li>
+  <li><strong>Lasso-Select</strong>: Maus-Drag auf dem Canvas-Hintergrund
+      (nicht auf einem Widget) zieht ein gestricheltes Rechteck. Alle
+      Widgets im Rahmen werden selektiert. Shift+Drag erweitert die
+      Selektion statt zu ersetzen.</li>
+  <li><strong>ESC</strong>: leert die Auswahl. <strong>Entf/Backspace</strong>:
+      löscht alle selektierten Widgets (außerhalb von Inputs).</li>
+  <li>Bei ≥2 selektierten Widgets erscheint in der Action-Bar eine
+      <strong>Ausrichten-Reihe</strong>: links/Mitte/rechts (horizontal)
+      und oben/Mitte/unten (vertikal). Referenz ist die Bounding-Box
+      aller selektierten.</li>
+  <li>Bei ≥3 selektierten Widgets zusätzlich
+      <strong>Verteilen-Buttons</strong> (↔ horizontal, ↕ vertikal):
+      gleiche Abstände zwischen den Widgets. Erstes und letztes
+      bleiben stehen, mittlere werden umverteilt.</li>
 </ul>
 
 <h3>Themes</h3>
@@ -781,6 +956,61 @@ Verhalten siehst wie aus der alten Version, drücke <strong>Strg+F5</strong>
 `
   },
 
+  explanation: {
+    title: "📖 Plain-Language-Beschreibung",
+    body: `
+<p>Im rechten Panel über dem generierten Code gibt es eine ausklappbare
+Box <strong>„📖 Was macht dieses Skript?"</strong>. Sie beschreibt
+deine aktuelle Konfiguration in <strong>natürlicher Sprache</strong> —
+zum schnellen Überprüfen, ohne den C#-Code lesen zu müssen.</p>
+
+<h3>Beispiel-Output</h3>
+<blockquote>
+„Etwa 6 mal pro Sekunde prüft das Skript, ob Sensor 1 etwas erkannt hat
+und Hauptakku mehr als 50 % Ladung hat. Wenn ja, wird Schleuse geöffnet
+und Notlicht eingeschaltet."
+</blockquote>
+
+<h3>Wie das funktioniert</h3>
+<ul>
+  <li>Die Beschreibung wird <strong>automatisch</strong> aus deinen
+      WENN/DANN/SONST-Eingaben gebaut, sobald du etwas änderst.</li>
+  <li>Catalog-Begriffe wie „Ist offen" werden in natürliche Sätze
+      umgeformt: „… ist offen", „… mehr als 50 % geladen hat",
+      „… etwas erkannt hat".</li>
+  <li>Aktions-Verben werden zu Partizipien: „Öffnen" → „wird geöffnet",
+      „Einschalten" → „wird eingeschaltet".</li>
+  <li>Bei mehreren Aktionen wird automatisch Plural genutzt:
+      „werden … geöffnet" statt „wird … geöffnet".</li>
+  <li>Block-Gruppen und „Alle Blöcke vom Typ" werden mit Aggregator-
+      Phrasen formuliert („mindestens einer der Akkus …", „die Summe
+      über alle Solarpanels …").</li>
+</ul>
+
+<h3>Ein-/Ausklappen</h3>
+<p>Klick auf den Box-Header schaltet zwischen offen und zu um. Der
+Zustand wird gespeichert (LocalStorage) — beim nächsten Besuch
+ist die Box wieder so wie du sie zugeklappt/aufgeklappt hattest.</p>
+
+<h3>Sprache</h3>
+<p>Bei einem Sprachwechsel (DE ↔ EN) wird die Beschreibung sofort
+neu generiert. Override-Map deckt ~30 häufige Sonderfälle pro Sprache
+ab (Sensor, Air Vent, Akku, Reaktor etc.). Wenn ein seltenes
+Catalog-Label nicht abgedeckt ist, kommt eine generische Form
+(„die Bedingung „X" erfüllt"). Sag Bescheid wenn dir ein Satz
+holprig aufstößt — neue Übersetzungen sind schnell ergänzt.</p>
+
+<h3>Limitierungen</h3>
+<ul>
+  <li>Bei numerischen Aggregator-Bedingungen (Sum/Avg/Min/Max) wird
+      das Catalog-Label noch in Klammern als Hinweis gezeigt, weil
+      der Aggregator das X-Argument ignoriert.</li>
+  <li>Operator-Klammern (Expert-Mode) erscheinen in der Beschreibung
+      noch nicht — der Satz baut die Reihenfolge wie eingetragen auf.</li>
+</ul>
+`
+  },
+
   ingame: {
     title: "Im Spiel nutzen — Schritt für Schritt",
     body: `
@@ -876,8 +1106,28 @@ through a visual builder — <strong>no programming knowledge required</strong>.
 </ul>
 
 <p>The tool generates the finished C# code, which you then paste into
-the Programmable Block in-game. You can also design graphical LCD
-displays, save templates, switch languages and much more.</p>
+the Programmable Block in-game.</p>
+
+<h3>What's in it</h3>
+<ul>
+  <li><strong>Visual builder</strong> for conditions and actions with drag &amp; drop.</li>
+  <li><strong>Three block sources</strong> per condition/action: single
+      block, block group, or all blocks of a type.</li>
+  <li><strong>Aggregator modes</strong>: sum, average, min, max, count,
+      any, all across multiple blocks.</li>
+  <li><strong>Graphical LCD composer</strong> with sprite widgets, themes,
+      presets, multi-LCD arrangement.</li>
+  <li><strong>Templates + share tokens + share links</strong> for reuse
+      and exchange.</li>
+  <li><strong>Plain-language description</strong> next to the code that
+      summarizes your configuration in natural language.</li>
+  <li><strong>Auto-complete</strong> for block names and warnings on typos.</li>
+  <li><strong>Expert mode</strong> with parentheses, aggregator refresh
+      interval and more for power users.</li>
+  <li><strong>Themes &amp; effects</strong> — nine themes, optional
+      Matrix scanlines and cyberpunk glow.</li>
+  <li><strong>Bilingual</strong> — German / English switchable live.</li>
+</ul>
 
 <h3>The tool does NOT</h3>
 <ul>
@@ -979,9 +1229,21 @@ LCD configuration. Confirms first.</p>
   <li>Keep it as a backup</li>
 </ul>
 
+<h3>Per-template export (small ⤴ icon on chip)</h3>
+<p>Each template chip has a small <strong>⤴</strong> icon between the
+name and the ✕. Click → exports just this one template as its own
+<code>.json</code> file. Handy for sharing single templates.</p>
+
 <h3>Import — load templates from a file</h3>
-<p>Click <strong>"⤵ Import"</strong> → pick a <code>.json</code> file
-→ confirm. Templates from the file are added to your list.
+<p>Two ways:</p>
+<ul>
+  <li>Click <strong>"⤵ Import"</strong> → pick a <code>.json</code>
+      file → confirm.</li>
+  <li>Or simply <strong>drag the <code>.json</code> file onto the
+      browser window</strong>. While dragging, a dashed border lights
+      up. On drop the import dialog opens automatically.</li>
+</ul>
+<p>Templates from the file are added to your list.
 <strong>Existing templates are never overwritten</strong> — on name
 conflict the import gets a <code>(2)</code> suffix.</p>
 
@@ -1021,12 +1283,24 @@ on demand and can be copied anywhere.</p>
       Best for <em>sharing</em> (Discord, forum, email).</li>
 </ul>
 
+<h3>🔗 Share link (URL hash)</h3>
+<p>Instead of copying the token manually, click the
+<strong>"🔗 Share link"</strong> button. The tool builds a ready-made
+URL of the form <code>…/index.html#state=&lt;token&gt;</code> and copies
+it to the clipboard. Whoever opens the link sees the configuration
+loaded directly — no token-pasting needed.</p>
+<p>Great for Discord / forum / mail posts. Opening the link in another
+tab asks for confirmation if there's already a configuration loaded.</p>
+
 <h3>Tips</h3>
 <ul>
+  <li><strong>Compression</strong>: since v4.0, tokens are automatically
+      gzipped. You can spot them by the <code>L:</code> prefix. Old
+      uncompressed tokens remain readable. Typical size dropped from
+      5–10 KB to 1–2 KB.</li>
   <li>Tokens are version-tagged. If someone sends a token from a newer
       tool version, you get a warning — import is still attempted
       (fields the older tool doesn't know are ignored).</li>
-  <li>Token length: about 1–10 KB depending on config size.</li>
 </ul>
 `
   },
@@ -1116,6 +1390,19 @@ LCDs no longer refresh simultaneously — one after the other.</p>
 <p><strong>When to enable?</strong> At multi-LCD 3×3 or larger, or when
 you hit the "too complex" error.</p>
 
+<h3>Blocks per tick (coroutine chunk size)</h3>
+<p>Once coroutines are active, a slider <strong>"Blocks per tick"</strong>
+appears (10–500, default 50). Controls how many blocks are processed
+per tick in the aggregator computation.</p>
+<ul>
+  <li>Small (10–25): lower load per tick, but aggregator takes more
+      ticks to finish.</li>
+  <li>Default 50: good balance for most scripts.</li>
+  <li>Large (100–500): finishes faster, more load per tick.</li>
+</ul>
+<p>If you still see "Script too complex" with coroutines on, lower the
+value. If aggregator values feel sluggish, raise it.</p>
+
 <h3>🛡 Auto-recover destroyed blocks</h3>
 <p>Default behavior since v2.11.0: the script fetches block references
 once at startup (or on "Recompile" in-game). If a block is destroyed
@@ -1172,7 +1459,19 @@ If you need different grouping you currently have to use Custom mode
   <li>Leading/trailing spaces (yellow, ⚠) — usually a typo</li>
   <li>Invisible control characters (yellow, ⚠) — happens when copying
       from Discord</li>
+  <li><strong>Duplicate warning</strong> (yellow, ⚠): when the same
+      block name is used across different block types (e.g. once as a
+      Door, once as a Battery). That's a real conflict — one block
+      can't be two types. Reusing the same name within the same type
+      (Door "X" checked + opened) is NOT a conflict and doesn't trigger
+      a warning.</li>
 </ul>
+
+<h3>Auto-complete for block names</h3>
+<p>While typing in a block name field, the tool suggests all block
+names you've already entered elsewhere (conditions, actions, LCD
+composer). Click a suggestion → it's filled in. Prevents typos when
+reusing names.</p>
 
 <h3>Tooltip on the ⓘ symbol</h3>
 <p>Next to the <strong>Check</strong> dropdown there's a ⓘ — hovering
@@ -1434,7 +1733,27 @@ in detail").</p>
   <li>Click a widget or a layer-list row → detail editor opens.</li>
   <li><strong>Shift+Click</strong> → multi-select (move/delete several
       widgets at once).</li>
-  <li>Smart snap: widgets snap to edges / centers / other widgets.</li>
+  <li>Smart snap: widgets snap to edges / centers / other widgets.
+      On resize, widgets also snap to the <strong>width/height of
+      other widgets</strong> — handy for "same size as the neighbor".</li>
+</ul>
+
+<h3>Editing multiple widgets at once</h3>
+<ul>
+  <li><strong>Ctrl+A</strong>: select all widgets at once.</li>
+  <li><strong>Lasso select</strong>: mouse-drag on the canvas background
+      (not on a widget) draws a dashed rectangle. All widgets inside
+      get selected. Shift-drag extends the selection instead of
+      replacing.</li>
+  <li><strong>ESC</strong>: clear the selection. <strong>Del/Backspace</strong>:
+      delete all selected widgets (outside of input fields).</li>
+  <li>With ≥2 widgets selected, the action bar shows an
+      <strong>align row</strong>: left/center/right (horizontal) and
+      top/middle/bottom (vertical). Reference is the bounding box of
+      the selection.</li>
+  <li>With ≥3 widgets, additional <strong>distribute buttons</strong>
+      (↔ horizontal, ↕ vertical) space widgets evenly. First and last
+      stay put, middle ones redistribute.</li>
 </ul>
 
 <h3>Themes</h3>
@@ -1591,6 +1910,131 @@ constructor, <code>InitBlocks()</code>, optionally <code>RefreshBlocks()</code>,
 <p>If you use the tool via GitHub Pages and see behavior from the old
 version after an update, hit <strong>Ctrl+F5</strong> (hard refresh).
 Browsers cache JS and CSS longer than needed.</p>
+`
+  },
+
+  explanation: {
+    title: "📖 Plain-language description",
+    body: `
+<p>The right panel above the generated code has a collapsible box
+<strong>"📖 What does this script do?"</strong>. It describes your
+current configuration in <strong>natural language</strong> — for quick
+verification without reading the C# code.</p>
+
+<h3>Example output</h3>
+<blockquote>
+"About 6 times per second the script checks whether Sensor 1 has
+detected something and Main Battery has more than 50 % charge. If so,
+Airlock is opened and Emergency Light is turned on."
+</blockquote>
+
+<h3>How it works</h3>
+<ul>
+  <li>The description is built <strong>automatically</strong> from your
+      IF/THEN/ELSE entries whenever you change something.</li>
+  <li>Catalog terms like "Is open" are rewritten into natural
+      sentences: "… is open", "… has more than 50 % charge",
+      "… has detected something".</li>
+  <li>Action verbs become past participles: "Open" → "is opened",
+      "Turn on" → "is turned on".</li>
+  <li>With multiple actions the plural form is used automatically:
+      "are … opened" instead of "is … opened".</li>
+  <li>Block groups and "all blocks of type" use aggregator phrasing
+      ("at least one of the batteries …", "the sum across all
+      solar panels …").</li>
+</ul>
+
+<h3>Expand/collapse</h3>
+<p>Click the box header to toggle. The state is saved (LocalStorage) —
+next visit the box opens in the same state as you left it.</p>
+
+<h3>Language</h3>
+<p>On a language switch (DE ↔ EN) the description regenerates instantly.
+An override map covers ~30 common cases per language (sensor, air vent,
+battery, reactor etc.). Rare catalog labels fall back to a generic
+form ("meets the condition 'X'"). Let me know if a sentence feels
+clunky — translations are easy to add.</p>
+
+<h3>Limitations</h3>
+<ul>
+  <li>For numeric aggregator conditions (sum/avg/min/max) the catalog
+      label is still shown in parentheses as a hint, since the
+      aggregator ignores the X argument.</li>
+  <li>Operator parentheses (expert mode) are not reflected in the
+      description yet — the sentence is built in the order you entered.</li>
+</ul>
+`
+  },
+
+  expert: {
+    title: "🛠 Expert mode",
+    body: `
+<p>Expert mode reveals extra fields that aren't needed for most
+scripts but allow power-user tuning. Activate it via the
+<strong>"🛠 Expert"</strong> button top-right (lights up in accent
+color when active).</p>
+<p>The state is saved in LocalStorage. When disabled, expert fields
+are simply hidden — their values remain in state if you re-enable
+the mode later.</p>
+
+<h3>Operator parentheses in conditions</h3>
+<p>In C# (and math): <strong>AND before OR</strong>. With mixed logic
+your conditions are auto-grouped: <code>A or B and C or D</code>
+becomes <code>A or (B and C) or D</code>.</p>
+<p>If you want it differently (e.g. <code>(A or B) and (C or D)</code>)
+you need explicit parentheses. In expert mode a small parenthesis row
+appears per condition:</p>
+<ul>
+  <li><strong>"+ ("</strong> = "here (before me) a group opens"</li>
+  <li><strong>"+ )"</strong> = "here (after me) a group closes"</li>
+  <li><strong>"−"</strong> = remove the last parenthesis on that side</li>
+</ul>
+<p>So the parentheses sit <em>between</em> conditions, not <em>in</em>
+them — each condition just has "anchors" on the left (group start) and
+right (group end). Example for "(A or B) and (C or D)":</p>
+<ul>
+  <li>Condition A: left "+ (" → counter shows <code>(</code></li>
+  <li>Condition B (OR): right "+ )" → counter shows <code>)</code></li>
+  <li>Condition C (AND): left "+ ("</li>
+  <li>Condition D (OR): right "+ )"</li>
+</ul>
+<p>Generated code: <code>((A) || (B)) && ((C) || (D))</code>.</p>
+<p>The inner <code>(A)</code> / <code>(B)</code> are always added by
+the tool around each single condition. The outer ones (the groups) are
+what you control with the buttons.</p>
+
+<h3>Aggregator refresh interval</h3>
+<p>In the EXECUTION section, expert mode shows a slider
+<strong>"Aggregator refresh every N ticks"</strong> (1–200, default 1).</p>
+<p>Meaning: aggregator lists (for "all blocks of type" and LCD
+aggregator widgets) normally refresh <strong>every tick</strong>. On
+big grids with many aggregator conditions, that can cost performance.</p>
+<ul>
+  <li><strong>1 (default)</strong>: refresh each tick — pre-v4.3.0 behavior.</li>
+  <li><strong>10–100</strong>: performance gain, but new blocks are
+      detected up to N ticks later.</li>
+  <li>SE wiki suggests <strong>100+</strong> as a good tuning target.</li>
+</ul>
+<p>The tool emits an <code>int _tickCounter</code> field and wraps the
+refresh logic in <code>if ((_tickCounter++ % N) == 0) { … }</code>.</p>
+
+<h3>Effects toggle (Matrix scanlines + cyberpunk glow)</h3>
+<p>Next to the other header buttons there's <strong>"✨ Effects"</strong>
+(no expert mode needed). Toggles theme-specific visual effects:</p>
+<ul>
+  <li><strong>Matrix theme</strong>: a fine CRT scanline overlay
+      across the whole page — nostalgic tube-monitor feel.</li>
+  <li><strong>Cyberpunk theme</strong>: neon glow around accent
+      elements (section titles, buttons, tag).</li>
+  <li>Other themes: no visible effect (intentional).</li>
+</ul>
+<p>State persists in LocalStorage.</p>
+
+<h3>Theme preview thumbnails</h3>
+<p>The theme dropdown top-right shows a <strong>small color swatch</strong>
+per theme since v4.2.0 (3 stripes: accent, panel, text). Lets you
+see at a glance how a theme looks without activating it. Click opens
+the list, click on a theme applies it.</p>
 `
   },
 
